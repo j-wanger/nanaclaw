@@ -5,14 +5,7 @@ import path from 'path';
 import Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { INBOUND_SCHEMA, OUTBOUND_SCHEMA } from './db/schema.js';
-import {
-  ensureSchema,
-  insertMessage,
-  nextEvenSeq,
-  openInboundDb,
-  countDueMessages,
-} from './db/session-db.js';
+import { ensureSchema, insertMessage, nextEvenSeq, openInboundDb, countDueMessages } from './db/session-db.js';
 
 interface SessionFixture {
   tmpDir: string;
@@ -145,10 +138,12 @@ describe('session DB: outbound round-trip', () => {
   it('container write is readable by host (raw SQL)', () => {
     const writeDb = new Database(fixture.outboundPath);
     writeDb.pragma('journal_mode = DELETE');
-    writeDb.prepare(
-      `INSERT INTO messages_out (id, seq, timestamp, kind, content)
+    writeDb
+      .prepare(
+        `INSERT INTO messages_out (id, seq, timestamp, kind, content)
        VALUES (?, ?, ?, ?, ?)`,
-    ).run('out-1', 1, '2026-04-27T00:00:00Z', 'text', 'Reply from agent');
+      )
+      .run('out-1', 1, '2026-04-27T00:00:00Z', 'text', 'Reply from agent');
     writeDb.close();
 
     const readDb = new Database(fixture.outboundPath, { readonly: true });
@@ -163,14 +158,18 @@ describe('session DB: outbound round-trip', () => {
   it('container uses odd seq numbers (by convention)', () => {
     const writeDb = new Database(fixture.outboundPath);
     writeDb.pragma('journal_mode = DELETE');
-    writeDb.prepare(
-      `INSERT INTO messages_out (id, seq, timestamp, kind, content)
+    writeDb
+      .prepare(
+        `INSERT INTO messages_out (id, seq, timestamp, kind, content)
        VALUES (?, ?, ?, ?, ?)`,
-    ).run('out-a', 1, '2026-04-27T00:00:00Z', 'text', 'First');
-    writeDb.prepare(
-      `INSERT INTO messages_out (id, seq, timestamp, kind, content)
+      )
+      .run('out-a', 1, '2026-04-27T00:00:00Z', 'text', 'First');
+    writeDb
+      .prepare(
+        `INSERT INTO messages_out (id, seq, timestamp, kind, content)
        VALUES (?, ?, ?, ?, ?)`,
-    ).run('out-b', 3, '2026-04-27T00:01:00Z', 'text', 'Second');
+      )
+      .run('out-b', 3, '2026-04-27T00:01:00Z', 'text', 'Second');
     writeDb.close();
 
     const readDb = new Database(fixture.outboundPath, { readonly: true });
@@ -184,14 +183,19 @@ describe('session DB: outbound round-trip', () => {
   it('processing_ack tracks message completion', () => {
     const writeDb = new Database(fixture.outboundPath);
     writeDb.pragma('journal_mode = DELETE');
-    writeDb.prepare(
-      `INSERT INTO processing_ack (message_id, status, status_changed)
+    writeDb
+      .prepare(
+        `INSERT INTO processing_ack (message_id, status, status_changed)
        VALUES (?, ?, ?)`,
-    ).run('msg-1', 'completed', '2026-04-27T00:01:00Z');
+      )
+      .run('msg-1', 'completed', '2026-04-27T00:01:00Z');
     writeDb.close();
 
     const readDb = new Database(fixture.outboundPath, { readonly: true });
-    const row = readDb.prepare('SELECT * FROM processing_ack WHERE message_id = ?').get('msg-1') as Record<string, unknown>;
+    const row = readDb.prepare('SELECT * FROM processing_ack WHERE message_id = ?').get('msg-1') as Record<
+      string,
+      unknown
+    >;
     expect(row).toBeDefined();
     expect(row.status).toBe('completed');
     readDb.close();
@@ -225,10 +229,12 @@ describe('session DB: cross-DB round-trip', () => {
 
     const outDb = new Database(fixture.outboundPath);
     outDb.pragma('journal_mode = DELETE');
-    outDb.prepare(
-      `INSERT INTO messages_out (id, seq, in_reply_to, timestamp, kind, content)
+    outDb
+      .prepare(
+        `INSERT INTO messages_out (id, seq, in_reply_to, timestamp, kind, content)
        VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run('msg-out-1', 1, 'msg-in-1', '2026-04-27T00:00:01Z', 'text', 'Agent response');
+      )
+      .run('msg-out-1', 1, 'msg-in-1', '2026-04-27T00:00:01Z', 'text', 'Agent response');
     outDb.close();
 
     const readIn = new Database(fixture.inboundPath, { readonly: true });
@@ -237,7 +243,10 @@ describe('session DB: cross-DB round-trip', () => {
     readIn.close();
 
     const readOut = new Database(fixture.outboundPath, { readonly: true });
-    const outRow = readOut.prepare('SELECT content, in_reply_to FROM messages_out WHERE id = ?').get('msg-out-1') as { content: string; in_reply_to: string };
+    const outRow = readOut.prepare('SELECT content, in_reply_to FROM messages_out WHERE id = ?').get('msg-out-1') as {
+      content: string;
+      in_reply_to: string;
+    };
     expect(outRow.content).toBe('Agent response');
     expect(outRow.in_reply_to).toBe('msg-in-1');
     readOut.close();

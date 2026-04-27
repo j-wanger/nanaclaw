@@ -7,7 +7,7 @@ parents: [phase-08-operational-deployment, phase-09-prompt-reconciliation-harden
 created: 2026-04-27
 updated: 2026-04-27
 source: plan
-status: active
+status: completed
 scope: ["src/spawn-pipeline.test.ts", "src/session-roundtrip.test.ts", "src/delivery.test.ts", "groups/*/container.json", "groups/*/models.json"]
 entry_criteria: "Phase 9 complete, system operational as daily driver"
 exit_criteria: "Spawn pipeline vitest coverage, session DB round-trip vitest coverage, delivery action dispatch vitest coverage, all tests pass, config coherence for both groups"
@@ -28,11 +28,11 @@ Add vitest coverage for the three critical host-mode data paths (spawn pipeline,
 
 ## Exit Criteria
 
-- [ ] Spawn pipeline has vitest coverage (promoted from standalone script)
-- [ ] Session DB round-trip has vitest coverage (inbound write → outbound write → cross-read)
-- [ ] Delivery action dispatch has vitest coverage (outbound action parsing + mocked dispatch)
-- [ ] All tests pass (existing + new)
-- [ ] Both agent groups have valid, coherent configuration
+- [x] Spawn pipeline has vitest coverage (promoted from standalone script)
+- [x] Session DB round-trip has vitest coverage (inbound write → outbound write → cross-read)
+- [x] Delivery action dispatch has vitest coverage (outbound action parsing + mocked dispatch)
+- [x] All tests pass (existing + new)
+- [x] Both agent groups have valid, coherent configuration
 
 ## Notes
 

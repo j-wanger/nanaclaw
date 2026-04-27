@@ -147,7 +147,12 @@ describe('deliverSessionMessages — concurrent invocations', () => {
   });
 });
 
-function insertSystemAction(agentGroupId: string, sessionId: string, msgId: string, action: Record<string, unknown>): void {
+function insertSystemAction(
+  agentGroupId: string,
+  sessionId: string,
+  msgId: string,
+  action: Record<string, unknown>,
+): void {
   const db = new Database(outboundDbPath(agentGroupId, sessionId));
   db.prepare(
     `INSERT INTO messages_out (id, seq, timestamp, kind, content)
@@ -171,7 +176,11 @@ describe('deliverSessionMessages — system action dispatch', () => {
       task: { content: 'Research topic', processAfter: '2026-04-28T00:00:00Z' },
     });
 
-    setDeliveryAdapter({ async deliver() { return undefined; } });
+    setDeliveryAdapter({
+      async deliver() {
+        return undefined;
+      },
+    });
     await deliverSessionMessages(session);
 
     expect(handlerCalls).toHaveLength(1);
@@ -187,7 +196,11 @@ describe('deliverSessionMessages — system action dispatch', () => {
       data: { key: 'value' },
     });
 
-    setDeliveryAdapter({ async deliver() { return undefined; } });
+    setDeliveryAdapter({
+      async deliver() {
+        return undefined;
+      },
+    });
     await expect(deliverSessionMessages(session)).resolves.not.toThrow();
   });
 
@@ -195,14 +208,18 @@ describe('deliverSessionMessages — system action dispatch', () => {
     seedAgentAndChannel();
     const { session } = resolveSession('ag-1', 'mg-1', null, 'shared');
 
-    registerDeliveryAction('test_noop_' + Date.now(), async () => {});
+    const actionName = 'test_noop_' + Date.now();
+    registerDeliveryAction(actionName, async () => {});
     insertSystemAction('ag-1', session.id, 'sys-noop-1', {
-      action: 'test_noop_' + Date.now(),
+      action: actionName,
     });
 
     let adapterCalled = false;
     setDeliveryAdapter({
-      async deliver() { adapterCalled = true; return undefined; },
+      async deliver() {
+        adapterCalled = true;
+        return undefined;
+      },
     });
     await deliverSessionMessages(session);
 
