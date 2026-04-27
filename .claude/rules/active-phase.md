@@ -1,7 +1,9 @@
 # Active Phase Context
 
-Phase: 10 - Host-Mode Integration Tests (COMPLETE)
-Objective: Add vitest coverage for spawn pipeline, session DB round-trip, and delivery action dispatch
-Status: 4/4 tasks done. All 5 exit criteria met.
-Key changes: 26 new tests (358 total), spawn-pipeline.test.ts, session-roundtrip.test.ts, delivery.test.ts extended
-Next: Push to git, restart nanaclaw, validate live worker dispatch. Then /dev-plan for Phase 11.
+Phase: 11 - Host-Mode Fragment Path Fix
+Objective: Fix broken fragment symlinks in composeGroupClaudeMd so host-mode agents read skill/module instructions
+Scope: src/claude-md-compose.ts, src/claude-md-compose.test.ts, src/container-config.ts
+Key constraints: Container-mode (/app/... paths) must be unchanged. Detect provider from readContainerConfig.
+Exit: 5 criteria — fragment symlinks resolve, .claude-shared.md resolves, container-mode unchanged, all tests pass, build clean
+Abort: if blocked >3 attempts, ask user: skip or abort
+Root cause: 3 live-test bugs (no dispatch_worker, no wiki access, blocking during research) all trace to broken symlinks

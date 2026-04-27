@@ -1,0 +1,9 @@
+commit: 7a83a617cea56b33bb020fa37a6ad8da7112cd11
+message: fix: reviewer fixes — Date.now race, unused imports, state sync
+time: 2026-04-27T08:12:08-04:00
+files:
+ .dev-wiki/_CURRENT_STATE.md                        |  6 +--
+ .../phases/phase-10-host-mode-integration-tests.md | 12 ++---
+ src/delivery.test.ts                               | 29 ++++++++---
+ src/session-roundtrip.test.ts                      | 59 +++++++++++++---------
+ 4 files changed, 66 insertions(+), 40 deletions(-)

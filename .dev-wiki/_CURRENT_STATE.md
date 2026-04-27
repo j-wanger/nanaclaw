@@ -1,24 +1,24 @@
 # Project: nanaclaw
 
-> Last updated: 2026-04-27 by /dev-debrief
+> Last updated: 2026-04-27 by /dev-plan
 
 ## Recommended Next Action
 
-Phase 10 complete (4/4 tasks, 26 new tests). Push to git, restart nanaclaw, validate live worker dispatch. Next planning: episodic wiki consolidation or multi-agent coordination.
+Begin Phase 11 implementation: fix host-mode fragment symlink paths in composeGroupClaudeMd (Task 1).
 
 ## Active Phase
 
-**[[phase-10-host-mode-integration-tests|Phase 10: Host-Mode Integration Tests]]** (status: completed)
+**[[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]]** (status: active)
 
-Entry criteria: MET (Phase 9 complete ✓, system operational as daily driver ✓)
-Exit criteria: 5/5 met
+Entry criteria: MET (Phase 10 complete ✓, live testing revealed broken symlinks ✓)
+Exit criteria: 0/5 met
 
-Progress: 100% (4/4 tasks, 26 new tests, reviewer accept)
+Progress: ~0% (planned, not started)
 
 ## Active Phase Contract
 
-Phase: 10 - Host-Mode Integration Tests
-Tasks: 4 (3S + 1M, see tasks.md)
+Phase: 11 - Host-Mode Fragment Path Fix
+Tasks: 3 (1M + 2S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -26,9 +26,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-11-host-mode-fragment-path-fix]] | medium | 2026-04-27 |
 | [[phase-10-host-mode-test-coverage-approach]] | medium | 2026-04-27 |
 | [[phase-9-prompt-reconciliation-approach]] | medium | 2026-04-27 |
-| [[phase-8-operational-deployment-approach]] | medium | 2026-04-26 |
 
 ## Blockers and Open Questions
 
@@ -37,6 +37,7 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 - ~~[planning] wiki-bridge: search.py location discovery — WIKI_TOOLS_DIR env var or convention? (raised 2026-04-26)~~ resolved: WIKI_TOOLS_DIR env var, propagates via process.env spread in host-mode
 - ~~[planning] OneCLI CA cert availability in host-mode Bun process — proxy works but cert injection unknown (raised 2026-04-26)~~ resolved: OneCLI proxy works in host mode (agent received Claude API access)
 - ~~[planning] SearXNG not yet installed — required for research loop E2E (raised 2026-04-26)~~ resolved: SearXNG installed via Docker on port 8888
+- ~~[planning] Fragment symlinks point to Docker /app/... paths in host-mode — agent can't read skill/module instructions (raised 2026-04-27)~~ resolving: Phase 11
 
 ## Key Artifacts
 

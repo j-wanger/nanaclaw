@@ -55,6 +55,106 @@ describe('composeGroupClaudeMd', () => {
   });
 });
 
+describe('host-mode fragment resolution', () => {
+  beforeEach(() => {
+    fs.writeFileSync(
+      path.join(groupDir, 'container.json'),
+      JSON.stringify({ provider: 'host', mcpServers: {} }),
+    );
+  });
+
+  it('fragment symlinks resolve to real files when provider=host', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    for (const entry of fs.readdirSync(fragmentsDir)) {
+      const fragPath = path.join(fragmentsDir, entry);
+      const stat = fs.lstatSync(fragPath);
+      if (stat.isSymbolicLink()) {
+        const target = fs.readlinkSync(fragPath);
+        expect(fs.existsSync(target), `${entry} → ${target}`).toBe(true);
+      }
+    }
+  });
+
+  it('.claude-shared.md resolves to container/CLAUDE.md', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const sharedLink = path.join(groupDir, '.claude-shared.md');
+    const target = fs.readlinkSync(sharedLink);
+    expect(target).toContain(path.join('container', 'CLAUDE.md'));
+    expect(fs.existsSync(target)).toBe(true);
+  });
+
+  it('skill fragment targets use host paths (not /app/)', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const memoryFrag = path.join(fragmentsDir, 'skill-memory.md');
+    expect(fs.lstatSync(memoryFrag).isSymbolicLink()).toBe(true);
+    const target = fs.readlinkSync(memoryFrag);
+    expect(target).not.toContain('/app/');
+    expect(target).toContain(path.join('container', 'skills', 'memory'));
+  });
+
+  it('module fragment targets use host paths (not /app/)', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const coreFrag = path.join(fragmentsDir, 'module-core.md');
+    expect(fs.lstatSync(coreFrag).isSymbolicLink()).toBe(true);
+    const target = fs.readlinkSync(coreFrag);
+    expect(target).not.toContain('/app/');
+    expect(target).toContain(path.join('container', 'agent-runner', 'src', 'mcp-tools'));
+  });
+});
+
+describe('host-mode fragment readability', () => {
+  beforeEach(() => {
+    fs.writeFileSync(
+      path.join(groupDir, 'container.json'),
+      JSON.stringify({ provider: 'host', mcpServers: {} }),
+    );
+  });
+
+  it('every fragment entry resolves to a non-empty file', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const entries = fs.readdirSync(fragmentsDir);
+    expect(entries.length).toBeGreaterThan(0);
+
+    for (const entry of entries) {
+      const fragPath = path.join(fragmentsDir, entry);
+      const content = fs.readFileSync(fragPath, 'utf-8');
+      expect(content.length, `${entry} should be non-empty`).toBeGreaterThan(0);
+    }
+  });
+
+  it('inline fragments (soul.md) are non-empty', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const soulPath = path.join(fragmentsDir, 'soul.md');
+    expect(fs.existsSync(soulPath)).toBe(true);
+    const content = fs.readFileSync(soulPath, 'utf-8');
+    expect(content.length).toBeGreaterThan(0);
+  });
+});
+
+describe('container-mode fragment paths unchanged', () => {
+  it('fragment symlinks target /app/ when provider is not host', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const memoryFrag = path.join(fragmentsDir, 'skill-memory.md');
+    const target = fs.readlinkSync(memoryFrag);
+    expect(target).toContain('/app/skills/');
+  });
+
+  it('.claude-shared.md targets /app/CLAUDE.md when provider is not host', () => {
+    composeGroupClaudeMd(makeGroup());
+
+    const sharedLink = path.join(groupDir, '.claude-shared.md');
+    const target = fs.readlinkSync(sharedLink);
+    expect(target).toBe('/app/CLAUDE.md');
+  });
+});
+
 describe('compose coherence', () => {
   it('shared base has no hardcoded Docker workspace paths', () => {
     const base = fs.readFileSync(path.join(process.cwd(), 'container', 'CLAUDE.md'), 'utf-8');
@@ -79,19 +179,13 @@ describe('compose coherence', () => {
       path.join(process.cwd(), 'container', 'skills', 'memory', 'instructions.md'),
       'utf-8',
     );
-    const skill = fs.readFileSync(
-      path.join(process.cwd(), 'container', 'skills', 'memory', 'SKILL.md'),
-      'utf-8',
-    );
+    const skill = fs.readFileSync(path.join(process.cwd(), 'container', 'skills', 'memory', 'SKILL.md'), 'utf-8');
     expect(instructions).not.toContain('Coexistence');
     expect(skill).not.toMatch(/coexist/i);
   });
 
   it('memory skill declares sole authority', () => {
-    const skill = fs.readFileSync(
-      path.join(process.cwd(), 'container', 'skills', 'memory', 'SKILL.md'),
-      'utf-8',
-    );
+    const skill = fs.readFileSync(path.join(process.cwd(), 'container', 'skills', 'memory', 'SKILL.md'), 'utf-8');
     expect(skill).toMatch(/sole memory store/i);
   });
 

@@ -1,0 +1,10 @@
+ended: 2026-04-27T13:59:14
+pending_commit: yes
+session_buffer: yes
+debriefed: yes
+recent_commits:
+7a83a61 fix: reviewer fixes — Date.now race, unused imports, state sync
+ed76013 feat: phases 8-10 — operational deployment, prompt reconciliation, integration tests
+854dc47 feat: nanaclaw fork — phases 0-7 complete
+0bc082a Merge pull request #2010 from ira-at-work/pr/add-signal-v2
+b6be3b9 docs(skills): merge add-signal-v2 lessons into add-signal, drop v2

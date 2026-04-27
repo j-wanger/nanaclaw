@@ -1,0 +1,50 @@
+
+---
+commit: ed760131cefc5b8dba11282a85704e8d6d7ecf34
+message: feat: phases 8-10 — operational deployment, prompt reconciliation, integration tests
+time: 2026-04-27T08:10:42-04:00
+files:
+ .claude/rules/active-knowledge.md                  |  37 ++--
+ .claude/rules/active-phase.md                      |  10 +-
+ .dev-wiki/.session-end                             |  10 -
+ .dev-wiki/.stale-queue                             |  12 +
+ .dev-wiki/_CURRENT_STATE.md                        |  43 ++--
+ .../phase-10-host-mode-test-coverage-approach.md   |  43 ++++
+ .../phase-8-operational-deployment-approach.md     |  30 +++
+ .../phase-9-prompt-reconciliation-approach.md      |  55 +++++
+ ...hase-10-host-mode-integration-tests-complete.md |  42 ++++
+ ...4-27-phase-8-operational-deployment-complete.md |  55 +++++
+ ...04-27-phase-9-prompt-reconciliation-complete.md |  45 ++++
+ .../phases/phase-08-operational-deployment.md      |  45 ++++
+ .../phase-09-prompt-reconciliation-hardening.md    |  52 +++++
+ .../phases/phase-10-host-mode-integration-tests.md |  42 ++++
+ .dev-wiki/index.md                                 |  10 +
+ .dev-wiki/log.md                                   |   6 +
+ .dev-wiki/tasks.md                                 |  40 +++-
+ container/CLAUDE.md                                |  12 +-
+ container/agent-runner/src/index.ts                |   5 +-
+ .../src/mcp-tools/core.instructions.md             |   2 +-
+ container/agent-runner/src/providers/claude.ts     |  12 +-
+ .../src/providers/provider-registry.ts             |   3 +-
+ container/skills/memory/SKILL.md                   |   2 +-
+ container/skills/memory/instructions.md            |   4 +-
+ container/skills/self-customize/SKILL.md           |   4 +-
+ docs/worker-e2e-results.json                       |  20 +-
+ src/claude-md-compose.test.ts                      | 110 +++++++++
+ src/claude-md-compose.ts                           |  11 +
+ src/container-runner.ts                            |  37 +++-
+ src/delivery.test.ts                               |  65 +++++-
+ src/session-roundtrip.test.ts                      | 245 +++++++++++++++++++++
+ src/spawn-pipeline.test.ts                         | 195 ++++++++++++++++
+ 32 files changed, 1201 insertions(+), 103 deletions(-)
+
+---
+commit: 7a83a617cea56b33bb020fa37a6ad8da7112cd11
+message: fix: reviewer fixes — Date.now race, unused imports, state sync
+time: 2026-04-27T08:12:08-04:00
+files:
+ .dev-wiki/_CURRENT_STATE.md                        |  6 +--
+ .../phases/phase-10-host-mode-integration-tests.md | 12 ++---
+ src/delivery.test.ts                               | 29 ++++++++---
+ src/session-roundtrip.test.ts                      | 59 +++++++++++++---------
+ 4 files changed, 66 insertions(+), 40 deletions(-)

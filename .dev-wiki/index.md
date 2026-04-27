@@ -124,7 +124,8 @@
 - [[phase-07-hardening-wiki-bridge|Phase 7: Production Hardening + Wiki Bridge]] — completed
 - [[phase-08-operational-deployment|Phase 8: Operational Deployment + E2E Validation]] — completed
 - [[phase-09-prompt-reconciliation-hardening|Phase 9: Agent Prompt Reconciliation]] — completed
-- [[phase-10-host-mode-integration-tests|Phase 10: Host-Mode Integration Tests]] — **complete (pending confirmation)**
+- [[phase-10-host-mode-integration-tests|Phase 10: Host-Mode Integration Tests]] — completed
+- [[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]] — **active**
 
 ## Decisions
 
@@ -144,6 +145,7 @@
 - [[phase-8-operational-deployment-approach|Phase 8: Operational Deployment + E2E Validation]] — medium confidence
 - [[phase-9-prompt-reconciliation-approach|Phase 9: Agent Prompt Reconciliation]] — medium confidence
 - [[phase-10-host-mode-test-coverage-approach|Phase 10: Host-Mode Integration Tests]] — medium confidence
+- [[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]] — medium confidence
 
 ## Journal
 

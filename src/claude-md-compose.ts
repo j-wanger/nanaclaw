@@ -22,16 +22,35 @@ import { readContainerConfig } from './container-config.js';
 import { log } from './log.js';
 import type { AgentGroup } from './types.js';
 
-// Symlink targets are container paths — dangling on host (hence the readlink
-// dance instead of existsSync), valid inside the container via RO mounts.
-const SHARED_CLAUDE_MD_CONTAINER_PATH = '/app/CLAUDE.md';
-const SHARED_SKILLS_CONTAINER_BASE = '/app/skills';
-const SHARED_MCP_TOOLS_CONTAINER_BASE = '/app/src/mcp-tools';
+// Docker container paths — valid inside the container via RO mounts, dangling on host.
+const CONTAINER_CLAUDE_MD = '/app/CLAUDE.md';
+const CONTAINER_SKILLS_BASE = '/app/skills';
+const CONTAINER_MCP_TOOLS_BASE = '/app/src/mcp-tools';
 
 // Host-side source paths used to discover fragment sources at compose time.
 // Resolved at call time (process.cwd() = project root) so tests can swap cwd.
 const MCP_TOOLS_HOST_SUBPATH = path.join('container', 'agent-runner', 'src', 'mcp-tools');
 const SOUL_MD_HOST_SUBPATH = 'SOUL.md';
+
+function resolveFragmentPaths(hostMode: boolean): {
+  sharedBase: string;
+  skillBase: string;
+  mcpToolsBase: string;
+} {
+  if (hostMode) {
+    const root = process.cwd();
+    return {
+      sharedBase: path.join(root, 'container', 'CLAUDE.md'),
+      skillBase: path.join(root, 'container', 'skills'),
+      mcpToolsBase: path.join(root, MCP_TOOLS_HOST_SUBPATH),
+    };
+  }
+  return {
+    sharedBase: CONTAINER_CLAUDE_MD,
+    skillBase: CONTAINER_SKILLS_BASE,
+    mcpToolsBase: CONTAINER_MCP_TOOLS_BASE,
+  };
+}
 
 const COMPOSED_HEADER = '<!-- Composed at spawn — do not edit. Edit CLAUDE.local.md for per-group content. -->';
 
@@ -46,8 +65,12 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
     fs.mkdirSync(groupDir, { recursive: true });
   }
 
+  const config = readContainerConfig(group.folder);
+  const hostMode = config.provider === 'host';
+  const paths = resolveFragmentPaths(hostMode);
+
   const sharedLink = path.join(groupDir, '.claude-shared.md');
-  syncSymlink(sharedLink, SHARED_CLAUDE_MD_CONTAINER_PATH);
+  syncSymlink(sharedLink, paths.sharedBase);
 
   const fragmentsDir = path.join(groupDir, '.claude-fragments');
   if (!fs.existsSync(fragmentsDir)) {
@@ -55,11 +78,9 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
   }
 
   // Desired fragment set.
-  const config = readContainerConfig(group.folder);
   const desired = new Map<string, { type: 'symlink' | 'inline'; content: string }>();
 
   // Skill fragments — every skill that ships an `instructions.md`.
-  // TODO (shared-source refactor): respect `container.json` skill selection.
   const skillsHostDir = path.join(process.cwd(), 'container', 'skills');
   if (fs.existsSync(skillsHostDir)) {
     for (const skillName of fs.readdirSync(skillsHostDir)) {
@@ -67,16 +88,14 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
       if (fs.existsSync(hostFragment)) {
         desired.set(`skill-${skillName}.md`, {
           type: 'symlink',
-          content: `${SHARED_SKILLS_CONTAINER_BASE}/${skillName}/instructions.md`,
+          content: `${paths.skillBase}/${skillName}/instructions.md`,
         });
       }
     }
   }
 
   // Built-in module fragments — every MCP tool source file that ships a
-  // sibling `<name>.instructions.md`. These describe how the agent should
-  // use that module's MCP tools (schedule_task, install_packages, etc.).
-  // Always included — these are built-in, not toggleable.
+  // sibling `<name>.instructions.md`.
   const mcpToolsHostDir = path.join(process.cwd(), MCP_TOOLS_HOST_SUBPATH);
   if (fs.existsSync(mcpToolsHostDir)) {
     for (const entry of fs.readdirSync(mcpToolsHostDir)) {
@@ -85,7 +104,7 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
       const moduleName = match[1];
       desired.set(`module-${moduleName}.md`, {
         type: 'symlink',
-        content: `${SHARED_MCP_TOOLS_CONTAINER_BASE}/${entry}`,
+        content: `${paths.mcpToolsBase}/${entry}`,
       });
     }
   }
