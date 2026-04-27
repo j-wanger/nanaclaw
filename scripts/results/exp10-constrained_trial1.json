@@ -1,0 +1,9 @@
+{
+  "name": "exp10-constrained",
+  "trial": 1,
+  "latency_ms": 7631,
+  "in_tokens": 215,
+  "out_tokens": 300,
+  "content": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"timestamp\": \"2023-10-27T14:32:00Z\",\n  \"environment\": \"production\",\n  \"service\": {\n    \"name\": \"user-auth-service\",\n    \"version\": \"2.4.1\",\n    \"image\": \"registry.internal.com/user-auth-service:2.4.1\"\n  },\n  \"deployer\": {\n    \"username\": \"jane.doe\",\n    \"email\": \"jane.doe@company.com\"\n  },\n  \"changes\": [\n    {\n      \"file\": \"src/auth/middleware.ts\",\n      \"type\": \"modified\",\n      \"lines_changed\": 15\n    },\n    {\n      \"file\": \"src/config/env.ts\",\n      \"type\": \"modified\",\n      \"lines_changed\": 3\n    },\n    {\n      \"file\": \"tests/auth.test.ts\",\n      \"type\": \"added\",\n      \"lines_changed\": 42\n    }\n  ],\n  \"rollback_available\": true,\n  \"health_check_url\": \"https://api.company.com/health\"\n}",
+  "timestamp": "2026-04-26T17:45:00Z"
+}

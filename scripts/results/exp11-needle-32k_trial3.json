@@ -1,0 +1,9 @@
+{
+  "name": "exp11-needle-32k",
+  "trial": 3,
+  "latency_ms": 1124,
+  "in_tokens": 5775,
+  "out_tokens": 31,
+  "content": "The secret project code name is AURORA-7742 and it was initiated on March 15, 2026.",
+  "timestamp": "2026-04-26T17:47:06Z"
+}

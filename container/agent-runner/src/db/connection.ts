@@ -20,9 +20,11 @@
 import { Database } from 'bun:sqlite';
 import fs from 'fs';
 
-const DEFAULT_INBOUND_PATH = '/workspace/inbound.db';
-const DEFAULT_OUTBOUND_PATH = '/workspace/outbound.db';
-const DEFAULT_HEARTBEAT_PATH = '/workspace/.heartbeat';
+import { SESSION_DIR } from '../config.js';
+
+const DEFAULT_INBOUND_PATH = `${SESSION_DIR}/inbound.db`;
+const DEFAULT_OUTBOUND_PATH = `${SESSION_DIR}/outbound.db`;
+const DEFAULT_HEARTBEAT_PATH = `${SESSION_DIR}/.heartbeat`;
 
 let _inbound: Database | null = null;
 let _outbound: Database | null = null;

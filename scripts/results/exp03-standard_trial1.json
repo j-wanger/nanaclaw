@@ -1,0 +1,9 @@
+{
+  "name": "exp03-standard",
+  "trial": 1,
+  "latency_ms": 3138,
+  "in_tokens": 202,
+  "out_tokens": 113,
+  "content": "```\n# Project Config\n\n## Metadata\nname: my-service\nversion: 2.1.0\ndescription: User authentication service\n\n## Dependencies\nexpress: ^4.18.0\nbcrypt: ^5.1.0\njsonwebtoken: ^9.0.0\nredis: ^4.6.0\n\n## Scripts\nstart: node dist/index.js\ntest: vitest run\nbuild: tsc\n\n## Environment\nNODE_ENV: production\nPORT: 3000\nDB_HOST: localhost\n```",
+  "timestamp": "2026-04-26T17:33:40Z"
+}

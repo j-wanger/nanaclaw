@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Think in <think> tags, then output ONLY valid JSON. No explanation after the JSON."
+    },
+    {
+      "role": "user",
+      "content": "Create a JSON object representing a server health check result with these 5 fields:\n- hostname (string): the server name\n- status (string): either \"healthy\" or \"degraded\"\n- uptime_hours (number): hours since last restart\n- cpu_percent (number): current CPU usage as a percentage\n- active_connections (integer): number of active connections\n\nUse realistic sample values for a production web server."
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 512
+}

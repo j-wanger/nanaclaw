@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a technical analyst. Compare the two approaches and produce a structured decision matrix as a markdown table. Columns: Criterion, Approach A, Approach B, Winner. Include at least 5 criteria. End with a one-sentence recommendation. Output ONLY the table and recommendation."
+    },
+    {
+      "role": "user",
+      "content": "Compare these two approaches for agent memory:\n\nApproach A: Flat-File Memory (MEMORY.md)\n- Markdown file as source of truth\n- FTS5 search index derived from markdown\n- Git-versioned, diffable\n- ~1500 token budget frozen at spawn\n- Simple CRUD: parse/write markdown sections\n\nApproach B: Embedded Vector Store (SQLite + embeddings)\n- SQLite with vector extension for storage\n- Semantic search via cosine similarity\n- Embedding model required (nomic-embed-text)\n- Dynamic retrieval at query time\n- Requires model serving infrastructure"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 1024
+}

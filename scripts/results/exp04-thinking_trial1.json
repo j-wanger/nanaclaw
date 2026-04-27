@@ -1,0 +1,9 @@
+{
+  "name": "exp04-thinking",
+  "trial": 1,
+  "latency_ms": 6144,
+  "in_tokens": 214,
+  "out_tokens": 241,
+  "content": "```typescript\nexport function debounce<T extends (...args: any[]) => void>(\n  fn: T,\n  delayMs: number\n): T & { cancel: () => void } {\n  let timeoutId: ReturnType<typeof setTimeout> | null = null;\n\n  const debounced = function (this: any, ...args: any[]) {\n    // Clear any existing timeout\n    if (timeoutId !== null) {\n      clearTimeout(timeoutId);\n      timeoutId = null;\n    }\n\n    // Store the current context and arguments\n    const context = this;\n    const capturedArgs = args;\n\n    // Set a new timeout\n    timeoutId = setTimeout(() => {\n      timeoutId = null;\n      fn.apply(context, capturedArgs);\n    }, delayMs);\n  } as T & { cancel: () => void };\n\n  // Add the cancel method\n  (debounced as any).cancel = function () {\n    if (timeoutId !== null) {\n      clearTimeout(timeoutId);\n      timeoutId = null;\n    }\n  };\n\n  return debounced;\n}\n```",
+  "timestamp": "2026-04-26T17:36:01Z"
+}

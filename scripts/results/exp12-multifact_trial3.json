@@ -1,0 +1,9 @@
+{
+  "name": "exp12-multifact",
+  "trial": 3,
+  "latency_ms": 2996,
+  "in_tokens": 1593,
+  "out_tokens": 108,
+  "content": "1. The lead engineer is Dr. Miranda Chen from the Seattle office.\n2. The project budget was approved at 2.4 million dollars for fiscal year 2026.\n3. The primary database runs PostgreSQL 16.2 on 3 replica nodes.\n4. The deployment target is the us-west-2 AWS region with failover to eu-west-1.\n5. The security audit is scheduled for June 12, 2026, conducted by CyberShield Inc.",
+  "timestamp": "2026-04-26T17:47:17Z"
+}

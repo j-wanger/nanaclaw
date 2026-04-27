@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a precise file editor. Think through what needs to change in <think> tags, then output the COMPLETE file with only the requested section changed. All other sections must remain byte-identical. Output ONLY the file content after thinking, no explanation."
+    },
+    {
+      "role": "user",
+      "content": "Modify ONLY the `## Dependencies` section of this file to add `redis: ^4.6.0` to the dependencies list. Do not change anything else.\n\n```\n# Project Config\n\n## Metadata\nname: my-service\nversion: 2.1.0\ndescription: User authentication service\n\n## Dependencies\nexpress: ^4.18.0\nbcrypt: ^5.1.0\njsonwebtoken: ^9.0.0\n\n## Scripts\nstart: node dist/index.js\ntest: vitest run\nbuild: tsc\n\n## Environment\nNODE_ENV: production\nPORT: 3000\nDB_HOST: localhost\n```"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 2048
+}

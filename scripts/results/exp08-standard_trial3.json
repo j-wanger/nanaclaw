@@ -1,0 +1,9 @@
+{
+  "name": "exp08-standard",
+  "trial": 3,
+  "latency_ms": 8088,
+  "in_tokens": 194,
+  "out_tokens": 330,
+  "content": "| Criterion | Approach A: Flat-File Memory (MEMORY.md) | Approach B: Embedded Vector Store (SQLite + embeddings) | Winner |\n| :--- | :--- | :--- | :--- |\n| **Implementation Complexity** | Low; relies on standard text parsing and Git operations without external dependencies. | High; requires setting up SQLite vector extensions, managing embedding models, and handling inference infrastructure. | Approach A |\n| **Search Precision** | Low; relies on keyword matching (FTS5) which may miss semantic context or synonyms. | High; leverages semantic similarity to retrieve conceptually relevant information regardless of exact wording. | Approach B |\n| **Context Window Efficiency** | High; strictly bounded by a fixed token budget (~1500 tokens) at spawn, preventing context overflow. | Variable; dynamic retrieval can inject large amounts of data, risking context window limits if not carefully managed. | Approach A |\n| **Data Integrity & Versioning** | Excellent; native Git support allows for full history, diffing, and rollback of memory changes. | Poor; SQLite lacks native diffing capabilities, making it difficult to track specific memory evolution over time. | Approach A |\n| **Infrastructure Requirements** | Minimal; runs entirely within the local file system and standard CLI tools. | Heavy; requires serving infrastructure for the embedding model (e.g., nomic-embed-text) and vector database management. | Approach A |\n\n**Recommendation:** Choose Approach A for lightweight, transparent, and easily versioned memory systems where semantic nuance is less critical than operational simplicity and strict context control.",
+  "timestamp": "2026-04-26T17:40:17Z"
+}

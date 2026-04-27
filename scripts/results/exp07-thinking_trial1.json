@@ -1,0 +1,9 @@
+{
+  "name": "exp07-thinking",
+  "trial": 1,
+  "latency_ms": 2736,
+  "in_tokens": 429,
+  "out_tokens": 84,
+  "content": "*   The architecture separates state into two SQLite files to eliminate lock contention, ensuring each side has exclusive write access to its own database.\n*   It uses DELETE journal mode instead of WAL to guarantee visibility across Docker mount boundaries, accepting a performance penalty for reliability.\n*   Heartbeats rely on file touches rather than database writes, and sequence numbers use parity to distinguish message sources without cross-database coordination.",
+  "timestamp": "2026-04-26T17:39:48Z"
+}

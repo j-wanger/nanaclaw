@@ -1,0 +1,9 @@
+{
+  "name": "exp09-constrained",
+  "trial": 2,
+  "latency_ms": 1922,
+  "in_tokens": 113,
+  "out_tokens": 64,
+  "content": "{\n  \"hostname\": \"web-prod-01.example.com\",\n  \"status\": \"healthy\",\n  \"uptime_hours\": 1452.5,\n  \"cpu_percent\": 42.8,\n  \"active_connections\": 1243\n}",
+  "timestamp": "2026-04-26T17:44:10Z"
+}

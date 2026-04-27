@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a precise code refactoring assistant. Think through all the locations that need updating in <think> tags, then output ONLY the complete updated file."
+    },
+    {
+      "role": "user",
+      "content": "Rename the variable `userId` to `accountId` in ALL occurrences in this file:\n\n```typescript\ninterface UserSession {\n  userId: string;\n  token: string;\n  expiresAt: Date;\n}\n\nexport function createSession(userId: string, token: string): UserSession {\n  return {\n    userId,\n    token,\n    expiresAt: new Date(Date.now() + 3600000),\n  };\n}\n\nexport function isValidSession(session: UserSession): boolean {\n  if (!session.userId || !session.token) {\n    return false;\n  }\n  return session.expiresAt > new Date();\n}\n\nexport function getSessionKey(session: UserSession): string {\n  return `session:${session.userId}:${session.token}`;\n}\n```"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 2048
+}

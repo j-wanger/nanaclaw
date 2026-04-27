@@ -1,0 +1,9 @@
+{
+  "name": "exp09-standard",
+  "trial": 3,
+  "latency_ms": 1952,
+  "in_tokens": 118,
+  "out_tokens": 62,
+  "content": "{\n  \"hostname\": \"web-prod-01.example.com\",\n  \"status\": \"healthy\",\n  \"uptime_hours\": 1452,\n  \"cpu_percent\": 42.5,\n  \"active_connections\": 1284\n}",
+  "timestamp": "2026-04-26T17:43:59Z"
+}

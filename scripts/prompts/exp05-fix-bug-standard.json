@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a bug-fixing assistant. Given source code and a failing test, fix the bug. Output ONLY the corrected function, no explanation."
+    },
+    {
+      "role": "user",
+      "content": "This function has a bug. Fix it.\n\nSource:\n```typescript\nexport function groupBy<T>(items: T[], key: keyof T): Record<string, T[]> {\n  const result: Record<string, T[]> = {};\n  for (const item of items) {\n    const groupKey = String(item[key]);\n    if (!result[groupKey]) {\n      result[groupKey] = [];\n    }\n    result[groupKey] = [item];\n  }\n  return result;\n}\n```\n\nFailing test:\n```\nconst data = [\n  { name: 'Alice', dept: 'eng' },\n  { name: 'Bob', dept: 'eng' },\n  { name: 'Carol', dept: 'sales' }\n];\nconst grouped = groupBy(data, 'dept');\nassert(grouped['eng'].length === 2); // FAILS: got 1\nassert(grouped['sales'].length === 1); // passes\n```\n\nError: `AssertionError: Expected 2 but got 1`"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 512
+}

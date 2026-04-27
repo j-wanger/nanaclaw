@@ -77,6 +77,43 @@ describe('handleRecurrence', () => {
     expect(new Date(follow.process_after).getTime()).toBeGreaterThan(Date.now());
   });
 
+  it('preserves research-task content through recurrence', async () => {
+    const db = freshDb();
+    const researchPrompt =
+      'Research: automated trading patterns. Search for recent papers, extract key findings, write to wiki with episodic tier.';
+    insertTask(db, {
+      id: 'research-task-1',
+      processAfter: '2020-01-01T00:00:00.000Z',
+      recurrence: '0 6 * * 1', // weekly Monday at 06:00
+      platformId: 'discord:123',
+      channelType: 'discord',
+      threadId: null,
+      content: JSON.stringify({ prompt: researchPrompt }),
+    });
+    db.prepare(`UPDATE messages_in SET status='completed' WHERE id='research-task-1'`).run();
+
+    await handleRecurrence(db, fakeSession());
+
+    const rows = db
+      .prepare(`SELECT id, status, process_after, recurrence, content, series_id FROM messages_in ORDER BY seq`)
+      .all() as Array<{
+      id: string;
+      status: string;
+      process_after: string;
+      recurrence: string | null;
+      content: string;
+      series_id: string;
+    }>;
+    expect(rows).toHaveLength(2);
+    const follow = rows.find((r) => r.id !== 'research-task-1')!;
+    expect(follow.status).toBe('pending');
+    expect(follow.recurrence).toBe('0 6 * * 1');
+    expect(follow.series_id).toBe('research-task-1');
+    const followContent = JSON.parse(follow.content);
+    expect(followContent.prompt).toBe(researchPrompt);
+    expect(new Date(follow.process_after).getTime()).toBeGreaterThan(Date.now());
+  });
+
   it('does not clone rows whose recurrence is already cleared', async () => {
     const db = freshDb();
     insertTask(db, {

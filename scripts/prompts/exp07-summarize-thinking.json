@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a research assistant. Think about the key themes in <think> tags, then output exactly 3 bullet points. Each bullet should capture one key insight under 30 words. Output ONLY the thinking and then the 3 bullets."
+    },
+    {
+      "role": "user",
+      "content": "Summarize this document:\n\n# The Two-DB Session Architecture\n\nModern agent systems face a fundamental challenge: how to safely share state between a host process and an agent container without lock contention or data corruption. The traditional approach of a single shared database creates write conflicts when both sides need to update state concurrently.\n\nThe two-DB session split solves this by giving each side its own SQLite file. The host writes to `inbound.db` (messages destined for the agent, routing metadata, pending questions), while the agent container writes to `outbound.db` (agent responses, session state, scheduled tasks). Each file has exactly one writer — no cross-mount lock contention.\n\nThis architecture requires `journal_mode=DELETE` rather than the more common WAL mode. WAL requires shared memory between readers and writers, which doesn't work across Docker mount boundaries. DELETE journaling is slower for writes but guarantees visibility across mount points.\n\nHeartbeat liveness uses a file touch mechanism rather than a database update. The container touches `.heartbeat` at regular intervals; the host sweep checks mtime at 60-second intervals. This avoids adding heartbeat writes to the database write path, keeping the DB files dedicated to their primary purpose.\n\nThe sequence numbering convention uses even numbers for host messages and odd numbers for container messages. This provides a natural ordering guarantee without requiring cross-DB coordination, and makes it trivial to identify the source of any message by checking parity.\n\nTrade-offs include: slightly more complex connection management (two DB handles per session), the DELETE journal mode performance penalty (~2x slower writes than WAL), and the need to poll outbound.db from the host side rather than using notifications. For the agent container workload (infrequent, small writes), these trade-offs are well worth the simplicity and reliability guarantees."
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 512
+}

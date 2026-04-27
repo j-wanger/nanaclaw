@@ -8,6 +8,8 @@ import {
   setContinuation,
 } from './db/session-state.js';
 import { formatMessages, extractRouting, categorizeMessage, isClearCommand, stripInternalTags, type RoutingContext } from './formatter.js';
+import { checkDeepWorkContinuation } from './mcp-tools/deep-work.js';
+import { checkWorkerResults } from './mcp-tools/local-worker/tools.js';
 import type { AgentProvider, AgentQuery, ProviderEvent } from './providers/types.js';
 
 const POLL_INTERVAL_MS = 1000;
@@ -204,6 +206,66 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     // (e.g. stream closed unexpectedly).
     markCompleted(processingIds);
     log(`Completed ${ids.length} message(s)`);
+
+    // Worker result auto-pickup: check for completed/failed worker results
+    // and inject them into the agent's context so it can review.
+    const workerPrompt = checkWorkerResults();
+    if (workerPrompt) {
+      log('Worker results ready, injecting for review');
+      const wQuery = config.provider.query({
+        prompt: workerPrompt,
+        continuation,
+        cwd: config.cwd,
+        systemContext: config.systemContext,
+      });
+
+      try {
+        const wResult = await processQuery(wQuery, routing, [], config.providerName);
+        if (wResult.continuation && wResult.continuation !== continuation) {
+          continuation = wResult.continuation;
+          setContinuation(config.providerName, continuation);
+        }
+      } catch (err) {
+        log(`Worker result injection error: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    // Deep work auto-continuation: if a deep work session is active and the
+    // deadline hasn't passed, wait briefly then re-enter the provider with a
+    // continuation prompt so the agent keeps working autonomously.
+    while (true) {
+      const dwPrompt = checkDeepWorkContinuation();
+      if (!dwPrompt) break;
+
+      await sleep(3000);
+
+      // Check for new inbound messages — if any arrived, let the outer loop
+      // handle them naturally (they take priority over auto-continuation).
+      const pending = getPendingMessages().filter((m) => m.kind !== 'system');
+      if (pending.some((m) => m.trigger === 1)) {
+        log('Deep work: new inbound messages arrived, deferring to outer loop');
+        break;
+      }
+
+      log('Deep work: auto-continuing');
+      const dwQuery = config.provider.query({
+        prompt: dwPrompt,
+        continuation,
+        cwd: config.cwd,
+        systemContext: config.systemContext,
+      });
+
+      try {
+        const dwResult = await processQuery(dwQuery, routing, [], config.providerName);
+        if (dwResult.continuation && dwResult.continuation !== continuation) {
+          continuation = dwResult.continuation;
+          setContinuation(config.providerName, continuation);
+        }
+      } catch (err) {
+        log(`Deep work continuation error: ${err instanceof Error ? err.message : String(err)}`);
+        break;
+      }
+    }
   }
 }
 

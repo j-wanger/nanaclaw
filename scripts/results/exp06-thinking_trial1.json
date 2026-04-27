@@ -1,0 +1,9 @@
+{
+  "name": "exp06-thinking",
+  "trial": 1,
+  "latency_ms": 4237,
+  "in_tokens": 219,
+  "out_tokens": 158,
+  "content": "```typescript\ninterface UserSession {\n  accountId: string;\n  token: string;\n  expiresAt: Date;\n}\n\nexport function createSession(accountId: string, token: string): UserSession {\n  return {\n    accountId,\n    token,\n    expiresAt: new Date(Date.now() + 3600000),\n  };\n}\n\nexport function isValidSession(session: UserSession): boolean {\n  if (!session.accountId || !session.token) {\n    return false;\n  }\n  return session.expiresAt > new Date();\n}\n\nexport function getSessionKey(session: UserSession): string {\n  return `session:${session.accountId}:${session.token}`;\n}\n```",
+  "timestamp": "2026-04-26T17:37:41Z"
+}

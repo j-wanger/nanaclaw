@@ -1,0 +1,10 @@
+ended: 2026-04-27T02:57:08
+pending_commit: no
+session_buffer: no
+debriefed: yes
+recent_commits:
+0bc082a Merge pull request #2010 from ira-at-work/pr/add-signal-v2
+b6be3b9 docs(skills): merge add-signal-v2 lessons into add-signal, drop v2
+7e99d0e Merge branch 'main' into pr/add-signal-v2
+8d85222 chore: bump version to 2.0.13
+0df647b Merge pull request #1963 from grtwrn/fix/register-channel-wiring

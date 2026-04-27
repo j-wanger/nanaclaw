@@ -15,7 +15,8 @@ import fs from 'fs';
 import path from 'path';
 
 import type { OutboundFile } from './channels/adapter.js';
-import { DATA_DIR } from './config.js';
+import { DATA_DIR, WHISPER_URL } from './config.js';
+import { processVoiceAttachments } from './modules/voice/router-hook.js';
 import { getMessagingGroup } from './db/messaging-groups.js';
 import {
   createSession,
@@ -227,6 +228,25 @@ export function writeSessionMessage(
   }
 
   updateSession(sessionId, { last_active: new Date().toISOString() });
+
+  if (WHISPER_URL) {
+    const sessDir = sessionDir(agentGroupId, sessionId);
+    processVoiceAttachments(content, sessDir, WHISPER_URL)
+      .then((newContent) => {
+        if (newContent !== content) {
+          const updateDb = openInboundDb(agentGroupId, sessionId);
+          try {
+            updateDb.prepare('UPDATE messages_in SET content = ? WHERE id = ?').run(newContent, message.id);
+          } finally {
+            updateDb.close();
+          }
+          log.debug('Voice transcription added', { messageId: message.id });
+        }
+      })
+      .catch((err) => {
+        log.warn('Voice transcription failed', { messageId: message.id, err });
+      });
+  }
 }
 
 /**

@@ -1,0 +1,9 @@
+{
+  "name": "exp02-standard",
+  "trial": 1,
+  "latency_ms": 3413,
+  "in_tokens": 238,
+  "out_tokens": 122,
+  "content": "{\n  \"title\": \"Building Resilient Microservices\",\n  \"author\": \"Sarah Chen\",\n  \"date\": \"2026-03-15\",\n  \"tags\": [\n    \"microservices\",\n    \"resilience\",\n    \"distributed-systems\",\n    \"circuit-breaker\"\n  ],\n  \"summary\": \"Modern distributed systems require careful attention to failure modes. This article explores three patterns — circuit breakers, bulkheads, and retry budgets — that prevent cascade failures in microservice architectures.\"\n}",
+  "timestamp": "2026-04-26T17:33:08Z"
+}

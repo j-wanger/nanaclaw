@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a TypeScript developer. Implement ONLY the function body. Output ONLY the code, no explanation."
+    },
+    {
+      "role": "user",
+      "content": "Implement this function:\n\n```typescript\n/**\n * Debounces a function call. Returns a new function that delays invoking `fn`\n * until `delayMs` milliseconds have elapsed since the last invocation.\n * The returned function also has a `.cancel()` method to cancel pending calls.\n */\nexport function debounce<T extends (...args: any[]) => void>(\n  fn: T,\n  delayMs: number\n): T & { cancel: () => void } {\n  // implement\n}\n```\n\nTest cases it must pass:\n1. `debounce(fn, 100)` called 3 times rapidly — fn invoked only once after 100ms\n2. `.cancel()` prevents the pending invocation\n3. Arguments from the LAST call are forwarded to fn\n4. `this` context is preserved"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 1024
+}

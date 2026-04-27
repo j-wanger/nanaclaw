@@ -7,7 +7,11 @@
  */
 import fs from 'fs';
 
-const CONFIG_PATH = '/workspace/agent/container.json';
+export const SESSION_DIR = process.env.NANOCLAW_SESSION_DIR || '/workspace';
+export const AGENT_DIR = process.env.NANOCLAW_AGENT_DIR || '/workspace/agent';
+export const LLAMA_CPP_URL = process.env.NANOCLAW_LLAMA_URL || 'http://localhost:8080/v1/chat/completions';
+
+const CONFIG_PATH = `${AGENT_DIR}/container.json`;
 
 export interface RunnerConfig {
   provider: string;

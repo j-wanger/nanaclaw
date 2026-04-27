@@ -1,0 +1,9 @@
+{
+  "name": "exp05-standard",
+  "trial": 3,
+  "latency_ms": 2388,
+  "in_tokens": 274,
+  "out_tokens": 98,
+  "content": "```typescript\nexport function groupBy<T>(items: T[], key: keyof T): Record<string, T[]> {\n  const result: Record<string, T[]> = {};\n  for (const item of items) {\n    const groupKey = String(item[key]);\n    if (!result[groupKey]) {\n      result[groupKey] = [];\n    }\n    result[groupKey].push(item);\n  }\n  return result;\n}\n```",
+  "timestamp": "2026-04-26T17:36:20Z"
+}

@@ -245,3 +245,26 @@ launchctl kickstart -k gui/$(id -u)/com.nanoclaw   # macOS
 ```
 
 `container/build.sh` reads `INSTALL_CJK_FONTS` from `.env` and passes it through as a Docker build-arg. Without CJK fonts, Chromium-rendered screenshots and PDFs containing CJK text show tofu (empty rectangles) instead of characters.
+
+## Fork: nanaclaw (j-wanger)
+
+This is a fork of upstream NanoClaw for building a personal AI agent system with memory, host-mode execution, local worker dispatch, and knowledge-wiki integration.
+
+**Key fork files:**
+- [SOUL.md](SOUL.md) — Agent personality (stable across all groups)
+- [AGENTS.md](AGENTS.md) — Development conventions for this codebase
+- [docs/memory-architecture.md](docs/memory-architecture.md) — Memory system design research
+
+**Architecture decisions:**
+- Two-tier heterogeneous: Claude Agent SDK (architect/reviewer) + local Qwen via llama-cpp (worker)
+- Memory: MEMORY.md source of truth + derived FTS5 index, frozen snapshot at spawn (~1,500 tokens)
+- Host mode: provider abstraction (`"provider": "host"` in container.json) runs SDK directly on macOS
+
+**What NOT to change (upstream provides):**
+- Module system (self-registering via side-effect imports)
+- Two-DB session architecture (inbound.db + outbound.db)
+- CLAUDE.md composition (base + skill fragments + MCP fragments)
+- Channel adapter registry and Chat SDK bridge
+- Permissions/RBAC, approvals, scheduling, self-mod
+
+**Development lifecycle:** This project uses `.dev-wiki/` for phase planning and task tracking. See `.dev-wiki/_CURRENT_STATE.md` for current status.

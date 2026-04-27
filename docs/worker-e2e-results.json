@@ -1,0 +1,255 @@
+{
+  "results": [
+    {
+      "task_id": "e2e-1",
+      "type": "code-impl",
+      "objective": "Implement a TypeScript function `isPalindrome(s: string): boolean` that checks if a string is a palindrome, ignoring case and non-alphanumeric characters.",
+      "latency_ms": 1422,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "```typescript\nfunction isPalindrome(s: string): boolean {\n    const cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');\n    const reversed = cleaned.split('').reverse().join('');\n    return cleaned === reversed;\n}\n```",
+      "parsed": "function isPalindrome(s: string): boolean {\n    const cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');\n    const reversed = cleaned.split('').reverse().join('');\n    return cleaned === reversed;\n}",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-2",
+      "type": "code-impl",
+      "objective": "Implement a TypeScript function `groupBy<T>(arr: T[], key: keyof T): Record<string, T[]>` that groups array elements by a key.",
+      "latency_ms": 2295,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "```typescript\nfunction groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {\n  return arr.reduce((result, item) => {\n    const groupKey = String(item[key]);\n    if (!result[groupKey]) {\n      result[groupKey] = [];\n    }\n    result[groupKey].push(item);\n    return result;\n  }, {} as Record<string, T[]>);\n}\n```",
+      "parsed": "function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {\n  return arr.reduce((result, item) => {\n    const groupKey = String(item[key]);\n    if (!result[groupKey]) {\n      result[groupKey] = [];\n    }\n    result[groupKey].push(item);\n    return result;\n  }, {} as Record<string, T[]>);\n}",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "regex",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-3",
+      "type": "code-impl",
+      "objective": "Implement a TypeScript function `debounce(fn: Function, ms: number): Function` that delays invoking fn until ms milliseconds after the last call.",
+      "latency_ms": 2310,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "```typescript\nfunction debounce(fn: Function, ms: number): Function {\n    let timer: ReturnType<typeof setTimeout> | null = null;\n\n    return function (this: any, ...args: any[]) {\n        if (timer !== null) {\n            clearTimeout(timer);\n        }\n        timer = setTimeout(() => {\n            fn.apply(this, args);\n            timer = null;\n        }, ms);\n    };\n}\n```",
+      "parsed": "function debounce(fn: Function, ms: number): Function {\n    let timer: ReturnType<typeof setTimeout> | null = null;\n\n    return function (this: any, ...args: any[]) {\n        if (timer !== null) {\n            clearTimeout(timer);\n        }\n        timer = setTimeout(() => {\n            fn.apply(this, args);\n            timer = null;\n        }, ms);\n    };\n}",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-4",
+      "type": "structured-output",
+      "objective": "Extract the following fields from this package.json fragment into a JSON object with keys: name, version, license, hasTests (boolean: true if \"test\" script exists).",
+      "latency_ms": 989,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "{\n  \"name\": \"my-app\",\n  \"version\": \"2.1.0\",\n  \"license\": \"MIT\",\n  \"hasTests\": true\n}",
+      "parsed": "{\n  \"name\": \"my-app\",\n  \"version\": \"2.1.0\",\n  \"license\": \"MIT\",\n  \"hasTests\": true\n}",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-5",
+      "type": "structured-output",
+      "objective": "Convert this CSV data into a JSON array of objects. Each row becomes an object with column headers as keys.",
+      "latency_ms": 2368,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "[\n  {\n    \"name\": \"Alice\",\n    \"age\": \"30\",\n    \"city\": \"NYC\"\n  },\n  {\n    \"name\": \"Bob\",\n    \"age\": \"25\",\n    \"city\": \"LA\"\n  },\n  {\n    \"name\": \"Charlie\",\n    \"age\": \"35\",\n    \"city\": \"Chicago\"\n  }\n]",
+      "parsed": "[\n  {\n    \"name\": \"Alice\",\n    \"age\": \"30\",\n    \"city\": \"NYC\"\n  },\n  {\n    \"name\": \"Bob\",\n    \"age\": \"25\",\n    \"city\": \"LA\"\n  },\n  {\n    \"name\": \"Charlie\",\n    \"age\": \"35\",\n    \"city\": \"Chicago\"\n  }\n]",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "regex",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-6",
+      "type": "structured-output",
+      "objective": "Given this TypeScript interface, produce a JSON schema (draft-07) that validates objects conforming to it.",
+      "latency_ms": 4234,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\"\n    },\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"email\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"number\"\n    },\n    \"roles\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"id\",\n    \"name\",\n    \"email\",\n    \"roles\"\n  ],\n  \"additionalProperties\": false\n}",
+      "parsed": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\"\n    },\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"email\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"number\"\n    },\n    \"roles\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"id\",\n    \"name\",\n    \"email\",\n    \"roles\"\n  ],\n  \"additionalProperties\": false\n}",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-7",
+      "type": "research",
+      "objective": "Compare SQLite WAL mode vs DELETE journal mode for cross-process visibility. Summarize when each is appropriate in 3-5 bullet points.",
+      "latency_ms": 6260,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "*   **WAL Mode (Write-Ahead Logging)** enables superior cross-process concurrency by allowing readers to access consistent snapshots while writers append to a separate log file. This minimizes locking contention, making it ideal for multi-threaded or multi-process applications requiring high read throughput and low latency, provided the system supports atomic appends.\n*   **DELETE Mode (Rollback Journal)** uses a single database file with traditional locking, which can cause significant blocking in cross-process scenarios. It is appropriate only for single-writer environments or legacy systems where strict ACID compliance via immediate rollback is required, and concurrent access patterns are minimal or strictly serialized.\n*   **Visibility and Consistency** differ significantly: WAL mode provides a consistent view of the database to readers without blocking writers, ensuring cross-process visibility remains stable even during active writes. In contrast, DELETE mode may expose partial updates or require exclusive locks, potentially leading to stale reads or write conflicts in multi-process setups.\n*   **Recovery and Crash Safety**: WAL mode offers faster recovery and better crash resilience for cross-process workloads, as the journal is separate from the main database. DELETE mode requires full journal rollback, which can be slower and more disruptive if multiple processes are involved during a crash.",
+      "parsed": "*   **WAL Mode (Write-Ahead Logging)** enables superior cross-process concurrency by allowing readers to access consistent snapshots while writers append to a separate log file. This minimizes locking contention, making it ideal for multi-threaded or multi-process applications requiring high read throughput and low latency, provided the system supports atomic appends.\n*   **DELETE Mode (Rollback Journal)** uses a single database file with traditional locking, which can cause significant blocking in cross-process scenarios. It is appropriate only for single-writer environments or legacy systems where strict ACID compliance via immediate rollback is required, and concurrent access patterns are minimal or strictly serialized.\n*   **Visibility and Consistency** differ significantly: WAL mode provides a consistent view of the database to readers without blocking writers, ensuring cross-process visibility remains stable even during active writes. In contrast, DELETE mode may expose partial updates or require exclusive locks, potentially leading to stale reads or write conflicts in multi-process setups.\n*   **Recovery and Crash Safety**: WAL mode offers faster recovery and better crash resilience for cross-process workloads, as the journal is separate from the main database. DELETE mode requires full journal rollback, which can be slower and more disruptive if multiple processes are involved during a crash.",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "line-count",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-8",
+      "type": "research",
+      "objective": "Explain the difference between a semaphore and a mutex. When would you use each in an async JavaScript/TypeScript context?",
+      "latency_ms": 4738,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "A **mutex** (mutual exclusion) ensures only one thread/process accesses a resource at a time, tied to the acquiring entity. A **semaphore** allows a fixed number of concurrent accesses, acting as a counter.\n\nIn async JavaScript/TypeScript:\n\n1.  **Use a Mutex** when protecting shared state or critical sections where strict exclusivity is required.\n    *   *Example:* Preventing race conditions when multiple async functions update a shared in-memory cache or database connection pool simultaneously.\n\n2.  **Use a Semaphore** when limiting concurrency to manage system load or external API rate limits.\n    *   *Example:* Throttling 100 concurrent file uploads to avoid overwhelming a server, allowing only 5 uploads to proceed at once while queuing the rest.\n\nWhile libraries like `async-mutex` provide mutexes, semaphores are often implemented manually or via libraries like `p-limit` to control parallel execution limits effectively.",
+      "parsed": "A **mutex** (mutual exclusion) ensures only one thread/process accesses a resource at a time, tied to the acquiring entity. A **semaphore** allows a fixed number of concurrent accesses, acting as a counter.\n\nIn async JavaScript/TypeScript:\n\n1.  **Use a Mutex** when protecting shared state or critical sections where strict exclusivity is required.\n    *   *Example:* Preventing race conditions when multiple async functions update a shared in-memory cache or database connection pool simultaneously.\n\n2.  **Use a Semaphore** when limiting concurrency to manage system load or external API rate limits.\n    *   *Example:* Throttling 100 concurrent file uploads to avoid overwhelming a server, allowing only 5 uploads to proceed at once while queuing the rest.\n\nWhile libraries like `async-mutex` provide mutexes, semaphores are often implemented manually or via libraries like `p-limit` to control parallel execution limits effectively.",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "line-count",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-9",
+      "type": "file-op",
+      "objective": "Generate a .gitignore file for a Node.js + TypeScript project with common patterns: node_modules, dist, .env, coverage, *.log.",
+      "latency_ms": 5214,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "# Node modules\nnode_modules/\n\n# Build output\ndist/\nbuild/\n\n# Environment variables\n.env\n.env.local\n.env.*.local\n\n# Coverage reports\ncoverage/\n.nyc_output/\n\n# Logs\n*.log\nnpm-debug.log*\nyarn-debug.log*\nyarn-error.log*\n\n# IDE and OS files\n.idea/\n.vscode/\n*.swp\n*.swo\n.DS_Store\n\n# TypeScript cache\n*.tsbuildinfo\n\n# Optional npm cache directory\n.npm\n\n# Optional eslint cache\n.eslintcache\n\n# Optional REPL history\n.node_repl_history\n\n# Output of 'npm pack'\n*.tgz\n\n# Yarn Integrity file\n.yarn-integrity\n\n# Parcel\n.cache\n.parcel-cache\n\n# Webpack\nwebpack-stats.json\n\n# Vite\n.vite/\n\n# Jest\njest.config.js.snap\n\n# pnpm\npnpm-debug.log*\n\n# Turborepo\nturbo/\n\n# Deno\n.deno/\n\n# Bun\n.bun/",
+      "parsed": "# Node modules\nnode_modules/\n\n# Build output\ndist/\nbuild/\n\n# Environment variables\n.env\n.env.local\n.env.*.local\n\n# Coverage reports\ncoverage/\n.nyc_output/\n\n# Logs\n*.log\nnpm-debug.log*\nyarn-debug.log*\nyarn-error.log*\n\n# IDE and OS files\n.idea/\n.vscode/\n*.swp\n*.swo\n.DS_Store\n\n# TypeScript cache\n*.tsbuildinfo\n\n# Optional npm cache directory\n.npm\n\n# Optional eslint cache\n.eslintcache\n\n# Optional REPL history\n.node_repl_history\n\n# Output of 'npm pack'\n*.tgz\n\n# Yarn Integrity file\n.yarn-integrity\n\n# Parcel\n.cache\n.parcel-cache\n\n# Webpack\nwebpack-stats.json\n\n# Vite\n.vite/\n\n# Jest\njest.config.js.snap\n\n# pnpm\npnpm-debug.log*\n\n# Turborepo\nturbo/\n\n# Deno\n.deno/\n\n# Bun\n.bun/",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "task_id": "e2e-10",
+      "type": "file-op",
+      "objective": "Generate a tsconfig.json for a strict TypeScript project targeting ES2022 with Node16 module resolution, outputting to ./dist.",
+      "latency_ms": 3844,
+      "t0_passed": true,
+      "expected_verdict": "pass",
+      "actual_verdict": "pass",
+      "match": true,
+      "raw": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"Node16\",\n    \"moduleResolution\": \"Node16\",\n    \"outDir\": \"./dist\",\n    \"rootDir\": \"./src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"declaration\": true,\n    \"declarationMap\": true,\n    \"sourceMap\": true\n  },\n  \"include\": [\n    \"src/**/*\"\n  ],\n  \"exclude\": [\n    \"node_modules\",\n    \"dist\"\n  ]\n}",
+      "parsed": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"Node16\",\n    \"moduleResolution\": \"Node16\",\n    \"outDir\": \"./dist\",\n    \"rootDir\": \"./src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"declaration\": true,\n    \"declarationMap\": true,\n    \"sourceMap\": true\n  },\n  \"include\": [\n    \"src/**/*\"\n  ],\n  \"exclude\": [\n    \"node_modules\",\n    \"dist\"\n  ]\n}",
+      "verification_details": [
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        },
+        {
+          "type": "contains",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "matched": 10,
+    "fp": 0,
+    "fn": 0
+  }
+}

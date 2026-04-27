@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Think in <think> tags, then output ONLY valid JSON. No explanation after the JSON."
+    },
+    {
+      "role": "user",
+      "content": "Create a JSON object representing a deployment event with this nested structure:\n- id (string, UUID format)\n- timestamp (string, ISO 8601)\n- environment (string: \"production\", \"staging\", or \"development\")\n- service (object):\n  - name (string)\n  - version (string, semver)\n  - image (string, Docker image tag)\n- deployer (object):\n  - username (string)\n  - email (string)\n- changes (array of objects, at least 2):\n  - each with: file (string), type (string: \"added\"|\"modified\"|\"deleted\"), lines_changed (integer)\n- rollback_available (boolean)\n- health_check_url (string, valid URL)\n\nUse realistic sample values."
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 1024
+}

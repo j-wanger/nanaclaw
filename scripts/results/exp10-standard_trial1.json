@@ -1,0 +1,9 @@
+{
+  "name": "exp10-standard",
+  "trial": 1,
+  "latency_ms": 7539,
+  "in_tokens": 204,
+  "out_tokens": 266,
+  "content": "{\n  \"id\": \"a3f8b2c1-9d4e-4f6a-b8c7-1e2d3f4a5b6c\",\n  \"timestamp\": \"2023-10-27T14:32:15Z\",\n  \"environment\": \"production\",\n  \"service\": {\n    \"name\": \"user-auth-service\",\n    \"version\": \"2.4.1\",\n    \"image\": \"registry.example.com/auth-service:v2.4.1\"\n  },\n  \"deployer\": {\n    \"username\": \"jane.doe\",\n    \"email\": \"jane.doe@example.com\"\n  },\n  \"changes\": [\n    {\n      \"file\": \"src/auth/middleware.ts\",\n      \"type\": \"modified\",\n      \"lines_changed\": 12\n    },\n    {\n      \"file\": \"src/config/db.config.ts\",\n      \"type\": \"added\",\n      \"lines_changed\": 8\n    }\n  ],\n  \"rollback_available\": true,\n  \"health_check_url\": \"https://api.example.com/health\"\n}",
+  "timestamp": "2026-04-26T17:44:19Z"
+}

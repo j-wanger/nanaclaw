@@ -47,6 +47,8 @@ export interface ContainerConfig {
   agentGroupId?: string;
   /** Max messages per prompt. Falls back to code default if unset. */
   maxMessagesPerPrompt?: number;
+  /** Local worker model routing config — injected by host at spawn from models.json. */
+  localWorker?: { routes: Record<string, string>; endpoints: Record<string, { max_concurrent: number }> };
 }
 
 function emptyConfig(): ContainerConfig {

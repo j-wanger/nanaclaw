@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You MUST output valid JSON matching this exact schema. No other output.\n\nSchema:\n{\n  \"hostname\": \"<string>\",\n  \"status\": \"healthy\" | \"degraded\",\n  \"uptime_hours\": <number>,\n  \"cpu_percent\": <number 0-100>,\n  \"active_connections\": <integer>\n}"
+    },
+    {
+      "role": "user",
+      "content": "Create a JSON object representing a server health check result. Use realistic sample values for a production web server."
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 256
+}

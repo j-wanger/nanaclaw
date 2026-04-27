@@ -1,0 +1,9 @@
+{
+  "name": "exp04-standard",
+  "trial": 1,
+  "latency_ms": 5681,
+  "in_tokens": 211,
+  "out_tokens": 220,
+  "content": "```typescript\nexport function debounce<T extends (...args: any[]) => void>(\n  fn: T,\n  delayMs: number\n): T & { cancel: () => void } {\n  let timeoutId: ReturnType<typeof setTimeout> | null = null;\n  let lastArgs: any[] = [];\n  let lastThis: any = undefined;\n\n  const debounced = function (this: any, ...args: any[]) {\n    lastThis = this;\n    lastArgs = args;\n\n    if (timeoutId !== null) {\n      clearTimeout(timeoutId);\n    }\n\n    timeoutId = setTimeout(() => {\n      timeoutId = null;\n      fn.apply(lastThis, lastArgs);\n    }, delayMs);\n  } as T & { cancel: () => void };\n\n  debounced.cancel = function () {\n    if (timeoutId !== null) {\n      clearTimeout(timeoutId);\n      timeoutId = null;\n    }\n  };\n\n  return debounced;\n}\n```",
+  "timestamp": "2026-04-26T17:35:44Z"
+}

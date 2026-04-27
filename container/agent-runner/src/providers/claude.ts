@@ -3,6 +3,7 @@ import path from 'path';
 
 import { query as sdkQuery, type HookCallback, type PreCompactHookInput } from '@anthropic-ai/claude-agent-sdk';
 
+import { AGENT_DIR } from '../config.js';
 import { clearContainerToolInFlight, setContainerToolInFlight } from '../db/connection.js';
 import { registerProvider } from './provider-registry.js';
 import type { AgentProvider, AgentQuery, McpServerConfig, ProviderEvent, ProviderOptions, QueryInput } from './types.js';
@@ -103,12 +104,12 @@ class MessageStream {
 
 // ── Transcript archiving (PreCompact hook) ──
 
-interface ParsedMessage {
+export interface ParsedMessage {
   role: 'user' | 'assistant';
   content: string;
 }
 
-function parseTranscript(content: string): ParsedMessage[] {
+export function parseTranscript(content: string): ParsedMessage[] {
   const messages: ParsedMessage[] = [];
   for (const line of content.split('\n')) {
     if (!line.trim()) continue;
@@ -129,7 +130,7 @@ function parseTranscript(content: string): ParsedMessage[] {
   return messages;
 }
 
-function formatTranscriptMarkdown(messages: ParsedMessage[], title?: string | null, assistantName?: string): string {
+export function formatTranscriptMarkdown(messages: ParsedMessage[], title?: string | null, assistantName?: string): string {
   const now = new Date();
   const dateStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
   const lines = [`# ${title || 'Conversation'}`, '', `Archived: ${dateStr}`, '', '---', ''];
@@ -209,7 +210,7 @@ function createPreCompactHook(assistantName?: string): HookCallback {
         ? summary.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50)
         : `conversation-${new Date().getHours().toString().padStart(2, '0')}${new Date().getMinutes().toString().padStart(2, '0')}`;
 
-      const conversationsDir = '/workspace/agent/conversations';
+      const conversationsDir = `${AGENT_DIR}/conversations`;
       fs.mkdirSync(conversationsDir, { recursive: true });
       const filename = `${new Date().toISOString().split('T')[0]}-${name}.md`;
       fs.writeFileSync(path.join(conversationsDir, filename), formatTranscriptMarkdown(messages, summary, assistantName));

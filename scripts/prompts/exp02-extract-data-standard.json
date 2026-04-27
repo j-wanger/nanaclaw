@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a data extraction assistant. Extract the requested fields and output them as a JSON object. Output ONLY valid JSON, no explanation."
+    },
+    {
+      "role": "user",
+      "content": "Extract the following fields from this markdown document:\n- title (string)\n- author (string)\n- date (string, ISO format)\n- tags (array of strings)\n- summary (string, first paragraph after the metadata)\n\nDocument:\n```\n---\ntitle: Building Resilient Microservices\nauthor: Sarah Chen\ndate: March 15, 2026\ntags: microservices, resilience, distributed-systems, circuit-breaker\n---\n\n# Building Resilient Microservices\n\nModern distributed systems require careful attention to failure modes. This article explores three patterns — circuit breakers, bulkheads, and retry budgets — that prevent cascade failures in microservice architectures.\n\n## Circuit Breaker Pattern\n\nThe circuit breaker monitors failure rates and trips open when errors exceed a threshold, preventing downstream overload.\n\n## Bulkhead Pattern\n\nIsolation boundaries limit the blast radius of failures to individual service partitions.\n```"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 512
+}

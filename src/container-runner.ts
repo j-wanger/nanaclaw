@@ -22,6 +22,8 @@ import {
 import { readContainerConfig, writeContainerConfig } from './container-config.js';
 import { CONTAINER_RUNTIME_BIN, hostGatewayArgs, readonlyMountArgs, stopContainer } from './container-runtime.js';
 import { composeGroupClaudeMd } from './claude-md-compose.js';
+import { generateMemoryFragment, generateWikiContext } from './modules/memory/index.js';
+import { loadModels, buildLocalWorkerConfig } from './modules/local-worker/index.js';
 import { getAgentGroup } from './db/agent-groups.js';
 import { getDb, hasTable } from './db/connection.js';
 import { initGroupFilesystem } from './group-init.js';
@@ -40,6 +42,8 @@ import {
   heartbeatPath,
   markContainerRunning,
   markContainerStopped,
+  openOutboundDb,
+  outboundDbPath,
   sessionDir,
   writeSessionRouting,
 } from './session-manager.js';
@@ -48,7 +52,10 @@ import type { AgentGroup, Session } from './types.js';
 const onecli = new OneCLI({ url: ONECLI_URL, apiKey: ONECLI_API_KEY });
 
 /** Active containers tracked by session ID. */
-const activeContainers = new Map<string, { process: ChildProcess; containerName: string }>();
+const activeContainers = new Map<
+  string,
+  { process: ChildProcess; containerName: string; mode: 'host' | 'container' }
+>();
 
 /**
  * In-flight wake promises, keyed by session id. Deduplicates concurrent
@@ -84,20 +91,34 @@ export function wakeContainer(session: Session): Promise<void> {
     log.debug('Container wake already in-flight — joining existing promise', { sessionId: session.id });
     return existing;
   }
-  const promise = spawnContainer(session).finally(() => {
+  const promise = doWake(session).finally(() => {
     wakePromises.delete(session.id);
   });
   wakePromises.set(session.id, promise);
   return promise;
 }
 
-async function spawnContainer(session: Session): Promise<void> {
+async function doWake(session: Session): Promise<void> {
   const agentGroup = getAgentGroup(session.agent_group_id);
   if (!agentGroup) {
     log.error('Agent group not found', { agentGroupId: session.agent_group_id });
     return;
   }
+  const containerConfig = readContainerConfig(agentGroup.folder);
+  const provider = resolveProviderName(session.agent_provider, agentGroup.agent_provider, containerConfig.provider);
 
+  if (provider === 'host') {
+    await spawnHostRunner(session, agentGroup, containerConfig);
+  } else {
+    await spawnContainer(session, agentGroup, containerConfig);
+  }
+}
+
+async function spawnContainer(
+  session: Session,
+  agentGroup: AgentGroup,
+  containerConfig: import('./container-config.js').ContainerConfig,
+): Promise<void> {
   // Refresh the destination map and default reply routing so any admin
   // changes take effect on wake. Destinations come from the agent-to-agent
   // module — skip when the module isn't installed (table absent).
@@ -107,13 +128,15 @@ async function spawnContainer(session: Session): Promise<void> {
   }
   writeSessionRouting(agentGroup.id, session.id);
 
-  // Read container config once — threaded through provider resolution,
-  // buildMounts, and buildContainerArgs so we don't re-read the file.
-  const containerConfig = readContainerConfig(agentGroup.folder);
-
   // Ensure container.json has the agent group identity fields the runner needs.
   // Written at spawn time so the runner can read them from the RO mount.
   ensureRuntimeFields(containerConfig, agentGroup);
+
+  const models = loadModels(path.resolve(GROUPS_DIR, agentGroup.folder));
+  if (models.length > 0) {
+    containerConfig.localWorker = buildLocalWorkerConfig(models);
+    writeContainerConfig(agentGroup.folder, containerConfig);
+  }
 
   // Resolve the effective provider + any host-side contribution it declares
   // (extra mounts, env passthrough). Computed once and threaded through both
@@ -145,7 +168,7 @@ async function spawnContainer(session: Session): Promise<void> {
 
   const container = spawn(CONTAINER_RUNTIME_BIN, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
-  activeContainers.set(session.id, { process: container, containerName });
+  activeContainers.set(session.id, { process: container, containerName, mode: 'container' });
   markContainerRunning(session.id);
 
   // Log stderr
@@ -183,12 +206,161 @@ export function killContainer(sessionId: string, reason: string): void {
   const entry = activeContainers.get(sessionId);
   if (!entry) return;
 
-  log.info('Killing container', { sessionId, reason, containerName: entry.containerName });
-  try {
-    stopContainer(entry.containerName);
-  } catch {
-    entry.process.kill('SIGKILL');
+  log.info('Killing container', { sessionId, reason, containerName: entry.containerName, mode: entry.mode });
+  if (entry.mode === 'host') {
+    entry.process.kill('SIGTERM');
+  } else {
+    try {
+      stopContainer(entry.containerName);
+    } catch {
+      entry.process.kill('SIGKILL');
+    }
   }
+}
+
+/**
+ * Build the env var record for a host-mode agent-runner process.
+ * Pure — testable without filesystem or DB.
+ */
+export function buildHostRunnerEnv(args: {
+  sessionDir: string;
+  agentDir: string;
+  timezone: string;
+  extraEnv?: Record<string, string>;
+}): Record<string, string> {
+  const base = { ...(process.env as Record<string, string>) };
+  if (args.extraEnv) {
+    Object.assign(base, args.extraEnv);
+  }
+  base.NANOCLAW_SESSION_DIR = args.sessionDir;
+  base.NANOCLAW_AGENT_DIR = args.agentDir;
+  base.TZ = args.timezone;
+  return base;
+}
+
+function memoryMtime(memoryPath: string): number {
+  try {
+    return fs.statSync(memoryPath).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
+function checkMemoryWrites(
+  memoryPath: string,
+  mtimeBefore: number,
+  agentGroupId: string,
+  sessionId: string,
+  groupName: string,
+): void {
+  const mtimeAfter = memoryMtime(memoryPath);
+  if (mtimeAfter !== mtimeBefore) return;
+
+  try {
+    if (!fs.existsSync(outboundDbPath(agentGroupId, sessionId))) return;
+    const db = openOutboundDb(agentGroupId, sessionId);
+    try {
+      const row = db.prepare('SELECT COUNT(*) as cnt FROM messages_out').get() as { cnt: number } | undefined;
+      const turnCount = row?.cnt ?? 0;
+      if (turnCount > 10) {
+        log.warn('Host session had no MEMORY.md writes', { group: groupName, turns: turnCount });
+      }
+    } finally {
+      db.close();
+    }
+  } catch {
+    // best-effort — don't fail the close handler
+  }
+}
+
+async function spawnHostRunner(
+  session: Session,
+  agentGroup: AgentGroup,
+  containerConfig: import('./container-config.js').ContainerConfig,
+): Promise<void> {
+  if (hasTable(getDb(), 'agent_destinations')) {
+    const { writeDestinations } = await import('./modules/agent-to-agent/write-destinations.js');
+    writeDestinations(agentGroup.id, session.id);
+  }
+  writeSessionRouting(agentGroup.id, session.id);
+  ensureRuntimeFields(containerConfig, agentGroup);
+
+  const projectRoot = process.cwd();
+  const groupDir = path.resolve(GROUPS_DIR, agentGroup.folder);
+
+  initGroupFilesystem(agentGroup);
+
+  const claudeDir = path.join(DATA_DIR, 'v2-sessions', agentGroup.id, '.claude-shared');
+  syncSkillSymlinks(claudeDir, containerConfig);
+  composeGroupClaudeMd(agentGroup);
+
+  try {
+    generateMemoryFragment(groupDir);
+  } catch (err) {
+    log.warn('Memory fragment generation failed', { group: agentGroup.name, err });
+  }
+
+  try {
+    generateWikiContext(groupDir);
+  } catch (err) {
+    log.warn('Wiki context generation failed', { group: agentGroup.name, err });
+  }
+
+  const models = loadModels(groupDir);
+  const newLocalWorker = models.length > 0 ? buildLocalWorkerConfig(models) : undefined;
+  if (containerConfig.localWorker !== newLocalWorker) {
+    containerConfig.localWorker = newLocalWorker;
+    writeContainerConfig(agentGroup.folder, containerConfig);
+  }
+
+  const sessDir = sessionDir(agentGroup.id, session.id);
+  const runnerEntry = path.join(projectRoot, 'container', 'agent-runner', 'src', 'index.ts');
+  const runnerName = `host-${agentGroup.folder}-${Date.now()}`;
+
+  const env = buildHostRunnerEnv({
+    sessionDir: sessDir,
+    agentDir: groupDir,
+    timezone: TIMEZONE,
+  });
+
+  log.info('Spawning host-mode runner', { sessionId: session.id, agentGroup: agentGroup.name, runnerName });
+
+  fs.rmSync(heartbeatPath(agentGroup.id, session.id), { force: true });
+
+  const memoryMdPath = path.join(groupDir, 'memory', 'MEMORY.md');
+  const memoryMtimeBefore = memoryMtime(memoryMdPath);
+
+  const child = spawn('bun', ['run', runnerEntry], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env,
+    cwd: groupDir,
+  });
+
+  activeContainers.set(session.id, { process: child, containerName: runnerName, mode: 'host' });
+  markContainerRunning(session.id);
+
+  child.stderr?.on('data', (data) => {
+    for (const line of data.toString().trim().split('\n')) {
+      if (line) log.debug(line, { runner: agentGroup.folder });
+    }
+  });
+
+  child.stdout?.on('data', () => {});
+
+  child.on('close', (code) => {
+    activeContainers.delete(session.id);
+    markContainerStopped(session.id);
+    stopTypingRefresh(session.id);
+    checkMemoryWrites(memoryMdPath, memoryMtimeBefore, agentGroup.id, session.id, agentGroup.name);
+    log.info('Host runner exited', { sessionId: session.id, code, runnerName });
+  });
+
+  child.on('error', (err) => {
+    activeContainers.delete(session.id);
+    markContainerStopped(session.id);
+    stopTypingRefresh(session.id);
+    log.error('Host runner spawn error', { sessionId: session.id, err });
+  });
 }
 
 /**
@@ -251,6 +423,18 @@ function buildMounts(
   const mounts: VolumeMount[] = [];
   const sessDir = sessionDir(agentGroup.id, session.id);
   const groupDir = path.resolve(GROUPS_DIR, agentGroup.folder);
+
+  try {
+    generateMemoryFragment(groupDir);
+  } catch (err) {
+    log.warn('Memory fragment generation failed', { group: agentGroup.name, err });
+  }
+
+  try {
+    generateWikiContext(groupDir);
+  } catch (err) {
+    log.warn('Wiki context generation failed', { group: agentGroup.name, err });
+  }
 
   // Session folder at /workspace (contains inbound.db, outbound.db, outbox/, .claude/)
   mounts.push({ hostPath: sessDir, containerPath: '/workspace', readonly: false });

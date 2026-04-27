@@ -1,0 +1,9 @@
+{
+  "name": "exp07-standard",
+  "trial": 1,
+  "latency_ms": 2957,
+  "in_tokens": 429,
+  "out_tokens": 94,
+  "content": "*   The architecture uses separate SQLite files for host and agent to eliminate lock contention, ensuring each side has exclusive write access to its own database.\n*   It employs DELETE journal mode and file-based heartbeats to guarantee cross-mount visibility and avoid database write path overhead, despite slightly slower write performance.\n*   Even-odd sequence numbering provides natural message ordering and source identification without coordination, trading minor complexity for reliability in infrequent, small-agent workloads.",
+  "timestamp": "2026-04-26T17:39:40Z"
+}

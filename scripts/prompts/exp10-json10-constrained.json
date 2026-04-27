@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You MUST output valid JSON matching this exact schema. No other output.\n\nSchema:\n{\n  \"id\": \"<UUID string>\",\n  \"timestamp\": \"<ISO 8601>\",\n  \"environment\": \"production\" | \"staging\" | \"development\",\n  \"service\": {\n    \"name\": \"<string>\",\n    \"version\": \"<semver>\",\n    \"image\": \"<docker-image:tag>\"\n  },\n  \"deployer\": {\n    \"username\": \"<string>\",\n    \"email\": \"<string>\"\n  },\n  \"changes\": [\n    { \"file\": \"<string>\", \"type\": \"added\" | \"modified\" | \"deleted\", \"lines_changed\": <integer> }\n  ],\n  \"rollback_available\": <boolean>,\n  \"health_check_url\": \"<URL>\"\n}"
+    },
+    {
+      "role": "user",
+      "content": "Create a deployment event JSON object. Use realistic sample values for a production deployment."
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 512
+}

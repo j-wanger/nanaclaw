@@ -22,3 +22,6 @@ import './scheduling/index.js';
 import './permissions/index.js';
 import './agent-to-agent/index.js';
 import './self-mod/index.js';
+import './memory/index.js';
+import './local-worker/index.js';
+import './voice/index.js';

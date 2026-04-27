@@ -1,0 +1,9 @@
+{
+  "name": "exp09-thinking",
+  "trial": 2,
+  "latency_ms": 1682,
+  "in_tokens": 121,
+  "out_tokens": 62,
+  "content": "{\n  \"hostname\": \"web-prod-01.example.com\",\n  \"status\": \"healthy\",\n  \"uptime_hours\": 1452,\n  \"cpu_percent\": 42.5,\n  \"active_connections\": 1284\n}",
+  "timestamp": "2026-04-26T17:44:04Z"
+}

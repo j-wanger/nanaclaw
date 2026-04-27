@@ -10,6 +10,13 @@ import './scheduling.js';
 import './interactive.js';
 import './agents.js';
 import './self-mod.js';
+import './deep-work.js';
+import './local-worker/index.js';
+import './voice-tts.js';
+import './web-search.js';
+import './web-extract.js';
+import './wiki-write.js';
+import './wiki-search.js';
 import { startMcpServer } from './server.js';
 
 function log(msg: string): void {

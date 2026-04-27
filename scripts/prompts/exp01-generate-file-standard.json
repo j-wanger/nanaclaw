@@ -1,0 +1,15 @@
+{
+  "model": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a TypeScript code generator. Output ONLY the complete file content with no explanation or markdown fences."
+    },
+    {
+      "role": "user",
+      "content": "Generate a TypeScript file that exports a function `parseCSVLine(line: string): string[]` which:\n- Splits a CSV line by commas\n- Handles quoted fields (fields wrapped in double quotes can contain commas)\n- Handles escaped quotes (two consecutive double quotes inside a quoted field = literal quote)\n- Returns an array of field values with quotes stripped\n\nAlso export a function `formatCSVLine(fields: string[]): string` that does the reverse — wraps fields containing commas or quotes in double quotes, escapes internal quotes by doubling them.\n\nInclude the type export: `export type CSVField = string;`"
+    }
+  ],
+  "temperature": 0.0,
+  "max_tokens": 2048
+}
