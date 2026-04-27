@@ -75,6 +75,30 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     }
 
     if (messages.length === 0) {
+      // Check for completed worker results during idle — without this,
+      // results only surface after the NEXT user message triggers a query.
+      const idleWorkerPrompt = checkWorkerResults();
+      if (idleWorkerPrompt) {
+        log('Worker results ready during idle, injecting for review');
+        const routing = extractRouting([]);
+        const wQuery = config.provider.query({
+          prompt: idleWorkerPrompt,
+          continuation,
+          cwd: config.cwd,
+          systemContext: config.systemContext,
+        });
+        try {
+          const wResult = await processQuery(wQuery, routing, [], config.providerName);
+          if (wResult.continuation && wResult.continuation !== continuation) {
+            continuation = wResult.continuation;
+            setContinuation(config.providerName, continuation);
+          }
+        } catch (err) {
+          log(`Idle worker result injection error: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        continue;
+      }
+
       await sleep(POLL_INTERVAL_MS);
       continue;
     }
