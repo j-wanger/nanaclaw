@@ -28,7 +28,7 @@ const TEST_DIR = '/tmp/nanoclaw-test-delivery';
 
 import { initTestDb, closeDb, runMigrations, createAgentGroup, createMessagingGroup } from './db/index.js';
 import { resolveSession, outboundDbPath } from './session-manager.js';
-import { deliverSessionMessages, setDeliveryAdapter } from './delivery.js';
+import { deliverSessionMessages, setDeliveryAdapter, registerDeliveryAction } from './delivery.js';
 
 function now(): string {
   return new Date().toISOString();
@@ -144,5 +144,68 @@ describe('deliverSessionMessages — concurrent invocations', () => {
     await deliverSessionMessages(session);
 
     expect(callCount).toBe(1);
+  });
+});
+
+function insertSystemAction(agentGroupId: string, sessionId: string, msgId: string, action: Record<string, unknown>): void {
+  const db = new Database(outboundDbPath(agentGroupId, sessionId));
+  db.prepare(
+    `INSERT INTO messages_out (id, seq, timestamp, kind, content)
+     VALUES (?, ?, datetime('now'), 'system', ?)`,
+  ).run(msgId, Math.floor(Math.random() * 10000) * 2 + 1, JSON.stringify(action));
+  db.close();
+}
+
+describe('deliverSessionMessages — system action dispatch', () => {
+  it('routes schedule_message action to registered handler', async () => {
+    seedAgentAndChannel();
+    const { session } = resolveSession('ag-1', 'mg-1', null, 'shared');
+
+    const handlerCalls: Record<string, unknown>[] = [];
+    registerDeliveryAction('schedule_message', async (content) => {
+      handlerCalls.push(content);
+    });
+
+    insertSystemAction('ag-1', session.id, 'sys-sched-1', {
+      action: 'schedule_message',
+      task: { content: 'Research topic', processAfter: '2026-04-28T00:00:00Z' },
+    });
+
+    setDeliveryAdapter({ async deliver() { return undefined; } });
+    await deliverSessionMessages(session);
+
+    expect(handlerCalls).toHaveLength(1);
+    expect(handlerCalls[0].action).toBe('schedule_message');
+  });
+
+  it('handles unknown system actions gracefully (no throw)', async () => {
+    seedAgentAndChannel();
+    const { session } = resolveSession('ag-1', 'mg-1', null, 'shared');
+
+    insertSystemAction('ag-1', session.id, 'sys-unknown-1', {
+      action: 'nonexistent_action',
+      data: { key: 'value' },
+    });
+
+    setDeliveryAdapter({ async deliver() { return undefined; } });
+    await expect(deliverSessionMessages(session)).resolves.not.toThrow();
+  });
+
+  it('system actions do not reach the channel adapter', async () => {
+    seedAgentAndChannel();
+    const { session } = resolveSession('ag-1', 'mg-1', null, 'shared');
+
+    registerDeliveryAction('test_noop_' + Date.now(), async () => {});
+    insertSystemAction('ag-1', session.id, 'sys-noop-1', {
+      action: 'test_noop_' + Date.now(),
+    });
+
+    let adapterCalled = false;
+    setDeliveryAdapter({
+      async deliver() { adapterCalled = true; return undefined; },
+    });
+    await deliverSessionMessages(session);
+
+    expect(adapterCalled).toBe(false);
   });
 });

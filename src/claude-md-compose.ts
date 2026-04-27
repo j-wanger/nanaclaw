@@ -31,6 +31,7 @@ const SHARED_MCP_TOOLS_CONTAINER_BASE = '/app/src/mcp-tools';
 // Host-side source paths used to discover fragment sources at compose time.
 // Resolved at call time (process.cwd() = project root) so tests can swap cwd.
 const MCP_TOOLS_HOST_SUBPATH = path.join('container', 'agent-runner', 'src', 'mcp-tools');
+const SOUL_MD_HOST_SUBPATH = 'SOUL.md';
 
 const COMPOSED_HEADER = '<!-- Composed at spawn — do not edit. Edit CLAUDE.local.md for per-group content. -->';
 
@@ -98,6 +99,16 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
         content: mcp.instructions,
       });
     }
+  }
+
+  // SOUL.md — agent personality, inline (not symlink) since it lives at project
+  // root with no container mount point.
+  const soulMdPath = path.join(process.cwd(), SOUL_MD_HOST_SUBPATH);
+  if (fs.existsSync(soulMdPath)) {
+    desired.set('soul.md', {
+      type: 'inline',
+      content: fs.readFileSync(soulMdPath, 'utf-8'),
+    });
   }
 
   // Reconcile: drop stale, write desired.

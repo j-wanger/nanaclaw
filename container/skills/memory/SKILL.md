@@ -50,7 +50,7 @@ More content here.
 - Use today's date when creating entries
 - Update existing entries rather than creating duplicates
 - Remove entries that are no longer relevant
-- Do NOT store information already in CLAUDE.local.md (they coexist — CLAUDE.local.md is for freeform notes, MEMORY.md is for structured facts)
+- MEMORY.md is the sole memory store — do NOT write memory entries to CLAUDE.local.md or ad-hoc files
 
 ## Cold Start
 

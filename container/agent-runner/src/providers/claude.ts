@@ -230,6 +230,16 @@ function createPreCompactHook(assistantName?: string): HookCallback {
  */
 const CLAUDE_CODE_AUTO_COMPACT_WINDOW = '165000';
 
+function resolveClaudeCodePath(): string {
+  if (fs.existsSync('/pnpm/claude')) return '/pnpm/claude';
+  const fromEnv = process.env.CLAUDE_CODE_BIN;
+  if (fromEnv && fs.existsSync(fromEnv)) return fromEnv;
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  const localBin = path.join(home, '.local', 'bin', 'claude');
+  if (fs.existsSync(localBin)) return localBin;
+  return 'claude';
+}
+
 /**
  * Stale-session detection. Matches Claude Code's error text when a
  * resumed session can't be found — missing transcript .jsonl, unknown
@@ -272,7 +282,7 @@ export class ClaudeProvider implements AgentProvider {
         cwd: input.cwd,
         additionalDirectories: this.additionalDirectories,
         resume: input.continuation,
-        pathToClaudeCodeExecutable: '/pnpm/claude',
+        pathToClaudeCodeExecutable: resolveClaudeCodePath(),
         systemPrompt: instructions ? { type: 'preset' as const, preset: 'claude_code' as const, append: instructions } : undefined,
         allowedTools: TOOL_ALLOWLIST,
         disallowedTools: SDK_DISALLOWED_TOOLS,

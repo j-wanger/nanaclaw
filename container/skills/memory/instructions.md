@@ -29,6 +29,6 @@ If your context fragment contains no memory section, seed your memory by asking:
 
 Save answers as `[user]` and `[project]` entries. Then proceed with the user's request.
 
-## Coexistence with CLAUDE.local.md
+## Conversation Recall
 
-`CLAUDE.local.md` is for freeform per-group notes. `MEMORY.md` is for structured, indexed facts. Do not duplicate content between them.
+The `conversations/` folder in your workspace holds transcripts of past sessions. Use it when a request references something from a previous conversation. For persistent structured facts (user profile, project context, preferences), always use MEMORY.md — not `conversations/` and not `CLAUDE.local.md`.

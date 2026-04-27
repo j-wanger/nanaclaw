@@ -20,7 +20,8 @@ export function registerProvider(name: string, factory: ProviderFactory): void {
 }
 
 export function getProviderFactory(name: string): ProviderFactory {
-  const factory = registry.get(name);
+  const effective = name === 'host' ? 'claude' : name;
+  const factory = registry.get(effective);
   if (!factory) {
     const known = [...registry.keys()].join(', ') || '(none)';
     throw new Error(`Unknown provider: ${name}. Registered: ${known}`);

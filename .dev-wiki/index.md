@@ -122,6 +122,9 @@
 - [[phase-06a-worker-tool-calling|Phase 6a: Worker Tool-Calling Runtime]] — completed
 - [[phase-06-autonomous-loops|Phase 6b: Research Loop + Episodic Integration]] — completed
 - [[phase-07-hardening-wiki-bridge|Phase 7: Production Hardening + Wiki Bridge]] — completed
+- [[phase-08-operational-deployment|Phase 8: Operational Deployment + E2E Validation]] — completed
+- [[phase-09-prompt-reconciliation-hardening|Phase 9: Agent Prompt Reconciliation]] — completed
+- [[phase-10-host-mode-integration-tests|Phase 10: Host-Mode Integration Tests]] — **complete (pending confirmation)**
 
 ## Decisions
 
@@ -138,9 +141,16 @@
 - [[phase-6a-worker-tool-calling-approach|Phase 6a: Worker Tool-Calling via Multi-Turn Agent Loop]] — medium confidence
 - [[phase-6b-research-loop-approach|Phase 6b: Worker-Driven Research Loops + Episodic Wiki]] — medium confidence
 - [[phase-7-hardening-wiki-bridge-approach|Phase 7: Production Hardening + Wiki Bridge]] — medium confidence
+- [[phase-8-operational-deployment-approach|Phase 8: Operational Deployment + E2E Validation]] — medium confidence
+- [[phase-9-prompt-reconciliation-approach|Phase 9: Agent Prompt Reconciliation]] — medium confidence
+- [[phase-10-host-mode-test-coverage-approach|Phase 10: Host-Mode Integration Tests]] — medium confidence
 
 ## Journal
 
+- [2026-04-27] [[2026-04-27-phase-10-host-mode-integration-tests-complete|Phase 10: Integration Tests Complete]] — 4 tasks, 26 new tests, spawn pipeline + session DB + delivery
+- [2026-04-27] [[2026-04-27-phase-9-prompt-reconciliation-complete|Phase 9: Prompt Reconciliation Complete]] — 5 tasks, memory conflict resolved, SOUL.md wired, reviewer 8/10
+
+- [2026-04-27] [[2026-04-27-phase-8-operational-deployment-complete|Phase 8: Operational Deployment Complete]] — 6 tasks, 5 host-mode bugs fixed, full pipeline validated, reviewer 6/10→fixed
 - [2026-04-26] [[2026-04-26-phase-6b-research-loop-complete|Phase 6b: Research Loop + Episodic Integration Complete]] — 6 tasks, episodic wiki tier + research-loop skill, reviewer 8/10
 - [2026-04-26] [[2026-04-26-phase-5-web-search-complete|Phase 5: Web Search + Deep Research Complete]] — 5 tasks, 3 MCP tools + skill + pipeline test, reviewer 8/10
 - [2026-04-26] [[2026-04-26-phase-2-implementation-complete|Phase 2 Implementation Complete]] — Tasks 3-8, host-mode + deep work, reviewer 9/10

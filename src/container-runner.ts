@@ -7,6 +7,8 @@ import { ChildProcess, execSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
+import os from 'os';
+
 import { OneCLI } from '@onecli-sh/sdk';
 
 import {
@@ -19,6 +21,17 @@ import {
   ONECLI_URL,
   TIMEZONE,
 } from './config.js';
+
+function resolveBunPath(): string {
+  const fromEnv = process.env.BUN_INSTALL;
+  if (fromEnv) {
+    const p = path.join(fromEnv, 'bin', 'bun');
+    if (fs.existsSync(p)) return p;
+  }
+  const homeBun = path.join(os.homedir(), '.bun', 'bin', 'bun');
+  if (fs.existsSync(homeBun)) return homeBun;
+  return 'bun';
+}
 import { readContainerConfig, writeContainerConfig } from './container-config.js';
 import { CONTAINER_RUNTIME_BIN, hostGatewayArgs, readonlyMountArgs, stopContainer } from './container-runtime.js';
 import { composeGroupClaudeMd } from './claude-md-compose.js';
@@ -291,7 +304,8 @@ async function spawnHostRunner(
   initGroupFilesystem(agentGroup);
 
   const claudeDir = path.join(DATA_DIR, 'v2-sessions', agentGroup.id, '.claude-shared');
-  syncSkillSymlinks(claudeDir, containerConfig);
+  const hostSkillsBase = path.join(projectRoot, 'container', 'skills');
+  syncSkillSymlinks(claudeDir, containerConfig, hostSkillsBase);
   composeGroupClaudeMd(agentGroup);
 
   try {
@@ -330,7 +344,8 @@ async function spawnHostRunner(
   const memoryMdPath = path.join(groupDir, 'memory', 'MEMORY.md');
   const memoryMtimeBefore = memoryMtime(memoryMdPath);
 
-  const child = spawn('bun', ['run', runnerEntry], {
+  const bunBin = resolveBunPath();
+  const child = spawn(bunBin, ['run', runnerEntry], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env,
     cwd: groupDir,
@@ -511,7 +526,7 @@ function buildMounts(
  * selection. Each symlink points to a container path (/app/skills/<name>)
  * so it's dangling on the host but valid inside the container.
  */
-function syncSkillSymlinks(claudeDir: string, containerConfig: import('./container-config.js').ContainerConfig): void {
+function syncSkillSymlinks(claudeDir: string, containerConfig: import('./container-config.js').ContainerConfig, skillsBase?: string): void {
   const skillsDir = path.join(claudeDir, 'skills');
   if (!fs.existsSync(skillsDir)) {
     fs.mkdirSync(skillsDir, { recursive: true });
@@ -552,18 +567,18 @@ function syncSkillSymlinks(claudeDir: string, containerConfig: import('./contain
     }
   }
 
-  // Create symlinks for desired skills (container path targets)
+  // Create or update symlinks for desired skills
   for (const skill of desired) {
     const linkPath = path.join(skillsDir, skill);
-    let exists = false;
+    const expectedTarget = skillsBase ? path.join(skillsBase, skill) : `/app/skills/${skill}`;
     try {
-      fs.lstatSync(linkPath);
-      exists = true;
+      const currentTarget = fs.readlinkSync(linkPath);
+      if (currentTarget !== expectedTarget) {
+        fs.unlinkSync(linkPath);
+        fs.symlinkSync(expectedTarget, linkPath);
+      }
     } catch {
-      /* missing */
-    }
-    if (!exists) {
-      fs.symlinkSync(`/app/skills/${skill}`, linkPath);
+      fs.symlinkSync(expectedTarget, linkPath);
     }
   }
 }

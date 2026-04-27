@@ -100,3 +100,15 @@ container/agent-runner/src/mcp-tools/wiki-search.test.ts
 container/agent-runner/src/mcp-tools/wiki-search.ts
 scripts/smoke-test.ts
 .husky/pre-commit
+groups/dm-with-wang/container.json
+groups/cli-with-wang/container.json
+container/agent-runner/src/providers/provider-registry.ts
+groups/cli-with-wang/models.json
+groups/dm-with-wang/models.json
+groups/cli-with-wang/test-tool-use.txt
+data/searxng/settings.yml
+src/claude-md-compose.ts
+src/claude-md-compose.test.ts
+src/spawn-pipeline.test.ts
+src/session-roundtrip.test.ts
+src/delivery.test.ts
