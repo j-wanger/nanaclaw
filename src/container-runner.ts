@@ -21,6 +21,7 @@ import {
   ONECLI_URL,
   TIMEZONE,
 } from './config.js';
+import { readEnvFile } from './env.js';
 
 function resolveBunPath(): string {
   const fromEnv = process.env.BUN_INSTALL;
@@ -331,10 +332,16 @@ async function spawnHostRunner(
   const runnerEntry = path.join(projectRoot, 'container', 'agent-runner', 'src', 'index.ts');
   const runnerName = `host-${agentGroup.folder}-${Date.now()}`;
 
+  const runnerEnvFromDotenv = readEnvFile([
+    'SEARXNG_URL',
+    'WHISPER_URL',
+    'NANOCLAW_LLAMA_URL',
+  ]);
   const env = buildHostRunnerEnv({
     sessionDir: sessDir,
     agentDir: groupDir,
     timezone: TIMEZONE,
+    extraEnv: runnerEnvFromDotenv,
   });
 
   log.info('Spawning host-mode runner', { sessionId: session.id, agentGroup: agentGroup.name, runnerName });
@@ -526,7 +533,11 @@ function buildMounts(
  * selection. Each symlink points to a container path (/app/skills/<name>)
  * so it's dangling on the host but valid inside the container.
  */
-function syncSkillSymlinks(claudeDir: string, containerConfig: import('./container-config.js').ContainerConfig, skillsBase?: string): void {
+function syncSkillSymlinks(
+  claudeDir: string,
+  containerConfig: import('./container-config.js').ContainerConfig,
+  skillsBase?: string,
+): void {
   const skillsDir = path.join(claudeDir, 'skills');
   if (!fs.existsSync(skillsDir)) {
     fs.mkdirSync(skillsDir, { recursive: true });
