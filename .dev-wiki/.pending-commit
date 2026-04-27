@@ -1,6 +1,0 @@
-commit: e141fc6a09587ba6302fc39b9b5b72525cda2015
-message: fix: include memory-context.md and wiki-context.md in CLAUDE.md imports
-time: 2026-04-27T12:56:17-04:00
-files:
- src/claude-md-compose.ts | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)

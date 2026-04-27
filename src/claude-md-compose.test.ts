@@ -57,10 +57,7 @@ describe('composeGroupClaudeMd', () => {
 
 describe('host-mode fragment resolution', () => {
   beforeEach(() => {
-    fs.writeFileSync(
-      path.join(groupDir, 'container.json'),
-      JSON.stringify({ provider: 'host', mcpServers: {} }),
-    );
+    fs.writeFileSync(path.join(groupDir, 'container.json'), JSON.stringify({ provider: 'host', mcpServers: {} }));
   });
 
   it('fragment symlinks resolve to real files when provider=host', () => {
@@ -108,10 +105,7 @@ describe('host-mode fragment resolution', () => {
 
 describe('host-mode fragment readability', () => {
   beforeEach(() => {
-    fs.writeFileSync(
-      path.join(groupDir, 'container.json'),
-      JSON.stringify({ provider: 'host', mcpServers: {} }),
-    );
+    fs.writeFileSync(path.join(groupDir, 'container.json'), JSON.stringify({ provider: 'host', mcpServers: {} }));
   });
 
   it('every fragment entry resolves to a non-empty file', () => {

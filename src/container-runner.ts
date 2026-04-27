@@ -332,11 +332,7 @@ async function spawnHostRunner(
   const runnerEntry = path.join(projectRoot, 'container', 'agent-runner', 'src', 'index.ts');
   const runnerName = `host-${agentGroup.folder}-${Date.now()}`;
 
-  const runnerEnvFromDotenv = readEnvFile([
-    'SEARXNG_URL',
-    'WHISPER_URL',
-    'NANOCLAW_LLAMA_URL',
-  ]);
+  const runnerEnvFromDotenv = readEnvFile(['SEARXNG_URL', 'WHISPER_URL', 'NANOCLAW_LLAMA_URL']);
   const env = buildHostRunnerEnv({
     sessionDir: sessDir,
     agentDir: groupDir,
