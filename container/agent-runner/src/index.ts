@@ -22,6 +22,7 @@
  */
 
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -35,6 +36,17 @@ import { runPollLoop } from './poll-loop.js';
 
 function log(msg: string): void {
   console.error(`[agent-runner] ${msg}`);
+}
+
+function resolveBunPath(): string {
+  const fromEnv = process.env.BUN_INSTALL;
+  if (fromEnv) {
+    const p = path.join(fromEnv, 'bin', 'bun');
+    if (fs.existsSync(p)) return p;
+  }
+  const homeBun = path.join(os.homedir(), '.bun', 'bin', 'bun');
+  if (fs.existsSync(homeBun)) return homeBun;
+  return 'bun';
 }
 
 const CWD = AGENT_DIR;
@@ -72,9 +84,11 @@ async function main(): Promise<void> {
   const mcpServerPath = path.join(__dirname, 'mcp-tools', 'index.ts');
 
   // Build MCP servers config: nanoclaw built-in + any from container.json
+  const bunPath = resolveBunPath();
+  log(`MCP server bun path: ${bunPath}`);
   const mcpServers: Record<string, { command: string; args: string[]; env: Record<string, string> }> = {
     nanoclaw: {
-      command: 'bun',
+      command: bunPath,
       args: ['run', mcpServerPath],
       env: {},
     },
