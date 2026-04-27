@@ -1,9 +1,13 @@
 # Active Phase Context
 
-Phase: 11 - Host-Mode Fragment Path Fix
-Objective: Fix broken fragment symlinks in composeGroupClaudeMd so host-mode agents read skill/module instructions
-Scope: src/claude-md-compose.ts, src/claude-md-compose.test.ts, src/container-config.ts
-Key constraints: Container-mode (/app/... paths) must be unchanged. Detect provider from readContainerConfig.
-Exit: 5 criteria — fragment symlinks resolve, .claude-shared.md resolves, container-mode unchanged, all tests pass, build clean
-Abort: if blocked >3 attempts, ask user: skip or abort
-Root cause: 3 live-test bugs (no dispatch_worker, no wiki access, blocking during research) all trace to broken symlinks
+Phase: 11 - Host-Mode Fragment Path Fix (COMPLETE)
+Objective: Fix broken fragment symlinks + cascading host-mode wiring issues
+Status: 3/3 tasks done + 2 additional live-discovered fixes. All 5 exit criteria met.
+Key changes: 5 commits — symlink paths, bun path, idle worker check, env vars, fragment imports
+Next: Run /dev-plan for Phase 12
+
+Phase 12 candidates:
+- Worker prompt tuning: Qwen burns 6/6 iterations without wiki_write (increase max_iterations or force synthesis)
+- Worker tool trace: add history/trace to agent-loop result JSON for debugging
+- Verify memory + wiki visibility: confirm fix 5 works live (Nana sees 513 wiki articles + memory entries)
+- Episodic wiki consolidation: research outputs need processing pipeline

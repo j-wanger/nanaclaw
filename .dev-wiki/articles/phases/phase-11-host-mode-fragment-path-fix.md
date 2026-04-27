@@ -7,7 +7,7 @@ parents: [phase-10-host-mode-integration-tests]
 created: 2026-04-27
 updated: 2026-04-27
 source: plan
-status: active
+status: completed
 scope: ["src/claude-md-compose.ts", "src/claude-md-compose.test.ts", "src/container-config.ts"]
 entry_criteria: "Phase 10 complete, live testing revealed broken fragment symlinks in host-mode"
 exit_criteria: "Fragment symlinks resolve when provider=host, .claude-shared.md resolves, container-mode unchanged, all tests pass, build clean"
@@ -27,11 +27,11 @@ Fix broken fragment symlinks in composeGroupClaudeMd so host-mode agents can rea
 
 ## Exit Criteria
 
-- [ ] Fragment symlinks resolve to real files when provider=host
-- [ ] .claude-shared.md symlink resolves when provider=host
-- [ ] Container-mode (non-host) paths unchanged
-- [ ] All tests pass (existing + new)
-- [ ] Build clean
+- [x] Fragment symlinks resolve to real files when provider=host
+- [x] .claude-shared.md symlink resolves when provider=host
+- [x] Container-mode (non-host) paths unchanged
+- [x] All tests pass (existing + new)
+- [x] Build clean
 
 ## Notes
 
