@@ -56,7 +56,9 @@ You do NOT need to poll or call `get_worker_status`. When a worker completes (or
 - T0 verification result (PASSED/FAILED with details)
 - The worker's output
 
-Review the result and decide: accept, retry with adjustments, or handle the failure.
+**CRITICAL: After dispatching workers, END YOUR TURN immediately.** Do not wait, loop, sleep, or call get_worker_status. Your turn MUST end so the auto-pickup system can run. If your turn stays open, worker results will never be delivered. Just dispatch, tell the user workers are running, and stop.
+
+Review the result when it arrives in your next turn: accept, retry with adjustments, or handle the failure.
 
 ## Model Routing
 
@@ -82,7 +84,8 @@ dispatch_worker({
   type: "research",
   context: "Focus on Microsoft GraphRAG and LightRAG",
   tools: ["web_search", "web_extract", "wiki_write"],
-  timeout_ms: 180000,
+  max_iterations: 20,
+  timeout_ms: 300000,
   context_budget_tokens: 6000,
   postconditions: [
     { type: "contains", params: { substring: "## Key Findings" } }
@@ -109,6 +112,16 @@ Any registered MCP tool can be given to a worker. Common combinations:
 - Multi-step research that you'd otherwise do yourself (search → extract → synthesize)
 - Autonomous data collection tasks
 - Any task where the worker needs to interact with external systems
+
+### Iteration budget (max_iterations)
+
+- Default: 10 iterations (experiments show Qwen handles this reliably)
+- Use `max_iterations` to tune per-task: 6 for simple lookups, 20 for research with wiki_write (default: 20)
+- Research tasks get automatic tool routing guidance: search → extract → synthesize → wiki_write
+
+### Tool trace in results
+
+Completed tool-calling workers include a `toolTrace` array in the result JSON — each entry records which tool was called, with what arguments, the result (truncated), and latency. Use `get_worker_status` to inspect traces for debugging iteration patterns.
 
 ### Important constraints
 

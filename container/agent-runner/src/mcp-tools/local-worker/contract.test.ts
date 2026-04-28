@@ -94,6 +94,61 @@ describe('validateContract', () => {
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes('context_budget_tokens'))).toBe(true);
   });
+
+  it('accepts contract with valid max_iterations', () => {
+    const result = validateContract(validContract({ max_iterations: 10 }));
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts contract without max_iterations (backward compat)', () => {
+    const contract = validContract();
+    expect(contract.max_iterations).toBeUndefined();
+    const result = validateContract(contract);
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects non-positive max_iterations', () => {
+    const result = validateContract(validContract({ max_iterations: 0 }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('max_iterations'))).toBe(true);
+  });
+
+  it('accepts contract with valid write_to (episodic)', () => {
+    const result = validateContract(validContract({
+      write_to: { wiki: 'test-wiki', tier: 'episodic', title: 'Summary', tags: ['research'] },
+    }));
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts contract with valid write_to (review with target_path)', () => {
+    const result = validateContract(validContract({
+      write_to: { wiki: 'test-wiki', tier: 'review', target_path: '/path/to/article.md' },
+    }));
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts contract without write_to (backward compat)', () => {
+    const contract = validContract();
+    expect(contract.write_to).toBeUndefined();
+    const result = validateContract(contract);
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects write_to with missing wiki', () => {
+    const result = validateContract(validContract({
+      write_to: { wiki: '', tier: 'episodic', title: 'Test', tags: [] },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('write_to.wiki'))).toBe(true);
+  });
+
+  it('rejects write_to with invalid tier', () => {
+    const result = validateContract(validContract({
+      write_to: { wiki: 'test', tier: 'invalid' as any, title: 'Test', tags: [] },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('write_to.tier'))).toBe(true);
+  });
 });
 
 describe('TaskState file helpers', () => {
@@ -158,6 +213,41 @@ describe('TaskState file helpers', () => {
     writeTaskState(filePath, state);
     const loaded = readTaskState(filePath);
     expect(loaded!.error).toBe('Connection refused');
+  });
+
+  it('preserves toolTrace field through round-trip', () => {
+    const state: TaskState = {
+      contract: validContract(),
+      status: 'completed',
+      created_at: '2026-04-26T10:00:00.000Z',
+      completed_at: '2026-04-26T10:00:15.000Z',
+      result: { raw: 'output', parsed: 'output' },
+      toolTrace: [
+        { iteration: 1, tool: 'web_search', args: { query: 'test' }, result: 'found 3 results', latency_ms: 120 },
+        { iteration: 2, tool: 'wiki_write', args: { title: 'Test' }, result: 'Written to wiki', latency_ms: 350 },
+      ],
+    };
+    const filePath = path.join(tmpDir, 'task-trace.json');
+    writeTaskState(filePath, state);
+    const loaded = readTaskState(filePath);
+    expect(loaded!.toolTrace).toBeDefined();
+    expect(loaded!.toolTrace).toHaveLength(2);
+    expect(loaded!.toolTrace![0].tool).toBe('web_search');
+    expect(loaded!.toolTrace![1].tool).toBe('wiki_write');
+    expect(loaded!.toolTrace![0].latency_ms).toBe(120);
+  });
+
+  it('round-trips TaskState without toolTrace (backward compat)', () => {
+    const state: TaskState = {
+      contract: validContract(),
+      status: 'completed',
+      created_at: '2026-04-26T10:00:00.000Z',
+      result: { raw: 'output', parsed: 'output' },
+    };
+    const filePath = path.join(tmpDir, 'task-no-trace.json');
+    writeTaskState(filePath, state);
+    const loaded = readTaskState(filePath);
+    expect(loaded!.toolTrace).toBeUndefined();
   });
 });
 

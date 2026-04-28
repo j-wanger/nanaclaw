@@ -3,7 +3,7 @@ import path from 'path';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { AGENT_DIR } from '../../config.js';
-import type { TaskContract, TaskState } from './contract.js';
+import type { TaskContract, TaskState, WriteTo } from './contract.js';
 import { validateContract, writeTaskState, readTaskState, taskDir, resultDir } from './contract.js';
 import { executeWorkerTask } from './dispatch.js';
 
@@ -32,6 +32,8 @@ export async function handleDispatchWorker(args: Record<string, unknown>): Promi
     timeout_ms: (args.timeout_ms as number) || 60_000,
     context_budget_tokens: (args.context_budget_tokens as number) || 4096,
     ...(Array.isArray(args.tools) && args.tools.length > 0 ? { tools: args.tools as string[] } : {}),
+    ...(typeof args.max_iterations === 'number' ? { max_iterations: args.max_iterations } : {}),
+    ...(args.write_to && typeof args.write_to === 'object' ? { write_to: args.write_to as WriteTo } : {}),
   };
 
   const validation = validateContract(contract);
@@ -127,6 +129,10 @@ function formatTaskSummary(state: TaskState): string {
         if (!c.passed) lines.push(`  - ${c.type}: ${c.detail || 'failed'}`);
       }
     }
+    if (state.toolTrace && state.toolTrace.length > 0) {
+      const toolNames = state.toolTrace.map(t => t.tool).join(' → ');
+      lines.push(`Tool trace (${state.toolTrace.length} calls): ${toolNames}`);
+    }
     lines.push(`Result:\n${state.result.parsed}`);
   }
 
@@ -169,7 +175,10 @@ export function checkWorkerResults(): string | null {
     const obj = `Objective: ${s.contract.objective}`;
     if (s.status === 'completed' && s.result) {
       const vStatus = s.verification?.passed ? 'T0 PASSED' : 'T0 FAILED';
-      return `${header} (${vStatus})\n${obj}\nResult:\n${s.result.parsed}`;
+      const traceLine = s.toolTrace && s.toolTrace.length > 0
+        ? `\nTool trace (${s.toolTrace.length} calls): ${s.toolTrace.map(t => t.tool).join(' → ')}`
+        : '';
+      return `${header} (${vStatus})\n${obj}${traceLine}\nResult:\n${s.result.parsed}`;
     }
     if (s.error) {
       return `${header}\n${obj}\nError: ${s.error}`;

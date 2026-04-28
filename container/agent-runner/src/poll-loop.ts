@@ -64,6 +64,8 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
   clearStaleProcessingAcks();
 
   let pollCount = 0;
+  let lastRouting: RoutingContext | null = null;
+
   while (true) {
     // Skip system messages — they're responses for MCP tools (e.g., ask_user_question)
     const messages = getPendingMessages().filter((m) => m.kind !== 'system');
@@ -78,9 +80,8 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
       // Check for completed worker results during idle — without this,
       // results only surface after the NEXT user message triggers a query.
       const idleWorkerPrompt = checkWorkerResults();
-      if (idleWorkerPrompt) {
+      if (idleWorkerPrompt && lastRouting) {
         log('Worker results ready during idle, injecting for review');
-        const routing = extractRouting([]);
         const wQuery = config.provider.query({
           prompt: idleWorkerPrompt,
           continuation,
@@ -88,7 +89,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
           systemContext: config.systemContext,
         });
         try {
-          const wResult = await processQuery(wQuery, routing, [], config.providerName);
+          const wResult = await processQuery(wQuery, lastRouting, [], config.providerName);
           if (wResult.continuation && wResult.continuation !== continuation) {
             continuation = wResult.continuation;
             setContinuation(config.providerName, continuation);
@@ -120,6 +121,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     markProcessing(ids);
 
     const routing = extractRouting(messages);
+    lastRouting = routing;
 
     // Command handling: the host router gates filtered and unauthorized
     // admin commands before they reach the container. The only command
@@ -370,6 +372,15 @@ async function processQuery(
       query.push(prompt);
 
       markCompleted(newIds);
+    }
+
+    // Worker result pickup during active query — workers dispatched mid-turn
+    // complete asynchronously and write to worker-results/. Push them as
+    // follow-up prompts so the agent processes them without a new user message.
+    const workerInjection = checkWorkerResults();
+    if (workerInjection) {
+      log('Pushing worker results into active query');
+      query.push(workerInjection);
     }
   }, ACTIVE_POLL_INTERVAL_MS);
 

@@ -1,7 +1,10 @@
+import fs from 'fs';
 import path from 'path';
+import os from 'os';
+import { createHash } from 'crypto';
 
 import { AGENT_DIR } from '../../config.js';
-import type { TaskContract, TaskState } from './contract.js';
+import type { TaskContract, TaskState, WriteTo } from './contract.js';
 import { writeTaskState } from './contract.js';
 import { executeAgentLoop, type AgentLoopResult } from './agent-loop.js';
 import { buildToolDefinitions } from './tool-registry.js';
@@ -33,6 +36,109 @@ function getSemaphore(url: string): Semaphore {
   return sem;
 }
 
+interface WikiEntry {
+  name: string;
+  path: string;
+  description: string;
+}
+
+function loadWikis(): WikiEntry[] | null {
+  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
+  try {
+    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as { wikis: WikiEntry[] };
+    return raw.wikis || [];
+  } catch {
+    return null;
+  }
+}
+
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60);
+}
+
+function updateFrontmatterField(content: string, field: string, value: string): string {
+  const fmMatch = content.match(/^(---\n)([\s\S]*?)\n(---)/);
+  if (!fmMatch) return content;
+  const fieldRegex = new RegExp(`^${field}:.*$`, 'm');
+  let fm = fmMatch[2];
+  if (fieldRegex.test(fm)) {
+    fm = fm.replace(fieldRegex, `${field}: ${value}`);
+  } else {
+    fm += `\n${field}: ${value}`;
+  }
+  return `${fmMatch[1]}${fm}\n${fmMatch[3]}${content.slice(fmMatch[0].length)}`;
+}
+
+export function postProcessResult(state: TaskState): void {
+  const writeTo = state.contract.write_to;
+  if (!writeTo) return;
+  if (state.status !== 'completed' || !state.result) return;
+
+  try {
+    if (writeTo.tier === 'episodic') {
+      writeEpisodicArticle(writeTo, state.result.parsed);
+    } else if (writeTo.tier === 'review' && writeTo.target_path) {
+      applyReviewStatus(writeTo, state.result.parsed);
+    }
+  } catch (err) {
+    console.error(`[dispatch] postProcessResult failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+function writeEpisodicArticle(writeTo: WriteTo, content: string): void {
+  const wikis = loadWikis();
+  if (!wikis) return;
+  const wiki = wikis.find((w) => w.name === writeTo.wiki) || wikis[0];
+  if (!wiki) return;
+
+  const title = writeTo.title || 'Untitled';
+  const tags = writeTo.tags || [];
+  const tagStr = tags.map((t) => `"${t}"`).join(', ');
+  const today = new Date().toISOString().slice(0, 10);
+  const slug = generateSlug(title);
+
+  const frontmatter = [
+    '---',
+    `title: "${title}"`,
+    `tags: [${tagStr}]`,
+    'source: worker-research',
+    `created: ${today}`,
+    'tier: episodic',
+    '---',
+  ].join('\n');
+
+  const outputDir = path.join(wiki.path, 'episodic');
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(path.join(outputDir, `${slug}.md`), `${frontmatter}\n\n${content}\n`);
+}
+
+function applyReviewStatus(writeTo: WriteTo, reviewOutput: string): void {
+  let review: { passed?: boolean; score?: number };
+  try {
+    review = JSON.parse(reviewOutput);
+  } catch {
+    console.error('[dispatch] review output is not valid JSON, skipping status update');
+    return;
+  }
+
+  const targetPath = writeTo.target_path!;
+  let fileContent: string;
+  try {
+    fileContent = fs.readFileSync(targetPath, 'utf8');
+  } catch {
+    console.error(`[dispatch] target file not found: ${targetPath}`);
+    return;
+  }
+
+  const newStatus = review.passed ? 'passed' : 'failed';
+  const updated = updateFrontmatterField(fileContent, 'status', newStatus);
+  fs.writeFileSync(targetPath, updated);
+}
+
 export async function executeWorkerTask(contract: TaskContract, resultsDir: string): Promise<void> {
   if (contract.tools && contract.tools.length > 0) {
     return executeToolCallingWorker(contract, resultsDir);
@@ -56,7 +162,7 @@ async function executeToolCallingWorker(contract: TaskContract, resultsDir: stri
     return;
   }
 
-  const maxIterations = 6;
+  const maxIterations = contract.max_iterations ?? 20;
 
   let loopResult: AgentLoopResult;
   try {
@@ -89,6 +195,11 @@ async function executeToolCallingWorker(contract: TaskContract, resultsDir: stri
   const isTimeout = loopResult.terminationReason === 'timeout';
   const isError = loopResult.terminationReason === 'error';
 
+  const cappedTrace = loopResult.toolTrace.slice(0, 20).map(entry => ({
+    ...entry,
+    result: entry.result.length > 500 ? entry.result.slice(0, 500) + '...' : entry.result,
+  }));
+
   const state: TaskState = {
     contract,
     status: isTimeout ? 'timeout' : isError ? 'failed' : parseResult.ok ? 'completed' : 'failed',
@@ -96,10 +207,12 @@ async function executeToolCallingWorker(contract: TaskContract, resultsDir: stri
     completed_at: new Date().toISOString(),
     result: { raw, parsed },
     verification,
+    toolTrace: cappedTrace,
     ...(parseResult.ok && !isTimeout && !isError ? {} : { error: (!parseResult.ok ? parseResult.error : undefined) || loopResult.error || loopResult.terminationReason }),
   };
 
   writeTaskState(resultPath, state);
+  postProcessResult(state);
 }
 
 async function executeSingleShotWorker(contract: TaskContract, resultsDir: string): Promise<void> {
@@ -158,6 +271,7 @@ async function executeSingleShotWorker(contract: TaskContract, resultsDir: strin
     };
 
     writeTaskState(resultPath, state);
+    postProcessResult(state);
   } catch (err) {
     clearTimeout(timer);
 

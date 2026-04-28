@@ -5,7 +5,7 @@ import os from 'os';
 
 import type { TaskContract, TaskState } from './contract.js';
 import { readTaskState, resultDir, taskDir } from './contract.js';
-import { executeWorkerTask } from './dispatch.js';
+import { executeWorkerTask, postProcessResult } from './dispatch.js';
 
 let tmpDir: string;
 let tasksDir: string;
@@ -175,5 +175,119 @@ describe('executeWorkerTask', () => {
     } finally {
       globalThis.fetch = origFetch;
     }
+  });
+});
+
+describe('postProcessResult', () => {
+  let wikiDir: string;
+  let wikisJsonPath: string;
+
+  beforeEach(() => {
+    wikiDir = path.join(tmpDir, 'test-wiki');
+    fs.mkdirSync(path.join(wikiDir, 'episodic'), { recursive: true });
+    wikisJsonPath = path.join(tmpDir, 'wikis.json');
+    fs.writeFileSync(wikisJsonPath, JSON.stringify({
+      version: 1,
+      wikis: [{ name: 'test-wiki', path: wikiDir, description: 'Test wiki' }],
+    }));
+    process.env.WIKIS_JSON_PATH = wikisJsonPath;
+  });
+
+  afterEach(() => {
+    delete process.env.WIKIS_JSON_PATH;
+  });
+
+  it('writes episodic article from completed summarize worker output', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'sum-001',
+        outputFormat: 'markdown',
+        write_to: { wiki: 'test-wiki', tier: 'episodic', title: 'Research Summary', tags: ['research'] },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: { raw: '## Summary\nKey findings here.', parsed: '## Summary\nKey findings here.' },
+    };
+
+    postProcessResult(state);
+
+    const files = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(files.length).toBe(1);
+    const content = fs.readFileSync(path.join(wikiDir, 'episodic', files[0]), 'utf8');
+    expect(content).toContain('title: "Research Summary"');
+    expect(content).toContain('tier: episodic');
+    expect(content).toContain('Key findings here.');
+  });
+
+  it('updates status in target article frontmatter from review worker JSON', () => {
+    const targetPath = path.join(wikiDir, 'episodic', 'target-article.md');
+    fs.writeFileSync(targetPath, '---\ntitle: "Target"\nstatus: pending\ntier: episodic\n---\n\nContent\n');
+
+    const state: TaskState = {
+      contract: testContract({
+        id: 'rev-001',
+        outputFormat: 'json',
+        write_to: { wiki: 'test-wiki', tier: 'review', target_path: targetPath },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: {
+        raw: '{"score": 8, "passed": true, "issues": []}',
+        parsed: '{"score": 8, "passed": true, "issues": []}',
+      },
+    };
+
+    postProcessResult(state);
+
+    const updated = fs.readFileSync(targetPath, 'utf8');
+    expect(updated).toContain('status: passed');
+  });
+
+  it('skips when no write_to on contract', () => {
+    const state: TaskState = {
+      contract: testContract({ id: 'skip-001' }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      result: { raw: 'output', parsed: 'output' },
+    };
+
+    postProcessResult(state);
+
+    const episodicFiles = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(episodicFiles.length).toBe(0);
+  });
+
+  it('skips when task status is not completed', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'fail-post',
+        write_to: { wiki: 'test-wiki', tier: 'episodic', title: 'Failed', tags: [] },
+      }),
+      status: 'failed',
+      created_at: new Date().toISOString(),
+      error: 'worker crashed',
+    };
+
+    postProcessResult(state);
+
+    const episodicFiles = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(episodicFiles.length).toBe(0);
+  });
+
+  it('handles malformed worker output gracefully (logs warning, no crash)', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'malform-001',
+        outputFormat: 'json',
+        write_to: { wiki: 'test-wiki', tier: 'review', target_path: '/nonexistent/path.md' },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      result: { raw: 'not json at all', parsed: 'not json at all' },
+    };
+
+    expect(() => postProcessResult(state)).not.toThrow();
   });
 });

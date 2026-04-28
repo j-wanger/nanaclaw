@@ -17,6 +17,9 @@ import './web-search.js';
 import './web-extract.js';
 import './wiki-write.js';
 import './wiki-search.js';
+import './research-fetch.js';
+import './research-summarize.js';
+import './research-review.js';
 import { startMcpServer } from './server.js';
 
 function log(msg: string): void {

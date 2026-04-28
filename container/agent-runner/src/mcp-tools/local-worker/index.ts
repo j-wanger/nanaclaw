@@ -51,6 +51,22 @@ const tools: McpToolDefinition[] = [
             items: { type: 'string' },
             description: 'MCP tool names the worker can call (enables multi-turn agent loop). Omit for single-shot.',
           },
+          max_iterations: {
+            type: 'number',
+            description: 'Max inference iterations for tool-calling workers (default: 10). Higher for research tasks, lower for simple lookups.',
+          },
+          write_to: {
+            type: 'object',
+            properties: {
+              wiki: { type: 'string', description: 'Target wiki name' },
+              tier: { type: 'string', enum: ['episodic', 'review'], description: 'Output routing tier' },
+              title: { type: 'string', description: 'Article title (episodic tier)' },
+              tags: { type: 'array', items: { type: 'string' }, description: 'Article tags (episodic tier)' },
+              target_path: { type: 'string', description: 'Path to article being reviewed (review tier)' },
+            },
+            required: ['wiki', 'tier'],
+            description: 'Auto-route worker output to wiki. Episodic: writes article. Review: updates target status.',
+          },
         },
         required: ['objective', 'outputFormat'],
       },

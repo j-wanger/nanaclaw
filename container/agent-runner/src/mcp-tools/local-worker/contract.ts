@@ -9,6 +9,14 @@ export interface T0Check {
   params: Record<string, string>;
 }
 
+export interface WriteTo {
+  wiki: string;
+  tier: 'episodic' | 'review';
+  title?: string;
+  tags?: string[];
+  target_path?: string;
+}
+
 export interface TaskContract {
   id: string;
   type: TaskType;
@@ -20,6 +28,8 @@ export interface TaskContract {
   timeout_ms: number;
   context_budget_tokens: number;
   tools?: string[];
+  max_iterations?: number;
+  write_to?: WriteTo;
 }
 
 export interface TaskResult {
@@ -38,6 +48,14 @@ export interface VerificationResult {
   checks: VerificationCheckResult[];
 }
 
+export interface ToolTraceEntry {
+  iteration: number;
+  tool: string;
+  args: Record<string, unknown>;
+  result: string;
+  latency_ms: number;
+}
+
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'timeout' | 'cancelled';
 
 export interface TaskState {
@@ -47,6 +65,7 @@ export interface TaskState {
   completed_at?: string;
   result?: TaskResult;
   verification?: VerificationResult;
+  toolTrace?: ToolTraceEntry[];
   error?: string;
 }
 
@@ -63,6 +82,13 @@ export function validateContract(c: TaskContract): { valid: boolean; errors: str
   if (!c.timeout_ms || c.timeout_ms <= 0) errors.push('timeout_ms must be positive');
   if (c.context_budget_tokens == null || c.context_budget_tokens <= 0)
     errors.push('context_budget_tokens must be positive');
+  if (c.max_iterations != null && c.max_iterations <= 0)
+    errors.push('max_iterations must be positive');
+  if (c.write_to) {
+    if (!c.write_to.wiki) errors.push('write_to.wiki is required');
+    if (!['episodic', 'review'].includes(c.write_to.tier))
+      errors.push('write_to.tier must be "episodic" or "review"');
+  }
   return { valid: errors.length === 0, errors };
 }
 
