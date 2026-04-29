@@ -1,19 +1,12 @@
-# Active Knowledge
-## Phase: 11 - Host-Mode Fragment Path Fix
+# Active Knowledge — Phase 16
 
-### Fragment Symlink Architecture
-from: [[decision:phase-11-host-mode-fragment-path-fix]]
-retrieved: 2026-04-27
+## Cross-Wiki (agentic-engineering-wiki)
+- Tool results are the primary context budget consumer in long sessions — "drop tool results" is a standard compaction strategy, but better to never load them [[wiki:context-compaction-strategies]]
+- Working zone is ~60-70% of context window; compaction triggers at ~80% — each research_fetch call consuming 3KB means 73 calls ≈ 220KB ≈ 50-100K tokens, filling the working zone [[wiki:context-window-budget-management]]
+- Context shaping is the orchestrator's most impactful job — what each worker sees determines success more than prompt instructions [[wiki:orchestrator-design-patterns]]
+- Persist important decisions to files immediately — relying solely on conversation memory is the anti-pattern; it gets summarized away [[wiki:session-lifecycle]]
 
-- composeGroupClaudeMd creates symlinks: shared base (.claude-shared.md), skill fragments (skill-*.md), module fragments (module-*.md)
-- Docker targets: /app/CLAUDE.md, /app/skills/<name>/instructions.md, /app/src/mcp-tools/<name>.instructions.md
-- Host targets: <root>/container/CLAUDE.md, <root>/container/skills/<name>/instructions.md, <root>/container/agent-runner/src/mcp-tools/<name>.instructions.md
-- Inline fragments (soul.md, memory-context.md, wiki-context.md) are NOT affected — they're files, not symlinks
-
-### Cascade Effect
-from: [[decision:phase-11-host-mode-fragment-path-fix]]
-retrieved: 2026-04-27
-
-- Broken symlinks → agent can't read skill instructions → doesn't know about dispatch_worker or wiki_write
-- Without dispatch_worker → agent does research synchronously → blocks poll loop → can't respond during dispatch
-- readContainerConfig already returns provider field — use it to branch path resolution
+## Phase Decisions
+- Compact output format: {added, skipped, failed, new_articles: [{title, url}]} — preserves coverage evaluation signal (titles + URLs for domain/quality), drops expendable metadata (paths, quality, chars)
+- source_url propagation chain: WriteTo interface → research_summarize extracts from raw → writeEpisodicArticle writes to episodic frontmatter → findRawSource matches
+- Communication in both SKILL.md and instructions.md — instructions.md survives compaction better (auto-injected fragment)

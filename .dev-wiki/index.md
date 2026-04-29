@@ -126,6 +126,11 @@
 - [[phase-09-prompt-reconciliation-hardening|Phase 9: Agent Prompt Reconciliation]] — completed
 - [[phase-10-host-mode-integration-tests|Phase 10: Host-Mode Integration Tests]] — completed
 - [[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]] — completed
+- [[phase-12-worker-research-reliability|Phase 12: Worker Research Reliability]] — completed
+- [[phase-13-multi-stage-research-pipeline|Phase 13: Multi-Stage Research Pipeline]] — completed
+- [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — completed (partial, 2 tasks superseded by Phase 15)
+- [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — completed
+- [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — **active**
 
 ## Decisions
 
@@ -146,9 +151,16 @@
 - [[phase-9-prompt-reconciliation-approach|Phase 9: Agent Prompt Reconciliation]] — medium confidence
 - [[phase-10-host-mode-test-coverage-approach|Phase 10: Host-Mode Integration Tests]] — medium confidence
 - [[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]] — medium confidence
+- [[phase-12-worker-research-reliability|Phase 12: Worker Research Reliability]] — medium confidence
+- [[phase-13-multi-stage-research-pipeline|Phase 13: Multi-Stage Research Pipeline]] — medium confidence
+- [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — high confidence
+- [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — high confidence
+- [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — medium confidence
 
 ## Journal
 
+- [2026-04-28] [[2026-04-28-phase-15-iterative-research-pipeline-complete|Phase 15: Iterative Research Pipeline Complete]] — 8 tasks, research_fetch + url-index + write_to + iterative skill, reviewer 7/10
+- [2026-04-27] [[2026-04-27-phase-12-worker-research-reliability-complete|Phase 12: Worker Research Reliability Complete]] — 5 tasks, toolTrace + max_iterations + prompt routing, pipeline redesign needed
 - [2026-04-27] [[2026-04-27-phase-11-host-mode-fragment-fix-complete|Phase 11: Fragment Path Fix Complete]] — 5 fixes, host-mode fully operational
 - [2026-04-27] [[2026-04-27-phase-10-host-mode-integration-tests-complete|Phase 10: Integration Tests Complete]] — 4 tasks, 26 new tests, spawn pipeline + session DB + delivery
 - [2026-04-27] [[2026-04-27-phase-9-prompt-reconciliation-complete|Phase 9: Prompt Reconciliation Complete]] — 5 tasks, memory conflict resolved, SOUL.md wired, reviewer 8/10

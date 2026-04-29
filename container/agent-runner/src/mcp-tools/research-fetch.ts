@@ -183,7 +183,7 @@ export async function fetchHandler(args: Record<string, unknown>) {
   }
 
   if (searchResults.length === 0) {
-    return ok(JSON.stringify({ articles: [], skipped: 0 }));
+    return ok(JSON.stringify({ added: 0, skipped: 0, failed: 0, full: 0, partial: 0, new_articles: [] }));
   }
 
   const knownUrls = loadAllUrlIndexes();
@@ -191,7 +191,7 @@ export async function fetchHandler(args: Record<string, unknown>) {
   const skipped = searchResults.length - newResults.length;
 
   if (newResults.length === 0) {
-    return ok(JSON.stringify({ articles: [], skipped }));
+    return ok(JSON.stringify({ added: 0, skipped, failed: 0, full: 0, partial: 0, new_articles: [] }));
   }
 
   const settled = await Promise.allSettled(
@@ -212,9 +212,13 @@ export async function fetchHandler(args: Record<string, unknown>) {
   const full = articles.filter((a) => a.quality === 'full').length;
   const partial = articles.filter((a) => a.quality === 'partial').length;
 
+  const rawDir = path.join(targetWiki.path, 'raw', 'articles');
   return ok(JSON.stringify({
-    articles: articles.map((a) => ({ path: a.path, title: a.title, url: a.url, quality: a.quality, chars: a.chars })),
+    added: articles.length,
     skipped, failed, full, partial,
+    raw_dir: rawDir,
+    wiki: targetWiki.name,
+    new_articles: articles.map((a) => ({ title: a.title, url: a.url })),
   }));
 }
 
@@ -223,7 +227,7 @@ const tools: McpToolDefinition[] = [
     tool: {
       name: 'research_fetch',
       description:
-        'Search the web and fetch results as raw wiki articles in a single call. Searches via SearXNG, deduplicates against the URL index, fetches new pages, and writes raw articles with sha256 provenance. Returns {articles: [paths], skipped: N, failed: N}. Pure script — zero LLM cost.',
+        'Search the web and fetch results as raw wiki articles in a single call. Searches via SearXNG, deduplicates against the URL index, fetches new pages, and writes raw articles with sha256 provenance. Returns {added, skipped, failed, new_articles: [{title, url}]}. Pure script — zero LLM cost.',
       inputSchema: {
         type: 'object' as const,
         properties: {

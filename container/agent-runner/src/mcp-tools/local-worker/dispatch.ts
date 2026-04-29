@@ -101,15 +101,17 @@ function writeEpisodicArticle(writeTo: WriteTo, content: string): void {
   const today = new Date().toISOString().slice(0, 10);
   const slug = generateSlug(title);
 
-  const frontmatter = [
+  const lines = [
     '---',
     `title: "${title}"`,
     `tags: [${tagStr}]`,
     'source: worker-research',
     `created: ${today}`,
     'tier: episodic',
-    '---',
-  ].join('\n');
+  ];
+  if (writeTo.source_url) lines.push(`source_url: ${writeTo.source_url}`);
+  lines.push('---');
+  const frontmatter = lines.join('\n');
 
   const outputDir = path.join(wiki.path, 'episodic');
   fs.mkdirSync(outputDir, { recursive: true });

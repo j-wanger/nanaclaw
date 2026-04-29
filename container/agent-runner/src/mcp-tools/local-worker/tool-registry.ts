@@ -16,6 +16,10 @@ export interface ToolRegistryResult {
   errors: string[];
 }
 
+function stripMcpPrefix(name: string): string {
+  return name.replace(/^mcp__[^_]+__/, '');
+}
+
 export function buildToolDefinitions(allowedTools: string[]): ToolRegistryResult {
   if (!allowedTools || allowedTools.length === 0) {
     return { definitions: [], errors: [] };
@@ -25,7 +29,8 @@ export function buildToolDefinitions(allowedTools: string[]): ToolRegistryResult
   const errors: string[] = [];
 
   for (const name of allowedTools) {
-    const tool = getRegisteredTool(name);
+    const shortName = stripMcpPrefix(name);
+    const tool = getRegisteredTool(shortName) || getRegisteredTool(name);
     if (!tool) {
       errors.push(`Unknown tool: "${name}"`);
       continue;
@@ -45,7 +50,8 @@ export function buildToolDefinitions(allowedTools: string[]): ToolRegistryResult
 }
 
 export async function executeTool(name: string, args: Record<string, unknown>): Promise<CallToolResult> {
-  const tool = getRegisteredTool(name);
+  const shortName = stripMcpPrefix(name);
+  const tool = getRegisteredTool(shortName) || getRegisteredTool(name);
   if (!tool) {
     return { content: [{ type: 'text', text: `Error: tool "${name}" not found` }], isError: true };
   }

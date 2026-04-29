@@ -80,10 +80,13 @@ describe('research_fetch', () => {
     const result = await fetchHandler({ query: 'test query' });
     const data = getJson(result);
 
-    expect(data.articles).toBeInstanceOf(Array);
-    expect((data.articles as { path: string }[]).length).toBe(2);
+    expect(data.added).toBe(2);
     expect(data.skipped).toBe(0);
-
+    expect(data.new_articles).toBeInstanceOf(Array);
+    expect((data.new_articles as { title: string; url: string }[]).length).toBe(2);
+    expect((data.new_articles as { title: string; url: string }[])[0].title).toBe('Page One');
+    expect((data.new_articles as { title: string; url: string }[])[0].url).toBe('https://example.com/one');
+    // paths are NOT in the response — verify files exist on disk
     const rawDir = path.join(MOCK_WIKIS.wikis[0].path, 'raw', 'articles');
     const files = fs.readdirSync(rawDir);
     expect(files.length).toBe(2);
@@ -108,7 +111,7 @@ describe('research_fetch', () => {
     const result = await fetchHandler({ query: 'test query' });
     const data = getJson(result);
 
-    expect((data.articles as { path: string }[]).length).toBe(1);
+    expect(data.added).toBe(1);
     expect(data.skipped).toBe(1);
   });
 
@@ -130,7 +133,7 @@ describe('research_fetch', () => {
     const result = await fetchHandler({ query: 'test query' });
     const data = getJson(result);
 
-    expect((data.articles as { path: string }[]).length).toBe(1);
+    expect(data.added).toBe(1);
     expect((data.failed as number) || 0).toBeGreaterThanOrEqual(1);
   });
 
@@ -147,8 +150,12 @@ describe('research_fetch', () => {
 
     const result = await fetchHandler({ query: 'test' });
     const data = getJson(result);
-    const articlePath = (data.articles as { path: string }[])[0].path;
-    const content = fs.readFileSync(articlePath, 'utf8');
+    expect(data.added).toBe(1);
+
+    // paths are not in compact response — find the file on disk
+    const rawDir = path.join(MOCK_WIKIS.wikis[0].path, 'raw', 'articles');
+    const files = fs.readdirSync(rawDir).filter((f) => f.endsWith('.md'));
+    const content = fs.readFileSync(path.join(rawDir, files[0]), 'utf8');
 
     expect(content).toMatch(/^---\n/);
     expect(content).toContain('source_url: https://example.com/article');
@@ -183,7 +190,8 @@ describe('research_fetch', () => {
     const result = await fetchHandler({ query: 'nothing here' });
     const data = getJson(result);
 
-    expect(data.articles).toEqual([]);
+    expect(data.new_articles).toEqual([]);
+    expect(data.added).toBe(0);
     expect(data.skipped).toBe(0);
   });
 
@@ -227,9 +235,12 @@ describe('research_fetch', () => {
 
     const result = await fetchHandler({ query: 'test', wiki_name: 'wiki-two' });
     const data = getJson(result);
-    const articlePath = (data.articles as { path: string }[])[0].path;
+    expect(data.added).toBe(1);
 
-    expect(articlePath).toContain('wiki-two');
+    // verify file landed in wiki-two, not the default wiki
+    const wiki2RawDir = path.join(wiki2Dir, 'raw', 'articles');
+    const files = fs.readdirSync(wiki2RawDir).filter((f) => f.endsWith('.md'));
+    expect(files.length).toBe(1);
   });
 
   it('uses SearXNG snippet as fallback for thin HTML pages', async () => {
@@ -250,12 +261,13 @@ describe('research_fetch', () => {
     const result = await fetchHandler({ query: 'test' });
     const data = getJson(result);
 
-    expect((data.articles as { path: string }[]).length).toBe(1);
+    expect(data.added).toBe(1);
     expect(data.partial).toBe(1);
     expect(data.full).toBe(0);
 
-    const articlePath = (data.articles as { path: string }[])[0].path;
-    const content = fs.readFileSync(articlePath, 'utf8');
+    const rawDir = path.join(MOCK_WIKIS.wikis[0].path, 'raw', 'articles');
+    const files = fs.readdirSync(rawDir).filter((f) => f.endsWith('.md'));
+    const content = fs.readFileSync(path.join(rawDir, files[0]), 'utf8');
     expect(content).toContain('extraction: partial');
     expect(content).toContain('SearXNG');
   });
@@ -281,8 +293,29 @@ describe('research_fetch', () => {
     const result = await fetchHandler({ query: 'test' });
     const data = getJson(result);
 
-    expect((data.articles as { path: string }[]).length).toBe(2);
+    expect(data.added).toBe(2);
     expect(data.full).toBe(1);
     expect(data.partial).toBe(1);
+  });
+
+  it('compact output stays under 4KB for 20 articles', async () => {
+    const results = Array.from({ length: 20 }, (_, i) => ({
+      title: `Article About Important Topic Number ${i + 1} With a Reasonably Long Title`,
+      url: `https://example.com/articles/important-topic-number-${i + 1}/full-guide`,
+      content: `Snippet ${i}`,
+    }));
+
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('mock-searxng')) return makeSearxngResponse(results);
+      return makeHtmlResponse(`Full content for article`);
+    }) as typeof fetch;
+
+    const result = await fetchHandler({ query: 'test', max_results: 20 });
+    const text = getText(result);
+    expect(text.length).toBeLessThan(4096);
+    const data = JSON.parse(text);
+    expect(data.added).toBe(20);
+    expect(data.new_articles.length).toBe(20);
   });
 });

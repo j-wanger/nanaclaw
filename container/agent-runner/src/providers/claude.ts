@@ -251,12 +251,14 @@ export class ClaudeProvider implements AgentProvider {
   readonly supportsNativeSlashCommands = true;
 
   private assistantName?: string;
+  private model?: string;
   private mcpServers: Record<string, McpServerConfig>;
   private env: Record<string, string | undefined>;
   private additionalDirectories?: string[];
 
   constructor(options: ProviderOptions = {}) {
     this.assistantName = options.assistantName;
+    this.model = options.model;
     this.mcpServers = options.mcpServers ?? {};
     this.additionalDirectories = options.additionalDirectories;
     this.env = {
@@ -283,6 +285,7 @@ export class ClaudeProvider implements AgentProvider {
         additionalDirectories: this.additionalDirectories,
         resume: input.continuation,
         pathToClaudeCodeExecutable: resolveClaudeCodePath(),
+        ...(this.model ? { model: this.model } : {}),
         systemPrompt: instructions ? { type: 'preset' as const, preset: 'claude_code' as const, append: instructions } : undefined,
         allowedTools: TOOL_ALLOWLIST,
         disallowedTools: SDK_DISALLOWED_TOOLS,

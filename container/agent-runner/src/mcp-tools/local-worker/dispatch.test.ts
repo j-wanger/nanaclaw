@@ -220,6 +220,48 @@ describe('postProcessResult', () => {
     expect(content).toContain('Key findings here.');
   });
 
+  it('includes source_url in episodic frontmatter when provided in write_to', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'sum-url-001',
+        outputFormat: 'markdown',
+        write_to: { wiki: 'test-wiki', tier: 'episodic', title: 'With Source', tags: ['test'], source_url: 'https://example.com/original' },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: { raw: '## Summary\nContent.', parsed: '## Summary\nContent.' },
+    };
+
+    postProcessResult(state);
+
+    const files = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(files.length).toBe(1);
+    const content = fs.readFileSync(path.join(wikiDir, 'episodic', files[0]), 'utf8');
+    expect(content).toContain('source_url: https://example.com/original');
+  });
+
+  it('omits source_url from episodic frontmatter when not provided', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'sum-nourl-001',
+        outputFormat: 'markdown',
+        write_to: { wiki: 'test-wiki', tier: 'episodic', title: 'No Source', tags: [] },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: { raw: '## Summary\nContent.', parsed: '## Summary\nContent.' },
+    };
+
+    postProcessResult(state);
+
+    const files = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(files.length).toBe(1);
+    const content = fs.readFileSync(path.join(wikiDir, 'episodic', files[0]), 'utf8');
+    expect(content).not.toContain('source_url');
+  });
+
   it('updates status in target article frontmatter from review worker JSON', () => {
     const targetPath = path.join(wikiDir, 'episodic', 'target-article.md');
     fs.writeFileSync(targetPath, '---\ntitle: "Target"\nstatus: pending\ntier: episodic\n---\n\nContent\n');

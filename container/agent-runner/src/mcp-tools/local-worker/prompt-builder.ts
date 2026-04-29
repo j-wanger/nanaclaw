@@ -11,6 +11,14 @@ const FORMAT_INSTRUCTIONS: Record<string, string> = {
   markdown: 'Respond in markdown.',
 };
 
+const RESEARCH_TOOL_ROUTING = `
+STRICT 3-step sequence — follow exactly:
+STEP 1: call web_search ONCE. Pick the best URL from results.
+STEP 2: call web_extract ONCE on that URL.
+STEP 3: call wiki_write with the extracted content.
+DO NOT call web_search or web_extract more than once each.
+DO NOT skip wiki_write. It is the final required step.`;
+
 const CHARS_PER_TOKEN = 4;
 
 function trimToTokenBudget(text: string, budgetTokens: number): string {
@@ -30,6 +38,11 @@ export function buildWorkerPrompt(contract: TaskContract): WorkerPrompt {
     for (const b of contract.boundaries) {
       parts.push(`- ${b}`);
     }
+  }
+
+  if (contract.tools && contract.tools.length > 0 && contract.type === 'research') {
+    parts.push('');
+    parts.push(RESEARCH_TOOL_ROUTING.trim());
   }
 
   const system = parts.join('\n').trim();

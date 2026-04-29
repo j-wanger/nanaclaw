@@ -110,8 +110,6 @@ export async function reviewHandler(args: Record<string, unknown>) {
   return ok(JSON.stringify({
     dispatched: dispatched.length,
     skipped: skipped.length,
-    workers: dispatched.map((r) => ({ episodic_path: r.episodic_path, worker_id: r.worker_id })),
-    skipped_details: skipped.map((r) => ({ episodic_path: r.episodic_path, reason: r.skipped })),
   }));
 }
 

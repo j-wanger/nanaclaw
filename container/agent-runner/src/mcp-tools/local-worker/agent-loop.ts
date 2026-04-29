@@ -1,7 +1,10 @@
 import { type WorkerToolDefinition, executeTool } from './tool-registry.js';
 import { routeTask, loadRoutingConfig, type RoutingConfig } from './routing.js';
+import { type ToolTraceEntry } from './contract.js';
 import { Semaphore } from './semaphore.js';
 import { AGENT_DIR } from '../../config.js';
+
+export type { ToolTraceEntry };
 
 export interface AgentLoopMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -30,14 +33,6 @@ export interface AgentLoopResult {
   toolTrace: ToolTraceEntry[];
   terminationReason: 'complete' | 'max_iterations' | 'timeout' | 'error';
   error?: string;
-}
-
-export interface ToolTraceEntry {
-  iteration: number;
-  tool: string;
-  args: Record<string, unknown>;
-  result: string;
-  latency_ms: number;
 }
 
 let _routingConfig: RoutingConfig | null | undefined;

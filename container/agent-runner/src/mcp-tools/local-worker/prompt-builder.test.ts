@@ -81,4 +81,30 @@ describe('buildWorkerPrompt', () => {
     const result = buildWorkerPrompt(baseContract({ context: '' }));
     expect(result.user).toContain('Implement a CSV parser');
   });
+
+  describe('iteration-aware research prompt', () => {
+    it('includes tool routing guidance for research type with tools', () => {
+      const result = buildWorkerPrompt(baseContract({
+        type: 'research',
+        outputFormat: 'markdown',
+        tools: ['web_search', 'web_extract', 'wiki_write'],
+      }));
+      expect(result.system).toContain('wiki_write');
+      expect(result.system).toContain('search');
+    });
+
+    it('does not include research guidance for non-research type with tools', () => {
+      const result = buildWorkerPrompt(baseContract({
+        type: 'code-impl',
+        tools: ['web_search', 'web_extract'],
+      }));
+      expect(result.system).not.toContain('wiki_write');
+    });
+
+    it('does not include tool routing for contracts without tools', () => {
+      const result = buildWorkerPrompt(baseContract({ type: 'research' }));
+      const baseResult = buildWorkerPrompt(baseContract({ type: 'research', tools: undefined }));
+      expect(result.system).toBe(baseResult.system);
+    });
+  });
 });

@@ -15,6 +15,7 @@ export interface WriteTo {
   title?: string;
   tags?: string[];
   target_path?: string;
+  source_url?: string;
 }
 
 export interface TaskContract {

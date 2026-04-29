@@ -91,6 +91,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     }
 
     const body = stripFrontmatter(content);
+    const sourceUrl = extractSourceUrl(content) || undefined;
 
     const dispatchResult = await handleDispatch({
       type: 'research',
@@ -101,7 +102,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
       postconditions: [{ type: 'contains', params: { substring: '## Summary' } }],
       timeout_ms: 1_200_000,
       context_budget_tokens: 6000,
-      write_to: { wiki, tier: 'episodic', title, tags },
+      write_to: { wiki, tier: 'episodic', title, tags, source_url: sourceUrl },
     });
 
     const resultText = (dispatchResult.content[0] as { text: string }).text;
@@ -121,8 +122,6 @@ export async function summarizeHandler(args: Record<string, unknown>) {
   return ok(JSON.stringify({
     dispatched: dispatched.length,
     skipped: skipped.length,
-    workers: dispatched.map((r) => ({ path: r.path, title: r.title, worker_id: r.worker_id, episodic_path: r.episodic_path })),
-    skipped_details: skipped.map((r) => ({ path: r.path, title: r.title, reason: r.skipped })),
     review_args: { episodic_paths: episodicPaths, wiki, raw_dir: rawDir },
   }));
 }

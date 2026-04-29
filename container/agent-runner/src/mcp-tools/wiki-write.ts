@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { createHash } from 'crypto';
 import { registerTools } from './server.js';
 import type { McpToolDefinition } from './types.js';
 
@@ -78,31 +79,45 @@ function generateSlug(title: string): string {
     .slice(0, 60);
 }
 
+export function computeSha256(content: string): string {
+  return createHash('sha256').update(content).digest('hex');
+}
+
 interface FrontmatterOptions {
   title: string;
   tags: string[];
   tier?: string;
   workerId?: string;
   taskId?: string;
+  sourceUrl?: string;
+  contentBody?: string;
 }
 
 function buildFrontmatter(opts: FrontmatterOptions): string {
   const tagStr = opts.tags.map((t) => `"${t}"`).join(', ');
   const today = new Date().toISOString().slice(0, 10);
+  const isRaw = opts.tier === 'raw';
   const isEpisodic = opts.tier === 'episodic';
-  const source = isEpisodic ? 'worker-research' : 'web-research';
+  const source = isRaw ? 'web-extract' : isEpisodic ? 'worker-research' : 'web-research';
   const lines = [
     '---',
     `title: "${opts.title}"`,
     `tags: [${tagStr}]`,
     `source: ${source}`,
     `created: ${today}`,
-    `status: inbox`,
   ];
-  if (isEpisodic) {
-    lines.push(`tier: episodic`);
-    if (opts.workerId) lines.push(`worker_id: ${opts.workerId}`);
-    if (opts.taskId) lines.push(`task_id: ${opts.taskId}`);
+  if (isRaw) {
+    lines.push(`tier: raw`);
+    lines.push(`ingested: ${today}`);
+    if (opts.sourceUrl) lines.push(`source_url: ${opts.sourceUrl}`);
+    if (opts.contentBody) lines.push(`sha256: ${computeSha256(opts.contentBody)}`);
+  } else {
+    lines.push(`status: inbox`);
+    if (isEpisodic) {
+      lines.push(`tier: episodic`);
+      if (opts.workerId) lines.push(`worker_id: ${opts.workerId}`);
+      if (opts.taskId) lines.push(`task_id: ${opts.taskId}`);
+    }
   }
   lines.push('---');
   return lines.join('\n');
@@ -121,6 +136,7 @@ export async function writeHandler(args: Record<string, unknown>) {
   const tier = args.tier as string | undefined;
   const workerId = args.worker_id as string | undefined;
   const taskId = args.task_id as string | undefined;
+  const sourceUrl = args.source_url as string | undefined;
 
   const wikis = loadWikis();
   if (!wikis || wikis.length === 0) {
@@ -128,7 +144,7 @@ export async function writeHandler(args: Record<string, unknown>) {
   }
 
   const target = routeToWiki(wikis, topic, tags, wikiName);
-  const subdir = tier === 'episodic' ? 'episodic' : 'inbox';
+  const subdir = tier === 'raw' ? path.join('raw', 'articles') : tier === 'episodic' ? 'episodic' : 'inbox';
   const outputDir = path.join(target.path, subdir);
 
   try {
@@ -137,7 +153,7 @@ export async function writeHandler(args: Record<string, unknown>) {
     const slug = generateSlug(title);
     const filename = `${slug}.md`;
     const filePath = path.join(outputDir, filename);
-    const frontmatter = buildFrontmatter({ title, tags, tier, workerId, taskId });
+    const frontmatter = buildFrontmatter({ title, tags, tier, workerId, taskId, sourceUrl, contentBody: content });
     const fullContent = `${frontmatter}\n\n${content}\n`;
 
     fs.writeFileSync(filePath, fullContent);
@@ -175,8 +191,12 @@ const tools: McpToolDefinition[] = [
           },
           tier: {
             type: 'string',
-            enum: ['inbox', 'episodic'],
-            description: 'Output tier: "inbox" (default) for standard entries, "episodic" for autonomous research output with provenance',
+            enum: ['inbox', 'episodic', 'raw'],
+            description: 'Output tier: "inbox" (default) for standard entries, "episodic" for autonomous research output with provenance, "raw" for immutable source material with sha256',
+          },
+          source_url: {
+            type: 'string',
+            description: 'Source URL for raw tier entries (provenance tracking)',
           },
           worker_id: {
             type: 'string',

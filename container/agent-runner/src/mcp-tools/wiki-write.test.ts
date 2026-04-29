@@ -216,6 +216,74 @@ describe('wiki_write', () => {
     expect(content).not.toContain('worker_id:');
   });
 
+  it('tier=raw writes to raw/articles/ subdirectory', async () => {
+    const result = await writeHandler({
+      title: 'SearXNG Architecture',
+      content: 'SearXNG is a privacy-respecting metasearch engine.',
+      tags: ['search', 'infrastructure'],
+      topic: 'agent systems search infrastructure',
+      tier: 'raw',
+      source_url: 'https://docs.searxng.org/admin/architecture.html',
+    });
+    const text = getText(result);
+
+    expect(text).toContain('raw/articles/');
+
+    const rawDir = path.join(tmpDir, 'agentic-engineering-wiki', 'raw', 'articles');
+    const files = fs.readdirSync(rawDir);
+    expect(files.length).toBe(1);
+
+    const inboxFiles = fs.readdirSync(path.join(tmpDir, 'agentic-engineering-wiki', 'inbox'));
+    expect(inboxFiles.length).toBe(0);
+  });
+
+  it('raw tier frontmatter includes source_url, ingested date, and sha256', async () => {
+    const body = 'Content body for hashing verification.';
+    await writeHandler({
+      title: 'Hash Test Article',
+      content: body,
+      tags: ['test'],
+      topic: 'AML hash verification',
+      tier: 'raw',
+      source_url: 'https://example.com/article',
+    });
+
+    const rawDir = path.join(tmpDir, 'aml-wiki', 'raw', 'articles');
+    const files = fs.readdirSync(rawDir);
+    const content = fs.readFileSync(path.join(rawDir, files[0]), 'utf8');
+
+    expect(content).toContain('source_url: https://example.com/article');
+    expect(content).toContain('ingested:');
+    expect(content).toContain('sha256:');
+    expect(content).toContain('tier: raw');
+
+    // Verify sha256 is correct
+    const crypto = await import('crypto');
+    const expectedHash = crypto.createHash('sha256').update(body).digest('hex');
+    expect(content).toContain(`sha256: ${expectedHash}`);
+  });
+
+  it('raw tier without source_url still works', async () => {
+    const result = await writeHandler({
+      title: 'No Source URL',
+      content: 'Content without a URL.',
+      tags: ['test'],
+      topic: 'AML testing',
+      tier: 'raw',
+    });
+    const text = getText(result);
+
+    expect(text).toContain('raw/articles/');
+
+    const rawDir = path.join(tmpDir, 'aml-wiki', 'raw', 'articles');
+    const files = fs.readdirSync(rawDir);
+    const content = fs.readFileSync(path.join(rawDir, files[0]), 'utf8');
+
+    expect(content).not.toContain('source_url:');
+    expect(content).toContain('sha256:');
+    expect(content).toContain('ingested:');
+  });
+
   it('returns error when title missing', async () => {
     const result = await writeHandler({
       title: '',

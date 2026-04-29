@@ -15,6 +15,7 @@ const CONFIG_PATH = `${AGENT_DIR}/container.json`;
 
 export interface RunnerConfig {
   provider: string;
+  model?: string;
   assistantName: string;
   groupName: string;
   agentGroupId: string;
@@ -42,6 +43,7 @@ export function loadConfig(): RunnerConfig {
 
   _config = {
     provider: (raw.provider as string) || 'claude',
+    model: (raw.model as string) || undefined,
     assistantName: (raw.assistantName as string) || '',
     groupName: (raw.groupName as string) || '',
     agentGroupId: (raw.agentGroupId as string) || '',

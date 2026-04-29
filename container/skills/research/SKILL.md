@@ -15,6 +15,8 @@ Your job is to **think about research directions and evaluate coverage**. The to
 
 Talk naturally. No pipeline jargon, no tool names, no token counts in messages. Tell the user what you found, what gaps remain, and what you're doing about it.
 
+**Progress updates:** During iterative fetch loops, call `send_message` every ~5 rounds with a brief update — what topics you've covered, how many articles added, what direction you're heading next. The user should never wonder if you're still working.
+
 ## Trigger Patterns
 
 - "research X", "look into Y", "investigate Z", "find out about"
@@ -51,38 +53,41 @@ Call `wiki_search` to check existing coverage. Identify gaps.
 This is where you add value — generating good, targeted queries.
 
 ```
-loop (max 4 rounds):
+loop:
   1. Think: what specific gaps remain?
   2. Generate 1-2 targeted queries
   3. Call research_fetch(query) for each
-  4. Read the response metadata: titles, URLs, quality (full/partial), char counts
+  4. Read the response: titles and URLs for coverage direction, counts for progress
   5. Do NOT read the raw article files — use metadata to evaluate coverage
   6. Decide: enough coverage, or need more queries?
+  7. Every ~5 rounds: send_message with a brief progress update
 ```
 
-`research_fetch` returns per-article metadata:
+`research_fetch` returns compact metadata:
 ```json
 {
-  "articles": [
-    {"path": "...", "title": "Bill C-12...", "url": "https://...", "quality": "full", "chars": 9682},
+  "added": 8, "skipped": 2, "failed": 1, "full": 7, "partial": 1,
+  "new_articles": [
+    {"title": "Bill C-12...", "url": "https://..."},
     ...
-  ],
-  "full": 8, "partial": 3, "skipped": 2, "failed": 1
+  ]
 }
 ```
 
-Use titles and URLs to judge coverage. Partial articles exist but have thin content.
+Use titles and URLs to judge coverage direction. The response includes `raw_dir` and `wiki` — save these for the summarize step.
 
-Update `research-state.json` with paths after each round.
+Update `research-state.json` after each round with `raw_dir`, `wiki`, and topics covered.
 
 ### 3. Summarize
 
-When you have enough raw sources, call `research_summarize`:
+When you have enough raw sources, list the `raw_dir` from research_fetch to get all paths, then call `research_summarize`:
 
 ```
+# List raw articles directory to get paths
+# Then pass them to summarize:
 research_summarize({
-  paths: [all raw article paths from research-state.json],
-  wiki: "<target_wiki>",
+  paths: [list of .md files from raw_dir],
+  wiki: "<wiki name from research_fetch>",
   tags: ["<relevant>", "<tags>"]
 })
 ```
@@ -125,6 +130,14 @@ No consolidation — that's wiki-consolidate's job later.
 | research_fetch returns 0 articles | Different query, max 1 retry |
 | Worker timeout | Note in report |
 | All queries return nothing | Tell user, delete state |
+
+## Deep Work Awareness
+
+When research runs inside a deep work session (you have a `deep_work.json` deadline):
+
+- **Don't stop after your initial topic list is covered.** Explore adjacent areas, deeper subtopics, different angles on the same domain. The time budget is your guide, not the initial query list.
+- **Batch your work:** fetch in rounds, then summarize in batches, then review. Don't try to summarize after every single fetch round.
+- **Check `get_deep_work_status` periodically** to gauge remaining time. In the last 30 minutes, shift to summarizing and reviewing whatever you've collected rather than fetching more.
 
 ## Compaction Recovery
 
