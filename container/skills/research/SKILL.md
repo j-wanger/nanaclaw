@@ -89,21 +89,19 @@ research_summarize({
 
 This mechanically dispatches one worker per raw article (skipping partials). You don't choose which articles to group or skip — the tool handles it.
 
+The response includes a `review_args` object — save it for the next step.
+
 **END YOUR TURN after calling research_summarize.** Worker results auto-inject.
 
 ### 4. Review
 
-When summarize results arrive, collect the episodic paths from the worker results and call `research_review`:
+When summarize results arrive, immediately call `research_review` using the `review_args` from the summarize response. Do NOT ask the user whether to review — review is automatic.
 
 ```
-research_review({
-  episodic_paths: [paths to new episodic articles],
-  wiki: "<target_wiki>",
-  raw_dir: "<wiki_path>/raw/articles"
-})
+research_review(review_args)
 ```
 
-This dispatches one reviewer per episodic article, comparing each against its raw source. Reviewers score faithfulness to source only — not factual accuracy.
+The `review_args` from `research_summarize` has everything pre-filled. Each reviewer compares one summary against its raw source — faithfulness only, not fact-checking.
 
 **END YOUR TURN after calling research_review.** Results auto-inject.
 

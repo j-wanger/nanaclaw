@@ -1,7 +1,23 @@
 import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { registerTools } from './server.js';
 import { extractSourceUrl } from './url-index.js';
 import type { McpToolDefinition } from './types.js';
+
+interface WikiEntry { name: string; path: string; description: string; }
+
+function loadWikis(): WikiEntry[] | null {
+  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
+  try {
+    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as { wikis: WikiEntry[] };
+    return raw.wikis || [];
+  } catch { return null; }
+}
+
+function generateSlug(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+}
 
 function log(msg: string): void {
   console.error(`[research-summarize] ${msg}`);
@@ -30,6 +46,7 @@ interface DispatchResult {
   path: string;
   title: string;
   worker_id: string | null;
+  episodic_path: string | null;
   skipped?: string;
 }
 
@@ -50,6 +67,10 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     return ok('Error: dispatch_worker not available');
   }
 
+  const wikis = loadWikis();
+  const wikiEntry = wikis?.find((w) => w.name === wiki) || wikis?.[0];
+  const wikiPath = wikiEntry?.path || '';
+
   const results: DispatchResult[] = [];
 
   for (const filePath of paths) {
@@ -57,7 +78,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     try {
       content = fs.readFileSync(filePath, 'utf8');
     } catch {
-      results.push({ path: filePath, title: '?', worker_id: null, skipped: 'file not found' });
+      results.push({ path: filePath, title: '?', worker_id: null, episodic_path: null, skipped: 'file not found' });
       continue;
     }
 
@@ -65,7 +86,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     const title = (fm.title || '').replace(/^"|"$/g, '') || filePath.split('/').pop()?.replace('.md', '') || 'untitled';
 
     if (fm.extraction === 'partial') {
-      results.push({ path: filePath, title, worker_id: null, skipped: 'partial extraction' });
+      results.push({ path: filePath, title, worker_id: null, episodic_path: null, skipped: 'partial extraction' });
       continue;
     }
 
@@ -86,18 +107,23 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     const resultText = (dispatchResult.content[0] as { text: string }).text;
     const idMatch = resultText.match(/ID: (wt-[\w-]+)/);
 
-    results.push({ path: filePath, title, worker_id: idMatch?.[1] || null });
+    const episodicPath = wikiPath ? path.join(wikiPath, 'episodic', `${generateSlug(title)}.md`) : null;
+    results.push({ path: filePath, title, worker_id: idMatch?.[1] || null, episodic_path: episodicPath });
     log(`Dispatched summarize worker for: ${title}`);
   }
 
   const dispatched = results.filter((r) => r.worker_id);
   const skipped = results.filter((r) => r.skipped);
 
+  const rawDir = wikiPath ? path.join(wikiPath, 'raw', 'articles') : '';
+  const episodicPaths = dispatched.map((r) => r.episodic_path).filter(Boolean) as string[];
+
   return ok(JSON.stringify({
     dispatched: dispatched.length,
     skipped: skipped.length,
-    workers: dispatched.map((r) => ({ path: r.path, title: r.title, worker_id: r.worker_id })),
+    workers: dispatched.map((r) => ({ path: r.path, title: r.title, worker_id: r.worker_id, episodic_path: r.episodic_path })),
     skipped_details: skipped.map((r) => ({ path: r.path, title: r.title, reason: r.skipped })),
+    review_args: { episodic_paths: episodicPaths, wiki, raw_dir: rawDir },
   }));
 }
 
