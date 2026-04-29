@@ -173,12 +173,16 @@ export function checkWorkerResults(): string | null {
   const parts = completed.map((s) => {
     const header = `[Worker ${s.contract.id}] ${s.status}`;
     const obj = `Objective: ${s.contract.objective}`;
-    if (s.status === 'completed' && s.result) {
+    const writeTo = s.contract.write_to;
+    if (s.status === 'completed') {
       const vStatus = s.verification?.passed ? 'T0 PASSED' : 'T0 FAILED';
-      const traceLine = s.toolTrace && s.toolTrace.length > 0
-        ? `\nTool trace (${s.toolTrace.length} calls): ${s.toolTrace.map(t => t.tool).join(' → ')}`
-        : '';
-      return `${header} (${vStatus})\n${obj}${traceLine}\nResult:\n${s.result.parsed}`;
+      if (writeTo) {
+        const dest = writeTo.tier === 'episodic'
+          ? `Written to: ${writeTo.wiki}/episodic/${writeTo.title || 'untitled'}`
+          : `Reviewed: ${writeTo.target_path || 'unknown'}`;
+        return `${header} (${vStatus}) — ${dest}`;
+      }
+      return `${header} (${vStatus})\n${obj}\nResult:\n${s.result?.parsed || ''}`;
     }
     if (s.error) {
       return `${header}\n${obj}\nError: ${s.error}`;
@@ -186,5 +190,5 @@ export function checkWorkerResults(): string | null {
     return `${header}\n${obj}`;
   });
 
-  return `Worker results ready for review:\n\n${parts.join('\n\n---\n\n')}`;
+  return `Worker results ready for review:\n\n${parts.join('\n')}`;
 }
