@@ -33,3 +33,10 @@ src/channels/telegram-2.ts
 src/channels/index.ts
 groups/dm-with-bob/container.json
 groups/dm-with-bob/models.json
+data/searxng/settings.yml
+container/agent-runner/src/poll-loop.test.ts
+container/agent-runner/src/integration.test.ts
+container/agent-runner/src/mcp-tools/jina.ts
+container/agent-runner/src/mcp-tools/jina.test.ts
+container/agent-runner/src/mcp-tools/web-extract.ts
+container/agent-runner/src/mcp-tools/web-extract.test.ts

@@ -50,6 +50,7 @@ beforeEach(async () => {
 
   process.env.WIKIS_JSON_PATH = wikisJsonPath;
   process.env.SEARXNG_URL = 'http://mock-searxng:8888';
+  process.env.JINA_READER_ENABLED = 'false';
 
   originalFetch = globalThis.fetch;
 
@@ -60,6 +61,7 @@ beforeEach(async () => {
 afterEach(() => {
   delete process.env.WIKIS_JSON_PATH;
   delete process.env.SEARXNG_URL;
+  delete process.env.JINA_READER_ENABLED;
   globalThis.fetch = originalFetch;
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
@@ -295,6 +297,93 @@ describe('research_fetch', () => {
 
     expect(data.added).toBe(2);
     expect(data.full).toBe(1);
+    expect(data.partial).toBe(1);
+  });
+
+  it('uses Jina fallback when Readability extraction is partial', async () => {
+    delete process.env.JINA_READER_ENABLED;
+
+    const jinaContent = 'This is a substantial article extracted by Jina Reader with plenty of detail about the topic at hand. '.repeat(8);
+
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('mock-searxng')) {
+        return makeSearxngResponse([
+          { title: 'JS Heavy Page', url: 'https://example.com/spa', content: 'Snippet' },
+        ]);
+      }
+      if (u.includes('r.jina.ai/')) {
+        return new Response(jinaContent, { status: 200 });
+      }
+      return new Response('<html><body><script>app()</script></body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
+    }) as typeof fetch;
+
+    const result = await fetchHandler({ query: 'test' });
+    const data = getJson(result);
+
+    expect(data.added).toBe(1);
+    expect(data.full).toBe(1);
+    expect(data.partial).toBe(0);
+
+    const rawDir = path.join(MOCK_WIKIS.wikis[0].path, 'raw', 'articles');
+    const files = fs.readdirSync(rawDir).filter((f) => f.endsWith('.md'));
+    const content = fs.readFileSync(path.join(rawDir, files[0]), 'utf8');
+    expect(content).not.toContain('extraction: partial');
+    expect(content).toContain('Jina Reader');
+  });
+
+  it('keeps Readability result when extraction is adequate (>500 chars)', async () => {
+    delete process.env.JINA_READER_ENABLED;
+
+    let jinaWasCalled = false;
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('mock-searxng')) {
+        return makeSearxngResponse([
+          { title: 'Good Page', url: 'https://example.com/good', content: 'Snippet' },
+        ]);
+      }
+      if (u.includes('r.jina.ai/')) {
+        jinaWasCalled = true;
+        return new Response('Jina content', { status: 200 });
+      }
+      return makeHtmlResponse('Substantial article content for testing');
+    }) as typeof fetch;
+
+    const result = await fetchHandler({ query: 'test' });
+    const data = getJson(result);
+
+    expect(data.added).toBe(1);
+    expect(data.full).toBe(1);
+    expect(jinaWasCalled).toBe(false);
+  });
+
+  it('keeps Readability result when Jina returns shorter content', async () => {
+    delete process.env.JINA_READER_ENABLED;
+
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('mock-searxng')) {
+        return makeSearxngResponse([
+          { title: 'Thin Page', url: 'https://example.com/thin', content: 'A detailed snippet that is longer than what Readability extracted from the thin page.' },
+        ]);
+      }
+      if (u.includes('r.jina.ai/')) {
+        return new Response('Short', { status: 200 });
+      }
+      return new Response('<html><body>tiny</body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
+    }) as typeof fetch;
+
+    const result = await fetchHandler({ query: 'test' });
+    const data = getJson(result);
+
+    expect(data.added).toBe(1);
     expect(data.partial).toBe(1);
   });
 

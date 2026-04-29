@@ -4,18 +4,18 @@
 
 ## Recommended Next Action
 
-Phase 16 complete (6/6 tasks, all exit criteria met). Run `/dev-plan` to plan Phase 17. Consider: scheduled research automation, conversation quality, or new capability. Also: Nana is working on batch-summarizing ~5,800 orphaned raw articles — check progress.
+Phase 17 complete (6/6 tasks, all exit criteria met). Run `/dev-plan` to plan Phase 18. Consider: live E2E test of accumulation window via Telegram (send forwarded post + caption to Bob), research session with Jina fallback active, or new capability.
 
 ## Active Phase
 
-**[[phase-16-research-session-reliability|Phase 16: Research Session Reliability]]** (status: active)
+**[[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]]** (status: active)
 
-Exit criteria: 0/5 met
+Exit criteria: 0/4 met
 Progress: ~0% (0/6 tasks done)
 
 ## Active Phase Contract
 
-Phase: 16 - Research Session Reliability
+Phase: 17 - Message Batching + Research Extraction Resilience
 Tasks: 6 (see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
@@ -24,9 +24,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-17-message-batching-extraction-resilience]] | medium | 2026-04-29 |
 | [[phase-16-research-session-reliability]] | medium | 2026-04-29 |
 | [[phase-15-iterative-research-pipeline]] | high | 2026-04-28 |
-| [[phase-14-unified-research-skill]] | high | 2026-04-27 |
 
 ## Blockers and Open Questions
 
@@ -45,22 +45,22 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
-| container/agent-runner/src/mcp-tools/research-fetch.ts | Scriptable search+extract, compact output | 2026-04-29 |
-| container/agent-runner/src/mcp-tools/research-summarize.ts | Single-shot summarize with source_url propagation | 2026-04-29 |
-| container/agent-runner/src/mcp-tools/research-review.ts | Single-shot review, compact output | 2026-04-29 |
-| container/agent-runner/src/mcp-tools/local-worker/dispatch.ts | write_to post-processing with source_url | 2026-04-29 |
+| container/agent-runner/src/poll-loop.ts | Main poll loop with 500ms accumulation window + AbortSignal | 2026-04-29 |
+| container/agent-runner/src/mcp-tools/jina.ts | Shared Jina Reader extraction helper | 2026-04-29 |
+| container/agent-runner/src/mcp-tools/research-fetch.ts | Scriptable search+extract with Jina fallback | 2026-04-29 |
+| container/agent-runner/src/mcp-tools/web-extract.ts | Page extraction with Jina fallback | 2026-04-29 |
+| data/searxng/settings.yml | SearXNG config: 7 web engines, karmasearch disabled | 2026-04-29 |
 | container/skills/research/SKILL.md | Iterative pipeline + progress updates + deep work awareness | 2026-04-29 |
 | src/channels/telegram-2.ts | Second Telegram bot adapter (Bob) | 2026-04-29 |
 | groups/dm-with-bob/ | Bob agent group (critical thinker personality) | 2026-04-29 |
-| groups/*/models.json | max_concurrent: 2 (parallel inference) | 2026-04-29 |
 
 ## Session Journal (last 5)
 
+- [2026-04-29] [[2026-04-29-phase-17-message-batching-extraction-resilience-complete|Phase 17: Message Batching + Extraction Resilience Complete]] — 6 tasks, poll-loop accumulation window + Jina fallback + SearXNG diversification, Bob duplicate response root cause fixed
 - [2026-04-29] [[2026-04-29-phase-16-research-session-reliability-complete|Phase 16: Research Session Reliability Complete]] — 6 tasks, compact outputs + source_url fix + skill communication, Bob agent + llama-server setup
 - [2026-04-28] [[2026-04-28-phase-15-iterative-research-pipeline-complete|Phase 15: Iterative Research Pipeline Complete]] — 8 tasks, research_fetch + url-index + write_to + iterative skill, reviewer 7/10 (review stage matching bug)
 - [2026-04-27] [[2026-04-27-phase-13-multi-stage-research-pipeline-complete|Phase 13: Multi-Stage Research Pipeline Complete]] — 6 tasks, raw tier + prompt templates + 5-stage pipeline, live test: 6 raw articles with sha256
 - [2026-04-27] [[2026-04-27-phase-12-worker-research-reliability-complete|Phase 12: Worker Research Reliability Complete]] — 5 tasks, toolTrace + max_iterations + prompt routing, live test revealed need for pipeline redesign
-- [2026-04-27] [[2026-04-27-phase-11-host-mode-fragment-fix-complete|Phase 11: Fragment Path Fix Complete]] — 3 tasks + 2 live-discovered fixes, 5 commits, host-mode fully operational
 
 ## Cross-References
 

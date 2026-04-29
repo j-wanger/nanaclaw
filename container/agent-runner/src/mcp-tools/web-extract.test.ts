@@ -22,12 +22,14 @@ let extractHandler: (args: Record<string, unknown>) => Promise<CallToolResult>;
 
 beforeEach(async () => {
   originalFetch = globalThis.fetch;
+  process.env.JINA_READER_ENABLED = 'false';
   const mod = await import('./web-extract.js');
   extractHandler = mod.extractHandler;
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  delete process.env.JINA_READER_ENABLED;
 });
 
 function mockFetchHtml(body: string, contentType = 'text/html') {
@@ -86,6 +88,69 @@ describe('web_extract', () => {
     const text = getText(result);
 
     expect(text).toContain('required');
+  });
+
+  it('uses Jina when Readability produces less than 500 chars', async () => {
+    delete process.env.JINA_READER_ENABLED;
+    const jinaContent = 'Substantial content extracted by Jina. '.repeat(20);
+
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('r.jina.ai/')) {
+        return new Response(jinaContent, { status: 200 });
+      }
+      return new Response('<html><body><script>app()</script></body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
+    }) as typeof fetch;
+
+    const result = await extractHandler({ url: 'https://example.com/spa' });
+    const text = getText(result);
+    expect(text).toContain('Jina');
+    expect(text.length).toBeGreaterThan(500);
+  });
+
+  it('keeps Readability result when extraction is adequate', async () => {
+    delete process.env.JINA_READER_ENABLED;
+    let jinaWasCalled = false;
+
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('r.jina.ai/')) {
+        jinaWasCalled = true;
+        return new Response('Jina content', { status: 200 });
+      }
+      return new Response(MOCK_HTML, {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
+    }) as typeof fetch;
+
+    const result = await extractHandler({ url: 'https://example.com/good' });
+    const text = getText(result);
+    expect(text).toContain('first paragraph');
+    expect(jinaWasCalled).toBe(false);
+  });
+
+  it('falls through when Jina also fails', async () => {
+    delete process.env.JINA_READER_ENABLED;
+
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      const u = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      if (u.includes('r.jina.ai/')) {
+        return new Response('Server Error', { status: 500 });
+      }
+      return new Response('<html><body><script>app()</script></body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
+    }) as typeof fetch;
+
+    const result = await extractHandler({ url: 'https://example.com/broken' });
+    const text = getText(result);
+    // Should still return something (the raw text stripping fallback)
+    expect(text).not.toContain('Error');
   });
 
   it('handles non-200 response', async () => {

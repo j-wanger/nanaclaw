@@ -14,6 +14,7 @@ import type { AgentProvider, AgentQuery, ProviderEvent } from './providers/types
 
 const POLL_INTERVAL_MS = 1000;
 const ACTIVE_POLL_INTERVAL_MS = 500;
+const ACCUMULATION_WINDOW_MS = 500;
 
 function log(msg: string): void {
   console.error(`[poll-loop] ${msg}`);
@@ -35,6 +36,7 @@ export interface PollLoopConfig {
   systemContext?: {
     instructions?: string;
   };
+  signal?: AbortSignal;
 }
 
 /**
@@ -66,9 +68,9 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
   let pollCount = 0;
   let lastRouting: RoutingContext | null = null;
 
-  while (true) {
+  while (!config.signal?.aborted) {
     // Skip system messages — they're responses for MCP tools (e.g., ask_user_question)
-    const messages = getPendingMessages().filter((m) => m.kind !== 'system');
+    let messages = getPendingMessages().filter((m) => m.kind !== 'system');
     pollCount++;
 
     // Periodic heartbeat so we know the loop is alive
@@ -89,7 +91,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
           systemContext: config.systemContext,
         });
         try {
-          const wResult = await processQuery(wQuery, lastRouting, [], config.providerName);
+          const wResult = await processQuery(wQuery, lastRouting, [], config.providerName, config.signal);
           if (wResult.continuation && wResult.continuation !== continuation) {
             continuation = wResult.continuation;
             setContinuation(config.providerName, continuation);
@@ -116,6 +118,14 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
       await sleep(POLL_INTERVAL_MS);
       continue;
     }
+
+    // Pre-query accumulation window: wait briefly to capture rapid-fire
+    // follow-ups (e.g., Telegram forwarded post + caption arrive ~400ms
+    // apart). Re-read includes originals (still pending) plus any new
+    // arrivals. Only applies in idle state — the existing push() mechanism
+    // handles mid-query follow-ups independently.
+    await sleep(ACCUMULATION_WINDOW_MS);
+    messages = getPendingMessages().filter((m) => m.kind !== 'system');
 
     const ids = messages.map((m) => m.id);
     markProcessing(ids);
@@ -199,7 +209,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     const skippedSet = new Set(skipped);
     const processingIds = ids.filter((id) => !commandIds.includes(id) && !skippedSet.has(id));
     try {
-      const result = await processQuery(query, routing, processingIds, config.providerName);
+      const result = await processQuery(query, routing, processingIds, config.providerName, config.signal);
       if (result.continuation && result.continuation !== continuation) {
         continuation = result.continuation;
         setContinuation(config.providerName, continuation);
@@ -246,7 +256,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
       });
 
       try {
-        const wResult = await processQuery(wQuery, routing, [], config.providerName);
+        const wResult = await processQuery(wQuery, routing, [], config.providerName, config.signal);
         if (wResult.continuation && wResult.continuation !== continuation) {
           continuation = wResult.continuation;
           setContinuation(config.providerName, continuation);
@@ -282,7 +292,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
       });
 
       try {
-        const dwResult = await processQuery(dwQuery, routing, [], config.providerName);
+        const dwResult = await processQuery(dwQuery, routing, [], config.providerName, config.signal);
         if (dwResult.continuation && dwResult.continuation !== continuation) {
           continuation = dwResult.continuation;
           setContinuation(config.providerName, continuation);
@@ -338,6 +348,7 @@ async function processQuery(
   routing: RoutingContext,
   initialBatchIds: string[],
   providerName: string,
+  signal?: AbortSignal,
 ): Promise<QueryResult> {
   let queryContinuation: string | undefined;
   let done = false;
@@ -349,7 +360,7 @@ async function processQuery(
   // claim age (see src/host-sweep.ts); if something is truly stuck, the host
   // will kill the container and messages get reset to pending.
   const pollHandle = setInterval(() => {
-    if (done) return;
+    if (done || signal?.aborted) return;
 
     // Skip system messages (MCP tool responses) and /clear (needs fresh query).
     // Thread routing is the router's concern — if a message landed in this

@@ -130,7 +130,8 @@
 - [[phase-13-multi-stage-research-pipeline|Phase 13: Multi-Stage Research Pipeline]] — completed
 - [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — completed (partial, 2 tasks superseded by Phase 15)
 - [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — completed
-- [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — **active**
+- [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — completed
+- [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — **active**
 
 ## Decisions
 
@@ -156,9 +157,11 @@
 - [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — high confidence
 - [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — high confidence
 - [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — medium confidence
+- [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — medium confidence
 
 ## Journal
 
+- [2026-04-29] [[2026-04-29-phase-17-message-batching-extraction-resilience-complete|Phase 17: Message Batching + Extraction Resilience Complete]] — 6 tasks, accumulation window + Jina fallback + SearXNG, reviewer 9/10
 - [2026-04-28] [[2026-04-28-phase-15-iterative-research-pipeline-complete|Phase 15: Iterative Research Pipeline Complete]] — 8 tasks, research_fetch + url-index + write_to + iterative skill, reviewer 7/10
 - [2026-04-27] [[2026-04-27-phase-12-worker-research-reliability-complete|Phase 12: Worker Research Reliability Complete]] — 5 tasks, toolTrace + max_iterations + prompt routing, pipeline redesign needed
 - [2026-04-27] [[2026-04-27-phase-11-host-mode-fragment-fix-complete|Phase 11: Fragment Path Fix Complete]] — 5 fixes, host-mode fully operational

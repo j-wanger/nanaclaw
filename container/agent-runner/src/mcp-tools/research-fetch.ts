@@ -6,6 +6,7 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import { registerTools } from './server.js';
 import { loadAllUrlIndexes, appendUrlIndex } from './url-index.js';
+import { tryJinaExtract } from './jina.js';
 import type { McpToolDefinition } from './types.js';
 
 function log(msg: string): void {
@@ -130,11 +131,16 @@ async function fetchAndWrite(
   let quality: 'full' | 'partial' = 'full';
 
   if (content.length < FULL_CONTENT_THRESHOLD) {
-    quality = 'partial';
-    if (result.content && result.content.length > content.length) {
-      content = `# ${result.title}\n\nSource: ${result.url}\n\n${result.content}`;
+    const jinaContent = await tryJinaExtract(result.url, maxChars, content.length);
+    if (jinaContent) content = jinaContent;
+
+    if (content.length < FULL_CONTENT_THRESHOLD) {
+      quality = 'partial';
+      if (result.content && result.content.length > content.length) {
+        content = `# ${result.title}\n\nSource: ${result.url}\n\n${result.content}`;
+      }
+      log(`Partial extraction (${content.length} chars), using snippet fallback: ${result.url}`);
     }
-    log(`Partial extraction (${content.length} chars), using snippet fallback: ${result.url}`);
   }
 
   const slug = generateSlug(result.title || 'untitled');

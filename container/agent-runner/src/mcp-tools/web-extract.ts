@@ -1,7 +1,10 @@
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import { registerTools } from './server.js';
+import { tryJinaExtract } from './jina.js';
 import type { McpToolDefinition } from './types.js';
+
+const JINA_FALLBACK_THRESHOLD = 500;
 
 function log(msg: string): void {
   console.error(`[web-extract] ${msg}`);
@@ -52,7 +55,13 @@ export async function extractHandler(args: Record<string, unknown>) {
       return ok(truncate(body, maxChars));
     }
 
-    const markdown = htmlToMarkdown(body, url);
+    let markdown = htmlToMarkdown(body, url);
+
+    if (markdown.length < JINA_FALLBACK_THRESHOLD) {
+      const jinaContent = await tryJinaExtract(url, maxChars, markdown.length);
+      if (jinaContent) markdown = jinaContent;
+    }
+
     return ok(truncate(markdown, maxChars));
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

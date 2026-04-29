@@ -129,6 +129,30 @@ describe('accumulate gate (trigger column)', () => {
   });
 });
 
+describe('accumulation window', () => {
+  it('messages arriving within accumulation window are batched together', async () => {
+    insertMessage('m1', 'chat', { sender: 'User', text: 'Forwarded post content' });
+
+    // Simulate a second message arriving 200ms later (within the 500ms window)
+    setTimeout(() => {
+      insertMessage('m2', 'chat', { sender: 'User', text: 'Take a look at this' });
+    }, 200);
+
+    // First read: only m1 is present
+    const first = getPendingMessages();
+    expect(first).toHaveLength(1);
+    expect(first[0].id).toBe('m1');
+
+    // Wait for the accumulation window (500ms)
+    await new Promise((r) => setTimeout(r, 500));
+
+    // Re-read after window: both messages present
+    const batch = getPendingMessages();
+    expect(batch).toHaveLength(2);
+    expect(batch.map((m) => m.id).sort()).toEqual(['m1', 'm2']);
+  });
+});
+
 describe('routing', () => {
   it('should extract routing from messages', () => {
     getInboundDb()

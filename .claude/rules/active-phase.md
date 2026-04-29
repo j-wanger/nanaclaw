@@ -1,5 +1,5 @@
 # Active Phase Context
 
-Phase: 16 — Research Session Reliability (complete, pending confirmation)
-Objective: Fixed 4 issues: compact tool outputs, review source_url, progress updates, deep work awareness.
-Status: All 6 tasks done, all exit criteria met. Run /dev-plan to plan Phase 17.
+Phase: 17 — Message Batching + Research Extraction Resilience (complete, pending confirmation)
+Objective: Fixed Bob's duplicate responses, added Jina extraction fallback, diversified SearXNG engines.
+Status: All 6 tasks done, all exit criteria met. Run /dev-plan to plan Phase 18.
