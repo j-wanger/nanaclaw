@@ -145,6 +145,13 @@ export async function embedSentences(
 
   if (toProcess.length === 0) return { embedded: 0, skipped, articles_processed: 0 };
 
+  // Pre-flight: verify embedding server is reachable before processing any articles
+  const testEmb = await embedBatch(['test']);
+  if (testEmb.length === 0) {
+    console.error('[sentence-embed] Embedding server unreachable — aborting. Start llama-server on NANOCLAW_EMBED_URL.');
+    return { embedded: 0, skipped, articles_processed: 0 };
+  }
+
   const store = new KnowledgeVectorStore(wikiPath);
   let totalEmbedded = 0;
   let articlesProcessed = 0;
@@ -182,10 +189,13 @@ export async function embedSentences(
       });
 
       const embedded = await embedAndStore(store, prepared);
+      if (embedded === 0) {
+        console.error(`[sentence-embed] 0/${prepared.length} sentences embedded for ${path.basename(articlePath)} — skipping (embedding server may be down)`);
+        break;
+      }
       totalEmbedded += embedded;
       articlesProcessed++;
 
-      // Only mark as processed AFTER successful embedding
       state.processedArticles.push(path.basename(articlePath));
 
       // Persist state periodically (every 10 articles) for crash recovery
