@@ -64,6 +64,61 @@ interface PreparedSentence {
   wiki: string;
 }
 
+async function embedAndStore(
+  store: KnowledgeVectorStore,
+  sentences: PreparedSentence[],
+): Promise<number> {
+  let totalEmbedded = 0;
+
+  for (let i = 0; i < sentences.length; i += EMBED_BATCH_SIZE) {
+    const batch = sentences.slice(i, i + EMBED_BATCH_SIZE);
+    const texts = batch.map((s) => s.contextual_text);
+    const embeddings = await embedBatch(texts);
+
+    if (embeddings.length !== batch.length) {
+      console.error(`[sentence-embed] Partial embedding: got ${embeddings.length}/${batch.length}. Retrying with smaller batch.`);
+      const half = Math.floor(batch.length / 2);
+      if (half === 0) break;
+      const firstHalf = batch.slice(0, half);
+      const firstTexts = firstHalf.map((s) => s.contextual_text);
+      const firstEmb = await embedBatch(firstTexts);
+      if (firstEmb.length !== firstHalf.length) break;
+      for (let j = 0; j < firstHalf.length; j++) {
+        store.insertEntry({
+          text: firstHalf[j].text,
+          contextual_text: firstHalf[j].contextual_text,
+          type: firstHalf[j].type,
+          source_url: firstHalf[j].source_url,
+          article_slug: firstHalf[j].article_slug,
+          section: firstHalf[j].section,
+          source_score: 0,
+          wiki: firstHalf[j].wiki,
+          embedding: firstEmb[j],
+        });
+      }
+      totalEmbedded += firstHalf.length;
+      continue;
+    }
+
+    for (let j = 0; j < batch.length; j++) {
+      store.insertEntry({
+        text: batch[j].text,
+        contextual_text: batch[j].contextual_text,
+        type: batch[j].type,
+        source_url: batch[j].source_url,
+        article_slug: batch[j].article_slug,
+        section: batch[j].section,
+        source_score: 0,
+        wiki: batch[j].wiki,
+        embedding: embeddings[j],
+      });
+    }
+    totalEmbedded += batch.length;
+  }
+
+  return totalEmbedded;
+}
+
 export async function embedSentences(
   wikiPath: string,
   articlePaths: string[],
@@ -72,6 +127,7 @@ export async function embedSentences(
   if (articlePaths.length === 0) return { embedded: 0, skipped: 0, articles_processed: 0 };
 
   const state = readState(wikiPath);
+  const processedSet = new Set(state.processedArticles);
   const claimTexts = loadClaimTexts(wikiPath);
   const wikiName = wiki || path.basename(wikiPath);
 
@@ -80,7 +136,7 @@ export async function embedSentences(
 
   for (const p of articlePaths) {
     const filename = path.basename(p);
-    if (state.processedArticles.includes(filename)) {
+    if (processedSet.has(filename)) {
       skipped++;
       continue;
     }
@@ -89,78 +145,58 @@ export async function embedSentences(
 
   if (toProcess.length === 0) return { embedded: 0, skipped, articles_processed: 0 };
 
-  const allPrepared: PreparedSentence[] = [];
-
-  for (const articlePath of toProcess) {
-    let content: string;
-    try {
-      content = fs.readFileSync(articlePath, 'utf8');
-    } catch { continue; }
-
-    const fm = extractFrontmatter(content);
-    const title = fm.title || path.basename(articlePath, '.md');
-    const sourceUrl = fm.source_url || null;
-    const slug = path.basename(articlePath, '.md');
-
-    const sentences = splitSentences(content);
-
-    for (const s of sentences) {
-      const contextPrefix = s.section ? `[${title} | ${s.section}]` : `[${title}]`;
-      const contextualText = `${contextPrefix} ${s.text}`;
-      const isClaim = claimTexts.has(s.text.toLowerCase().trim());
-
-      allPrepared.push({
-        text: s.text,
-        contextual_text: contextualText,
-        type: isClaim ? 'claim' : 'sentence',
-        source_url: sourceUrl,
-        article_slug: slug,
-        section: s.section,
-        wiki: wikiName,
-      });
-    }
-
-    state.processedArticles.push(path.basename(articlePath));
-  }
-
-  if (allPrepared.length === 0) {
-    writeState(wikiPath, state);
-    return { embedded: 0, skipped, articles_processed: toProcess.length };
-  }
-
   const store = new KnowledgeVectorStore(wikiPath);
   let totalEmbedded = 0;
+  let articlesProcessed = 0;
 
   try {
-    for (let i = 0; i < allPrepared.length; i += EMBED_BATCH_SIZE) {
-      const batch = allPrepared.slice(i, i + EMBED_BATCH_SIZE);
-      const texts = batch.map((s) => s.contextual_text);
-      const embeddings = await embedBatch(texts);
+    for (const articlePath of toProcess) {
+      let content: string;
+      try {
+        content = fs.readFileSync(articlePath, 'utf8');
+      } catch { continue; }
 
-      if (embeddings.length !== batch.length) {
-        console.error(`[sentence-embed] Partial embedding: got ${embeddings.length}/${batch.length}. Stopping batch.`);
-        break;
+      const fm = extractFrontmatter(content);
+      const title = fm.title || path.basename(articlePath, '.md');
+      const sourceUrl = fm.source_url || null;
+      const slug = path.basename(articlePath, '.md');
+
+      const sentences = splitSentences(content);
+      if (sentences.length === 0) {
+        state.processedArticles.push(path.basename(articlePath));
+        continue;
       }
 
-      for (let j = 0; j < batch.length; j++) {
-        store.insertEntry({
-          text: batch[j].text,
-          contextual_text: batch[j].contextual_text,
-          type: batch[j].type,
-          source_url: batch[j].source_url,
-          article_slug: batch[j].article_slug,
-          section: batch[j].section,
-          source_score: 0,
-          wiki: batch[j].wiki,
-          embedding: embeddings[j],
-        });
+      const prepared: PreparedSentence[] = sentences.map((s) => {
+        const contextPrefix = s.section ? `[${title} | ${s.section}]` : `[${title}]`;
+        const isClaim = claimTexts.has(s.text.toLowerCase().trim());
+        return {
+          text: s.text,
+          contextual_text: `${contextPrefix} ${s.text}`,
+          type: isClaim ? 'claim' as const : 'sentence' as const,
+          source_url: sourceUrl,
+          article_slug: slug,
+          section: s.section,
+          wiki: wikiName,
+        };
+      });
+
+      const embedded = await embedAndStore(store, prepared);
+      totalEmbedded += embedded;
+      articlesProcessed++;
+
+      // Only mark as processed AFTER successful embedding
+      state.processedArticles.push(path.basename(articlePath));
+
+      // Persist state periodically (every 10 articles) for crash recovery
+      if (articlesProcessed % 10 === 0) {
+        writeState(wikiPath, state);
       }
-      totalEmbedded += batch.length;
     }
   } finally {
     store.close();
   }
 
   writeState(wikiPath, state);
-  return { embedded: totalEmbedded, skipped, articles_processed: toProcess.length };
+  return { embedded: totalEmbedded, skipped, articles_processed: articlesProcessed };
 }
