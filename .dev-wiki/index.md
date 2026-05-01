@@ -139,7 +139,8 @@
 - [[phase-22-vector-claim-store|Phase 22: Vector Claim Store]] — completed
 - [[phase-23-claim-backfill-e2e|Phase 23: Claim Backfill E2E]] — completed (1 task skipped)
 - [[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]] — completed
-- [[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]] — **complete (pending confirmation)**
+- [[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]] — completed
+- [[phase-26-unified-knowledge-vector-store|Phase 26: Unified Knowledge Vector Store]] — **complete (pending confirmation)**
 
 ## Decisions
 
@@ -174,9 +175,11 @@
 - [[phase-23-claim-backfill-e2e-approach|Phase 23: Claim Backfill E2E]] — medium confidence
 - [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
 - [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume Guard + Entity Extraction]] — medium confidence
+- [[phase-26-sentence-embedding-store-approach|Phase 26: Unified Knowledge Vector Store]] — medium confidence
 
 ## Journal (recent)
 
+- [2026-05-01] [[2026-05-01-phase-26-unified-knowledge-vector-store-complete|Phase 26 Complete]]
 - [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25 Complete]]
 - [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24 Complete]]
 - [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23 In Progress]]

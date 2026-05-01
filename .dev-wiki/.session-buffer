@@ -48,3 +48,48 @@ files:
  container/skills/research/instructions.md          |   4 +-
  container/skills/research/summarize-prompt.md      |  27 ++-
  43 files changed, 1785 insertions(+), 111 deletions(-)
+
+---
+commit: d1355b6d64f9ac258a811a4f82007020b785c4d9
+message: Phase 25: session resume init timeout + entity extraction pipeline
+time: 2026-05-01T09:05:33-04:00
+files:
+ .claude/rules/active-knowledge.md                  |  38 ++---
+ .claude/rules/active-phase.md                      |  16 +-
+ .dev-wiki/.pending-commit                          |  48 ++++++
+ .dev-wiki/.session-buffer                          |  50 ++++++
+ .dev-wiki/.session-end                             |  10 +-
+ .dev-wiki/.stale-queue                             |   2 +
+ .dev-wiki/_CURRENT_STATE.md                        |  34 ++---
+ ...25-session-resume-entity-extraction-approach.md |  29 ++++
+ .../phase-24-deep-work-session-reliability.md      |   2 +-
+ .../phase-25-session-resume-entity-extraction.md   |  46 ++++++
+ .dev-wiki/index.md                                 |   4 +-
+ .dev-wiki/log.md                                   |   1 +
+ .dev-wiki/tasks.md                                 |   9 ++
+ .../src/mcp-tools/entity-store.test.ts             | 170 +++++++++++++++++++++
+ .../agent-runner/src/mcp-tools/entity-store.ts     |  77 ++++++++++
+ .../src/mcp-tools/local-worker/contract.ts         |   6 +-
+ .../src/mcp-tools/local-worker/dispatch.ts         |  17 +++
+ .../src/mcp-tools/research-summarize.ts            |  30 +++-
+ container/agent-runner/src/poll-loop.test.ts       |  62 ++++++++
+ container/agent-runner/src/poll-loop.ts            |  58 ++++---
+ container/skills/research/SKILL.md                 |  25 +++
+ container/skills/research/instructions.md          |   1 +
+ 22 files changed, 654 insertions(+), 81 deletions(-)
+
+---
+commit: 540deeebb8566838c97d059f9d67f795be349c09
+message: Phase 25 debrief: add dispatch entity tier test + fix decision article
+time: 2026-05-01T09:09:22-04:00
+files:
+ .claude/rules/active-phase.md                      | 16 +++----
+ .dev-wiki/.session-end                             |  6 +--
+ .dev-wiki/_CURRENT_STATE.md                        | 25 ++++++-----
+ ...25-session-resume-entity-extraction-approach.md |  2 +-
+ ...25-session-resume-entity-extraction-complete.md | 52 ++++++++++++++++++++++
+ .../phase-25-session-resume-entity-extraction.md   | 12 ++---
+ .dev-wiki/index.md                                 |  3 +-
+ .dev-wiki/log.md                                   |  1 +
+ .../src/mcp-tools/local-worker/dispatch.test.ts    | 35 +++++++++++++++
+ 9 files changed, 118 insertions(+), 34 deletions(-)

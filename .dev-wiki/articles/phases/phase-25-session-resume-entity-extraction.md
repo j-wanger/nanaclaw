@@ -7,7 +7,7 @@ parents: []
 created: 2026-05-01
 updated: 2026-05-01
 source: plan
-status: active
+status: completed
 scope: ["container/agent-runner/src/poll-loop.ts", "container/agent-runner/src/mcp-tools/entity-store.ts", "container/agent-runner/src/mcp-tools/local-worker/dispatch.ts", "container/agent-runner/src/mcp-tools/local-worker/contract.ts", "container/agent-runner/src/mcp-tools/research-summarize.ts", "container/skills/research/**"]
 entry_criteria: "Phase 24 complete (deep work session reliability)"
 exit_criteria: "Session resume hang caught within 90s with fresh session, research_summarize supports entities_only, workers extract [ENTITY] tags, entity-store parses and appends to entities.jsonl, dispatch handles entity tier, build+tests pass"

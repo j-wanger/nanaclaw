@@ -177,6 +177,23 @@ Entity types and fields:
 
 Workers are instructed to extract only entities that are **subjects of adverse findings** — not incidental mentions. Dedup is exact-match (type + name + source_url).
 
+## Knowledge Embedding
+
+For building the unified sentence-level vector store from wiki articles:
+
+```
+knowledge_embed({ wiki: "<wiki name>", source: "raw" })
+```
+
+This splits every article into sentences, embeds each with contextual prefix `[title | section]`, and stores in `knowledge.db`. Incremental — tracks processed articles in `sentence-embed-state.json`.
+
+Search the unified store (claims + sentences) with:
+```
+knowledge_search({ wiki: "<wiki name>", query: "<search text>", type: "claim" | "sentence" })
+```
+
+Omit `type` to search across all entries. Returns similarity scores + source metadata.
+
 ## Error Handling
 
 | Failure | Action |

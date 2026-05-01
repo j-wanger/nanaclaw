@@ -1,25 +1,25 @@
-# Active Knowledge — Phase 25
+# Active Knowledge — Phase 26
 
-### Session Lifecycle & Resume Patterns
-from: [[wiki:session-lifecycle]] + [[wiki:session-handoff-failure-modes]]
+### Chunking & Embedding Strategies
+from: [[wiki:chunking-and-embedding-strategies]]
 retrieved: 2026-05-01
 
-- Session resumption is a state injection problem — hangs occur when provider query blocks during init
-- Stall detection signals: no events yielded, heartbeat stops updating, message stays pending
-- Re-orientation after fresh start should take ≤2 turns (compaction anchors provide context)
+- Chunking method impacts retrieval accuracy more than embedding model choice
+- Contextual Retrieval (Anthropic): prepend 50-100 tokens context per chunk — 67% failure-rate reduction
+- nomic-embed-text-v1.5: 768 dims, ~67 MTEB, 768-dim is the sweet spot for production RAG
 
-### AML Entity Modeling
-from: [[wiki:address-and-employer-modeling-for-aml-graphs]]
+### Vector Store Design
+from: [[wiki:wiki-knowledge-graph-architectures]]
 retrieved: 2026-05-01
 
-- Typed node modeling: entities need type classification (PERSON, ORG, LOCATION) not flat strings
-- Specificity penalties: generic entities (e.g., "United States" as jurisdiction) are low-value
-- Entity attributes (gender, age, profession) are properties of PERSON nodes, not standalone entities
+- Two-layer hybrid: structural layer (SQLite-backed) + semantic layer (768-dim embeddings)
+- At 295K rows, brute-force cosine sim needs chunked loading (10K/batch) to manage memory
+- Content hashing for incremental re-embedding — only re-embed changed articles
 
-### NER Pipeline for Adverse Media
-from: [[wiki:ai-powered-adverse-media-screening-with-ner-name-matching]]
+### Existing Claim Infrastructure
+from: [[decision:phase-22-vector-claim-store-approach]]
 retrieved: 2026-05-01
 
-- Pipeline: NER → entity extraction → fuzzy matching → entity resolution (Phase 25 covers steps 1-2 only)
-- Precision filter critical: articles mentioning sanctions may name dozens of incidental entities
-- Dedup first pass: exact match on type+name+source; fuzzy resolution is a separate phase
+- ClaimVectorStore: SQLite + brute-force cosine, embedBatch for bulk embedding
+- claim-embeddings.ts: embedText/embedBatch via local llama-server port 8081
+- claim-embed-pipeline.ts: stateful batch processing with embed-state.json

@@ -70,3 +70,13 @@ container/agent-runner/src/mcp-tools/deep-work.test.ts
 container/agent-runner/src/mcp-tools/deep-work.ts
 container/agent-runner/src/mcp-tools/entity-store.test.ts
 container/agent-runner/src/mcp-tools/entity-store.ts
+container/agent-runner/src/mcp-tools/vector-utils.test.ts
+container/agent-runner/src/mcp-tools/sentence-splitter.test.ts
+container/agent-runner/src/mcp-tools/vector-utils.ts
+container/agent-runner/src/mcp-tools/sentence-splitter.ts
+container/agent-runner/src/mcp-tools/knowledge-vector-store.test.ts
+container/agent-runner/src/mcp-tools/knowledge-vector-store.ts
+container/agent-runner/src/mcp-tools/sentence-embed-pipeline.test.ts
+container/agent-runner/src/mcp-tools/sentence-embed-pipeline.ts
+container/agent-runner/src/mcp-tools/knowledge-tools.ts
+container/agent-runner/src/mcp-tools/knowledge-tools.test.ts

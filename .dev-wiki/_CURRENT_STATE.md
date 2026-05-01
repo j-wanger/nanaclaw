@@ -4,18 +4,18 @@
 
 ## Recommended Next Action
 
-Phase 25 complete (6/6 tasks). All exit criteria met. Run `/dev-plan` for Phase 26 — consider entity extraction live validation on AML wiki, entity resolution/fuzzy matching, or negative news processing pipeline.
+Phase 26 complete (6/6 tasks). All exit criteria met. Run `/dev-plan` for Phase 27 — consider: conflict detection via sentence similarity, semi-automatic claim discovery, entity extraction live validation, or knowledge graph construction.
 
 ## Active Phase
 
-**[[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]]** (status: active)
+**[[phase-26-unified-knowledge-vector-store|Phase 26: Unified Knowledge Vector Store]]** (status: active)
 
-Exit criteria: 6/6 met
+Exit criteria: 7/7 met
 Progress: ~100% (6/6 tasks done)
 
 ## Active Phase Contract
 
-Phase: 25 - Session Resume Guard + Entity Extraction Pipeline
+Phase: 26 - Unified Knowledge Vector Store
 Tasks: 6 (see tasks.md)
 Transition: fresh-session
 Abort: if blocked >3 attempts, ask user: skip or abort
@@ -24,9 +24,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-26-sentence-embedding-store-approach]] | medium | 2026-05-01 |
 | [[phase-25-session-resume-entity-extraction-approach]] | medium | 2026-05-01 |
 | [[phase-24-deep-work-session-reliability-approach]] | medium | 2026-04-30 |
-| [[phase-23-claim-backfill-e2e-approach]] | medium | 2026-04-30 |
 
 ## Blockers and Open Questions
 
@@ -45,25 +45,23 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
-| container/agent-runner/src/poll-loop.ts | Main poll loop — init timeout, deep work retry, idle re-entry | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/entity-store.ts | Entity extraction parser + JSONL storage with dedup | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/entity-store.test.ts | 14 tests for entity extraction + storage | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/local-worker/dispatch.ts | Worker result post-processing — episodic/claims/entities tiers | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/research-summarize.ts | Stateful batching — episodic/claims_only/entities_only modes | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/vector-utils.ts | Shared cosineSimilarity | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/sentence-splitter.ts | Markdown → sentences with section context | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-vector-store.ts | Unified knowledge.db — claims + sentences, chunked search | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/sentence-embed-pipeline.ts | Batch articles → contextual embed → store | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-tools.ts | knowledge_search + knowledge_embed MCP tools | 2026-05-01 |
 
 ## Session Journal (last 5)
 
-- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25: Session Resume + Entity Extraction Complete]] — 6 tasks, init timeout + entity pipeline, +16 tests, 418 total
-- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]] — 4 tasks, 3 poll-loop bugs fixed, +8 tests, reviewer 9/10
-- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]] — 5/6 tasks, 2 E2E bugs fixed, embedding server up, backfill running
-- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]] — 6 tasks, 4 new modules, 3 MCP tools, reviewer 8/10→fixed
-- [2026-04-30] [[2026-04-30-phases-18-21-knowledge-pipeline-overhaul|Phases 18-21: Knowledge Pipeline Overhaul]] — 23 tasks across 4 phases
+- [2026-05-01] [[2026-05-01-phase-26-unified-knowledge-vector-store-complete|Phase 26: Unified Knowledge Vector Store Complete]] — 6 tasks, unified store + sentence embedding, +34 tests, 452 total
+- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25: Session Resume + Entity Extraction Complete]] — 6 tasks, init timeout + entity pipeline, +16 tests
+- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]] — 4 tasks, 3 poll-loop bugs fixed, +8 tests
+- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]] — 5/6 tasks, embedding server up
+- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]] — 6 tasks, 4 new modules, 3 MCP tools
 
 ## Cross-References
 
-- docs/memory-architecture.md — Phase 1a research (memory design, retrieval strategy)
-- agentic-engineering-wiki — context engineering, harness design, workflow patterns (184+ articles)
-- aml-wiki — entity modeling: address-and-employer-modeling, adverse-media-screening-with-ner, aml-data-architecture
-- trading-wiki (3,017 raw), aml-wiki (2,870 raw) — live research output
-- <wiki>/claims.jsonl — per-wiki atomic claim store
-- <wiki>/entities.jsonl — per-wiki structured entity store (Phase 25)
+- agentic-engineering-wiki — chunking-and-embedding-strategies, wiki-knowledge-graph-architectures, rag-evaluation-and-quality-metrics
+- aml-wiki — entity modeling, adverse media screening NER patterns
+- <wiki>/knowledge.db — unified vector store (claims + sentences, Phase 26)
+- <wiki>/claims.jsonl + entities.jsonl — JSONL stores (extraction output)
