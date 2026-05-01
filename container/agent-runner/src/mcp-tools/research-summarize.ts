@@ -30,6 +30,18 @@ const CLAIMS_ONLY_POSTCONDITIONS = [
   { type: 'contains' as const, params: { substring: '## Claims' } },
 ];
 
+const ENTITY_BOUNDARY = 'Extract named entities as [ENTITY type=TYPE] tags in a ## Entities section. Types: PERSON (name|gender|age|profession|role|jurisdiction), ORGANIZATION (name|type|jurisdiction|role), LOCATION (name|type|context), AMOUNT (value|currency|context), CASE (name|agency|date|outcome), DATE (value|context). Only extract entities that are subjects of adverse findings or enforcement actions — not incidental mentions';
+
+const ENTITIES_ONLY_OBJECTIVE = 'Extract named entities from this source. Output a ## Entities section with [ENTITY] tags only. Focus on people, organizations, locations, amounts, cases, and dates directly involved in the findings.';
+const ENTITIES_ONLY_BOUNDARIES = [
+  'Use only entities from this source',
+  'Do NOT add external knowledge',
+  ENTITY_BOUNDARY,
+];
+const ENTITIES_ONLY_POSTCONDITIONS = [
+  { type: 'contains' as const, params: { substring: '## Entities' } },
+];
+
 interface WikiEntry { name: string; path: string; description: string; }
 
 function loadWikis(): WikiEntry[] | null {
@@ -119,6 +131,7 @@ async function dispatchForPaths(
   wikiPath: string,
   handleDispatch: typeof import('./local-worker/tools.js').handleDispatchWorker,
   claimsOnly = false,
+  entitiesOnly = false,
 ): Promise<DispatchResult[]> {
   const results: DispatchResult[] = [];
 
@@ -142,10 +155,10 @@ async function dispatchForPaths(
     const body = stripFrontmatter(content);
     const sourceUrl = extractSourceUrl(content) || undefined;
 
-    const objective = claimsOnly ? CLAIMS_ONLY_OBJECTIVE : EPISODIC_OBJECTIVE;
-    const boundaries = claimsOnly ? CLAIMS_ONLY_BOUNDARIES : EPISODIC_BOUNDARIES;
-    const postconditions = claimsOnly ? CLAIMS_ONLY_POSTCONDITIONS : EPISODIC_POSTCONDITIONS;
-    const tier = claimsOnly ? 'claims' as const : 'episodic' as const;
+    const objective = entitiesOnly ? ENTITIES_ONLY_OBJECTIVE : claimsOnly ? CLAIMS_ONLY_OBJECTIVE : EPISODIC_OBJECTIVE;
+    const boundaries = entitiesOnly ? ENTITIES_ONLY_BOUNDARIES : claimsOnly ? CLAIMS_ONLY_BOUNDARIES : EPISODIC_BOUNDARIES;
+    const postconditions = entitiesOnly ? ENTITIES_ONLY_POSTCONDITIONS : claimsOnly ? CLAIMS_ONLY_POSTCONDITIONS : EPISODIC_POSTCONDITIONS;
+    const tier = entitiesOnly ? 'entities' as const : claimsOnly ? 'claims' as const : 'episodic' as const;
 
     const dispatchResult = await handleDispatch({
       type: 'research',
@@ -179,6 +192,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
   const pathsParam = args.paths as string[] | undefined;
   const batchSize = (args.batch_size as number) || 60;
   const claimsOnly = !!(args.claims_only as boolean);
+  const entitiesOnly = !!(args.entities_only as boolean);
 
   if (!rawDirParam && (!pathsParam || pathsParam.length === 0)) {
     return ok('Error: either raw_dir or paths is required');
@@ -198,7 +212,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
 
   // Legacy paths-based flow
   if (pathsParam && pathsParam.length > 0 && !rawDirParam) {
-    const results = await dispatchForPaths(pathsParam, wiki, tags, wikiPath, handleDispatch, claimsOnly);
+    const results = await dispatchForPaths(pathsParam, wiki, tags, wikiPath, handleDispatch, claimsOnly, entitiesOnly);
     const dispatched = results.filter((r) => r.worker_id);
     const skipped = results.filter((r) => r.skipped);
     const rawDir = wikiPath ? path.join(wikiPath, 'raw', 'articles') : '';
@@ -258,7 +272,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     }));
   }
 
-  const results = await dispatchForPaths(batch, wiki, tags, wikiPath, handleDispatch, claimsOnly);
+  const results = await dispatchForPaths(batch, wiki, tags, wikiPath, handleDispatch, claimsOnly, entitiesOnly);
   const dispatched = results.filter((r) => r.worker_id);
   const remaining = unsummarized.length - batch.length;
 
@@ -314,6 +328,10 @@ const tools: McpToolDefinition[] = [
           claims_only: {
             type: 'boolean',
             description: 'When true, extract claims only (no episodic article). Workers output ## Claims with [CLAIM] tags; results append to claims.jsonl.',
+          },
+          entities_only: {
+            type: 'boolean',
+            description: 'When true, extract named entities only. Workers output ## Entities with [ENTITY type=TYPE] tags (PERSON, ORGANIZATION, LOCATION, AMOUNT, CASE, DATE); results append to entities.jsonl.',
           },
         },
         required: ['wiki'],

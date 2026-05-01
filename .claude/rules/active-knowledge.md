@@ -1,25 +1,25 @@
-# Active Knowledge — Phase 24
+# Active Knowledge — Phase 25
 
-### Error Recovery Patterns
-from: [[wiki:error-recovery-and-retry-patterns]]
-retrieved: 2026-04-30
+### Session Lifecycle & Resume Patterns
+from: [[wiki:session-lifecycle]] + [[wiki:session-handoff-failure-modes]]
+retrieved: 2026-05-01
 
-- Transient errors (network timeout, rate limit) → retry with exponential backoff, 3 attempts max
-- Anti-pattern: error swallowing — catching and continuing as if nothing happened hides problems
-- Recovery decision tree: transient → retry, diagnostic → fix → retry, fundamental → escalate
+- Session resumption is a state injection problem — hangs occur when provider query blocks during init
+- Stall detection signals: no events yielded, heartbeat stops updating, message stays pending
+- Re-orientation after fresh start should take ≤2 turns (compaction anchors provide context)
 
-### Orchestrator Failure Modes
-from: [[wiki:orchestrator-failure-modes]]
-retrieved: 2026-04-30
+### AML Entity Modeling
+from: [[wiki:address-and-employer-modeling-for-aml-graphs]]
+retrieved: 2026-05-01
 
-- Termination unawareness: 12.4% of multi-agent failures (MAST taxonomy)
-- Mitigation: explicit completion contracts, circuit breakers, timeout thresholds
-- Infinite handoff loops generate no error signals — detection is the hard part
+- Typed node modeling: entities need type classification (PERSON, ORG, LOCATION) not flat strings
+- Specificity penalties: generic entities (e.g., "United States" as jurisdiction) are low-value
+- Entity attributes (gender, age, profession) are properties of PERSON nodes, not standalone entities
 
-### Poll Loop Architecture
-from: [[decision:phase-24-deep-work-session-reliability-approach]]
-retrieved: 2026-04-30
+### NER Pipeline for Adverse Media
+from: [[wiki:ai-powered-adverse-media-screening-with-ner-name-matching]]
+retrieved: 2026-05-01
 
-- Keep while loop as fast-path driver, idle check as safety net (not either/or)
-- JS single-threaded: idle branch and while loop are mutually exclusive, no concurrency risk
-- writeMessageOut for user notifications — same pattern as existing error responses
+- Pipeline: NER → entity extraction → fuzzy matching → entity resolution (Phase 25 covers steps 1-2 only)
+- Precision filter critical: articles mentioning sanctions may name dozens of incidental entities
+- Dedup first pass: exact match on type+name+source; fuzzy resolution is a separate phase

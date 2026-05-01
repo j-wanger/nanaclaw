@@ -7,7 +7,7 @@ parents: []
 created: 2026-04-30
 updated: 2026-04-30
 source: plan
-status: active
+status: completed
 scope: ["container/agent-runner/src/poll-loop.ts", "container/agent-runner/src/mcp-tools/deep-work.ts"]
 entry_criteria: "Phase 23 complete (claim backfill E2E)"
 exit_criteria: "Deep work auto-continuation survives transient API errors, idle polling re-enters deep work after while loop breaks, deadline expiry sends summary + cleans up, new tests pass, build + typecheck pass"

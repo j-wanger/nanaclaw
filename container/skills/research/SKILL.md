@@ -152,6 +152,31 @@ loop:
 
 `claims_only=true` extracts [CLAIM] tags only — no ## Summary, no episodic article. Claims append to `<wiki>/claims.jsonl`. State file (`summarize-state.json`) survives session boundaries.
 
+## Entity Extraction
+
+For bulk entity extraction from existing raw articles (AML, negative news, financial crime):
+
+```
+loop:
+  1. research_summarize({ wiki, raw_dir, batch_size: 60, entities_only: true })
+  2. END YOUR TURN — workers auto-complete
+  3. When results arrive: check remaining count
+  4. If remaining > 0: call research_summarize again (same args — state file tracks progress)
+  5. If remaining == 0: report entity counts from entities.jsonl
+```
+
+`entities_only=true` extracts structured [ENTITY] tags — no episodic article, no claims. Entities append to `<wiki>/entities.jsonl`.
+
+Entity types and fields:
+- **PERSON:** name | gender | age | profession | role | jurisdiction
+- **ORGANIZATION:** name | type | jurisdiction | role
+- **LOCATION:** name | type (country/city/province/address) | context
+- **AMOUNT:** value | currency | context
+- **CASE:** name/number | agency | date | outcome
+- **DATE:** value | context
+
+Workers are instructed to extract only entities that are **subjects of adverse findings** — not incidental mentions. Dedup is exact-match (type + name + source_url).
+
 ## Error Handling
 
 | Failure | Action |

@@ -15,6 +15,7 @@ import type { AgentProvider, AgentQuery, ProviderEvent } from './providers/types
 const POLL_INTERVAL_MS = 1000;
 const ACTIVE_POLL_INTERVAL_MS = 500;
 const ACCUMULATION_WINDOW_MS = 500;
+export const INIT_TIMEOUT_MS = 90_000;
 
 function log(msg: string): void {
   console.error(`[poll-loop] ${msg}`);
@@ -265,9 +266,11 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
 
       // Stale/corrupt continuation recovery: ask the provider whether
       // this error means the stored continuation is unusable, and clear
-      // it so the next attempt starts fresh.
-      if (continuation && config.provider.isSessionInvalid(err)) {
-        log(`Stale session detected (${continuation}) — clearing for next retry`);
+      // it so the next attempt starts fresh. Init timeout also triggers
+      // this — the session is likely too large to resume.
+      const isInitTimeout = errMsg.includes('init timed out');
+      if (continuation && (isInitTimeout || config.provider.isSessionInvalid(err))) {
+        log(`${isInitTimeout ? 'Init timeout' : 'Stale session'} (${continuation}) — clearing for fresh start`);
         continuation = undefined;
         clearContinuation(config.providerName);
       }
@@ -477,29 +480,36 @@ async function processQuery(
   }, ACTIVE_POLL_INTERVAL_MS);
 
   try {
-    for await (const event of query.events) {
-      handleEvent(event, routing);
-      touchHeartbeat();
+    const iterator = query.events[Symbol.asyncIterator]();
 
-      if (event.type === 'init') {
-        queryContinuation = event.continuation;
-        // Persist immediately so a mid-turn container crash still lets the
-        // next wake resume the conversation. Without this, the session id
-        // was only written after the full stream completed — if the
-        // container died between `init` and `result`, the SDK session was
-        // effectively orphaned and the next message started a blank
-        // Claude session with no prior context.
-        setContinuation(providerName, event.continuation);
-      } else if (event.type === 'result') {
-        // A result — with or without text — means the turn is done. Mark
-        // the initial batch completed now so the host sweep doesn't see
-        // stale 'processing' claims while the query stays open for
-        // follow-up pushes. The agent may have responded via MCP
-        // (send_message) mid-turn, or the message may not need a response
-        // at all — either way the turn is finished.
-        markCompleted(initialBatchIds);
-        if (event.text) {
-          dispatchResultText(event.text, routing);
+    // Race first event against init timeout — catches the case where the
+    // Claude SDK hangs during session resume and never yields any events.
+    const timeoutErr = new Error(`Session init timed out after ${INIT_TIMEOUT_MS / 1000}s`);
+    const first = await Promise.race([
+      iterator.next(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(timeoutErr), INIT_TIMEOUT_MS)),
+    ]);
+
+    if (!first.done) {
+      handleEvent(first.value, routing);
+      touchHeartbeat();
+      if (first.value.type === 'init') {
+        queryContinuation = first.value.continuation;
+        setContinuation(providerName, first.value.continuation);
+      }
+
+      for await (const event of { [Symbol.asyncIterator]: () => iterator }) {
+        handleEvent(event, routing);
+        touchHeartbeat();
+
+        if (event.type === 'init') {
+          queryContinuation = event.continuation;
+          setContinuation(providerName, event.continuation);
+        } else if (event.type === 'result') {
+          markCompleted(initialBatchIds);
+          if (event.text) {
+            dispatchResultText(event.text, routing);
+          }
         }
       }
     }

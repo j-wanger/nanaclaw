@@ -15,6 +15,7 @@ Think about research directions and evaluate coverage. Tools do everything else.
 7. No consolidation — that's wiki-consolidate later
 8. Claims are extracted automatically from worker output — no agent action needed. Stored in `<wiki>/claims.jsonl`.
 9. For claim backfill: use `claims_only: true` on `research_summarize`. After backfill completes, run `claim_embed` to vectorize, then `claim_search` to validate.
+10. For entity extraction: use `entities_only: true` on `research_summarize`. Extracts PERSON, ORGANIZATION, LOCATION, AMOUNT, CASE, DATE entities as [ENTITY] tags. Stored in `<wiki>/entities.jsonl`. Focus on adverse-finding subjects, not incidental mentions.
 
 ## You evaluate coverage from metadata, not content
 

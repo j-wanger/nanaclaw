@@ -15,6 +15,7 @@ import { Semaphore } from './semaphore.js';
 import { verify } from './verification.js';
 import { validateEpisodicArticle } from '../article-validation.js';
 import { extractClaims, appendClaims } from '../claim-store.js';
+import { extractEntities, appendEntities, type EntityEntry } from '../entity-store.js';
 import { extractSourceUrl } from '../url-index.js';
 
 let _routingConfig: RoutingConfig | null | undefined;
@@ -151,6 +152,22 @@ export function postProcessResult(state: TaskState): void {
             source_score: sourceScore,
             wiki: writeTo.wiki,
           });
+        }
+      }
+    } else if (writeTo.tier === 'entities') {
+      const rawEntities = extractEntities(state.result.parsed);
+      if (rawEntities.length > 0) {
+        const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
+        if (wiki) {
+          const today = new Date().toISOString().slice(0, 10);
+          const entries: EntityEntry[] = rawEntities.map((e) => ({
+            ...e,
+            source_url: writeTo.source_url || null,
+            wiki: writeTo.wiki,
+            created: today,
+          }));
+          appendEntities(wiki.path, entries);
+          console.error(`[dispatch] extracted ${entries.length} entities from worker result`);
         }
       }
     } else if (writeTo.tier === 'review' && writeTo.target_path) {

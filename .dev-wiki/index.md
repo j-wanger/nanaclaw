@@ -138,7 +138,8 @@
 - [[phase-21-source-triage-claim-extraction|Phase 21: Source Triage + Claim Extraction]] — completed
 - [[phase-22-vector-claim-store|Phase 22: Vector Claim Store]] — completed
 - [[phase-23-claim-backfill-e2e|Phase 23: Claim Backfill E2E]] — completed (1 task skipped)
-- [[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]] — **complete (pending confirmation)**
+- [[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]] — completed
+- [[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]] — **active**
 
 ## Decisions
 
@@ -172,6 +173,7 @@
 - [[phase-22-vector-claim-store-approach|Phase 22: Vector Claim Store]] — medium confidence
 - [[phase-23-claim-backfill-e2e-approach|Phase 23: Claim Backfill E2E]] — medium confidence
 - [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
+- [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume Guard + Entity Extraction]] — medium confidence
 
 ## Journal (recent)
 

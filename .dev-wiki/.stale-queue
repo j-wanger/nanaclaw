@@ -68,3 +68,5 @@ container/agent-runner/src/mcp-tools/claim-tools.test.ts
 container/agent-runner/src/mcp-tools/claim-tools.ts
 container/agent-runner/src/mcp-tools/deep-work.test.ts
 container/agent-runner/src/mcp-tools/deep-work.ts
+container/agent-runner/src/mcp-tools/entity-store.test.ts
+container/agent-runner/src/mcp-tools/entity-store.ts

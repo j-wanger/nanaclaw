@@ -1,32 +1,32 @@
 # Project: nanaclaw
 
-> Last updated: 2026-04-30 by /dev-debrief
+> Last updated: 2026-05-01 by /dev-plan
 
 ## Recommended Next Action
 
-Phase 24 complete (4/4 tasks). All exit criteria met. Run `/dev-plan` for Phase 25 — consider negative news entity extraction, wiki consolidation, or reactive memory search.
+Phase 25 planned (6 tasks). Start Task 1: init timeout for processQuery in poll-loop.ts.
 
 ## Active Phase
 
-**[[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]]** (status: active)
+**[[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]]** (status: active)
 
-Exit criteria: 5/5 met
-Progress: ~100% (4/4 tasks done)
+Exit criteria: 0/6 met
+Progress: ~0% (0/6 tasks done)
 
 ## Active Phase Contract
 
-Phase: 24 - Deep Work Session Reliability
-Tasks: 4 (see tasks.md)
-Transition: continue
+Phase: 25 - Session Resume Guard + Entity Extraction Pipeline
+Tasks: 6 (see tasks.md)
+Transition: fresh-session
 Abort: if blocked >3 attempts, ask user: skip or abort
 
 ## Recent Decisions
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-25-session-resume-entity-extraction-approach]] | medium | 2026-05-01 |
 | [[phase-24-deep-work-session-reliability-approach]] | medium | 2026-04-30 |
 | [[phase-23-claim-backfill-e2e-approach]] | medium | 2026-04-30 |
-| [[phase-22-vector-claim-store-approach]] | medium | 2026-04-30 |
 
 ## Blockers and Open Questions
 
@@ -45,9 +45,10 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
-| container/agent-runner/src/poll-loop.ts | Main poll loop — idle deep work re-entry, retry backoff, deadline finalization | 2026-04-30 |
-| container/agent-runner/src/mcp-tools/deep-work.ts | Deep work state, continuation, finalizeExpiredDeepWork, calculateBackoffDelay | 2026-04-30 |
-| container/agent-runner/src/mcp-tools/deep-work.test.ts | 26 tests covering deep work tools + finalization + backoff | 2026-04-30 |
+| container/agent-runner/src/poll-loop.ts | Main poll loop — init timeout target | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/entity-store.ts | Entity parsing + JSONL storage (new) | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/local-worker/dispatch.ts | Worker result post-processing — entity tier | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/research-summarize.ts | Stateful batching — entities_only mode | 2026-05-01 |
 
 ## Session Journal (last 5)
 
@@ -60,9 +61,8 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 ## Cross-References
 
 - docs/memory-architecture.md — Phase 1a research (memory design, retrieval strategy)
-- docs/qwen-experiment-log.md — Phase 3a findings (capabilities, failure modes, prompt patterns, context budget)
-- docs/tool-call-experiment-log.md — Phase 6a findings (Qwen tool-calling format, 12 experiments, behavioral analysis)
 - agentic-engineering-wiki — context engineering, harness design, workflow patterns (184+ articles)
-- trading-wiki (3,017 raw, ~2,900 episodic), aml-wiki (2,870 raw, ~1,878 episodic) — live research output
-- <wiki>/claims.jsonl — per-wiki atomic claim store (populated by Phase 21 workers)
-- <wiki>/claims.db — per-wiki vector claim store (Phase 22, nomic-embed-text-v1.5 768-dim embeddings)
+- aml-wiki — entity modeling patterns: address-and-employer-modeling, adverse-media-screening-with-ner, aml-data-architecture
+- trading-wiki (3,017 raw), aml-wiki (2,870 raw) — live research output
+- <wiki>/claims.jsonl — per-wiki atomic claim store
+- <wiki>/entities.jsonl — per-wiki structured entity store (Phase 25, new)
