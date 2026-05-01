@@ -30,12 +30,12 @@ Two tracks: (1) Fix session resume hang by adding init timeout to processQuery â
 
 ## Exit Criteria
 
-- [ ] Session resume hang caught within 90s, continuation cleared, fresh session starts
-- [ ] research_summarize supports entities_only=true mode
-- [ ] Workers extract structured entities with [ENTITY type=TYPE] tags
-- [ ] entity-store.ts parses entity tags and appends to entities.jsonl
-- [ ] dispatch.ts post-processing handles entity tier alongside claims
-- [ ] Build + typecheck + all tests pass
+- [x] Session resume hang caught within 90s, continuation cleared, fresh session starts
+- [x] research_summarize supports entities_only=true mode
+- [x] Workers extract structured entities with [ENTITY type=TYPE] tags
+- [x] entity-store.ts parses entity tags and appends to entities.jsonl
+- [x] dispatch.ts post-processing handles entity tier alongside claims
+- [x] Build + typecheck + all tests pass
 
 ## Notes
 

@@ -374,6 +374,41 @@ describe('postProcessResult', () => {
     expect(fs.existsSync(path.join(wikiDir, 'claims.jsonl'))).toBe(false);
   });
 
+  it('entities tier extracts entities and appends to entities.jsonl', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'entity-001',
+        outputFormat: 'markdown',
+        write_to: { wiki: 'test-wiki', tier: 'entities', title: 'Entity Source', tags: ['aml'], source_url: 'https://entity.example.com' },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: {
+        raw: '## Entities\n\n[ENTITY type=PERSON] Sam Bankman-Fried|male|30|CEO|defendant|United States\n[ENTITY type=ORGANIZATION] FTX|exchange|Bahamas|collapsed',
+        parsed: '## Entities\n\n[ENTITY type=PERSON] Sam Bankman-Fried|male|30|CEO|defendant|United States\n[ENTITY type=ORGANIZATION] FTX|exchange|Bahamas|collapsed',
+      },
+    };
+
+    postProcessResult(state);
+
+    const episodicFiles = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(episodicFiles.length).toBe(0);
+
+    const entitiesPath = path.join(wikiDir, 'entities.jsonl');
+    expect(fs.existsSync(entitiesPath)).toBe(true);
+    const lines = fs.readFileSync(entitiesPath, 'utf8').trim().split('\n');
+    expect(lines.length).toBe(2);
+    const first = JSON.parse(lines[0]);
+    expect(first.type).toBe('PERSON');
+    expect(first.name).toBe('Sam Bankman-Fried');
+    expect(first.source_url).toBe('https://entity.example.com');
+    expect(first.wiki).toBe('test-wiki');
+    const second = JSON.parse(lines[1]);
+    expect(second.type).toBe('ORGANIZATION');
+    expect(second.name).toBe('FTX');
+  });
+
   it('handles malformed worker output gracefully (logs warning, no crash)', () => {
     const state: TaskState = {
       contract: testContract({

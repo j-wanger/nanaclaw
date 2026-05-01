@@ -1,10 +1,10 @@
-ended: 2026-05-01T12:55:59
+ended: 2026-05-01T13:07:56
 pending_commit: yes
 session_buffer: yes
-debriefed: no
+debriefed: yes
 recent_commits:
+d1355b6 Phase 25: session resume init timeout + entity extraction pipeline
 950b96d Phases 18-24: knowledge pipeline overhaul + deep work session reliability
 3d53c4a Phase 17: message batching + Jina extraction fallback + SearXNG diversification
 f0a4db0 Phase 16: research session reliability + Bob agent + llama-server
 ca1e331 Compact worker result injection for write_to workers — metadata only, no article body
-3d75469 Add instructions.md to 5 container skills so they compose into agent context

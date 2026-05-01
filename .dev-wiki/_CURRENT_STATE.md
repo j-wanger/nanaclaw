@@ -1,17 +1,17 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-01 by /dev-plan
+> Last updated: 2026-05-01 by /dev-debrief
 
 ## Recommended Next Action
 
-Phase 25 planned (6 tasks). Start Task 1: init timeout for processQuery in poll-loop.ts.
+Phase 25 complete (6/6 tasks). All exit criteria met. Run `/dev-plan` for Phase 26 — consider entity extraction live validation on AML wiki, entity resolution/fuzzy matching, or negative news processing pipeline.
 
 ## Active Phase
 
 **[[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]]** (status: active)
 
-Exit criteria: 0/6 met
-Progress: ~0% (0/6 tasks done)
+Exit criteria: 6/6 met
+Progress: ~100% (6/6 tasks done)
 
 ## Active Phase Contract
 
@@ -45,24 +45,25 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
-| container/agent-runner/src/poll-loop.ts | Main poll loop — init timeout target | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/entity-store.ts | Entity parsing + JSONL storage (new) | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/local-worker/dispatch.ts | Worker result post-processing — entity tier | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/research-summarize.ts | Stateful batching — entities_only mode | 2026-05-01 |
+| container/agent-runner/src/poll-loop.ts | Main poll loop — init timeout, deep work retry, idle re-entry | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/entity-store.ts | Entity extraction parser + JSONL storage with dedup | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/entity-store.test.ts | 14 tests for entity extraction + storage | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/local-worker/dispatch.ts | Worker result post-processing — episodic/claims/entities tiers | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/research-summarize.ts | Stateful batching — episodic/claims_only/entities_only modes | 2026-05-01 |
 
 ## Session Journal (last 5)
 
+- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25: Session Resume + Entity Extraction Complete]] — 6 tasks, init timeout + entity pipeline, +16 tests, 418 total
 - [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]] — 4 tasks, 3 poll-loop bugs fixed, +8 tests, reviewer 9/10
 - [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]] — 5/6 tasks, 2 E2E bugs fixed, embedding server up, backfill running
 - [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]] — 6 tasks, 4 new modules, 3 MCP tools, reviewer 8/10→fixed
-- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-planned|Phase 22: Vector Claim Store Planned]] — 6 tasks planned, cross-wiki retrieval (5 articles), approach 7/10 + plan 6/10→revised
-- [2026-04-30] [[2026-04-30-phases-18-21-knowledge-pipeline-overhaul|Phases 18-21: Knowledge Pipeline Overhaul]] — 23 tasks across 4 phases, wiki tools + validation + stateful summarize + source scoring + claim extraction, +56 container tests
+- [2026-04-30] [[2026-04-30-phases-18-21-knowledge-pipeline-overhaul|Phases 18-21: Knowledge Pipeline Overhaul]] — 23 tasks across 4 phases
 
 ## Cross-References
 
 - docs/memory-architecture.md — Phase 1a research (memory design, retrieval strategy)
 - agentic-engineering-wiki — context engineering, harness design, workflow patterns (184+ articles)
-- aml-wiki — entity modeling patterns: address-and-employer-modeling, adverse-media-screening-with-ner, aml-data-architecture
+- aml-wiki — entity modeling: address-and-employer-modeling, adverse-media-screening-with-ner, aml-data-architecture
 - trading-wiki (3,017 raw), aml-wiki (2,870 raw) — live research output
 - <wiki>/claims.jsonl — per-wiki atomic claim store
-- <wiki>/entities.jsonl — per-wiki structured entity store (Phase 25, new)
+- <wiki>/entities.jsonl — per-wiki structured entity store (Phase 25)

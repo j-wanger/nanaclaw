@@ -139,7 +139,7 @@
 - [[phase-22-vector-claim-store|Phase 22: Vector Claim Store]] — completed
 - [[phase-23-claim-backfill-e2e|Phase 23: Claim Backfill E2E]] — completed (1 task skipped)
 - [[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]] — completed
-- [[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]] — **active**
+- [[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]] — **complete (pending confirmation)**
 
 ## Decisions
 
@@ -177,6 +177,7 @@
 
 ## Journal (recent)
 
+- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25 Complete]]
 - [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24 Complete]]
 - [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23 In Progress]]
 - [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22 Complete]]
