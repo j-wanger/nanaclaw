@@ -109,7 +109,7 @@ const tools: McpToolDefinition[] = [
   {
     tool: {
       name: 'knowledge_embed',
-      description: 'Embed article sentences into the unified knowledge store (knowledge.db). Splits articles into sentences, adds contextual prefix [title | section], embeds via nomic-embed, stores with is_claim flagging. Incremental — tracks processed articles in sentence-embed-state.json.',
+      description: 'Embed article sentences into the unified knowledge store (knowledge.db). Splits articles into sentences, adds contextual prefix [title | section], embeds via nomic-embed, classifies as type=claim or type=sentence. Incremental — tracks processed articles in sentence-embed-state.json.',
       inputSchema: {
         type: 'object' as const,
         properties: {

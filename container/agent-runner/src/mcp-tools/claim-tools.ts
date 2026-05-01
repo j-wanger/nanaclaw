@@ -104,7 +104,7 @@ const tools: McpToolDefinition[] = [
   {
     tool: {
       name: 'claim_embed',
-      description: 'Embed claims from claims.jsonl into the vector store (claims.db). Incremental — only processes new entries since last run.',
+      description: 'Embed claims from claims.jsonl into the unified knowledge store (knowledge.db). Incremental — only processes new entries since last run.',
       inputSchema: {
         type: 'object' as const,
         properties: {
