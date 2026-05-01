@@ -5,7 +5,7 @@ import { KnowledgeVectorStore } from './knowledge-vector-store.js';
 import { splitSentences } from './sentence-splitter.js';
 import type { ClaimEntry } from './claim-store.js';
 
-const EMBED_BATCH_SIZE = 256;
+const EMBED_BATCH_SIZE = 32;
 
 interface SentenceEmbedState {
   processedArticles: string[];
