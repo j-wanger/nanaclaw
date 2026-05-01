@@ -26,6 +26,10 @@ After research_fetch, you see titles, URLs, and counts. Use those to decide if y
 
 Send the user a progress update via `send_message` every ~5 rounds during iterative research. Brief: topics covered, articles added, what's next.
 
+## Long-Running Tools
+
+Before calling `knowledge_embed`, `research_summarize` with large batch sizes, or any tool that takes >30 seconds, **always call `send_message` first** to acknowledge the user's request. Never leave the user waiting in silence while a long tool runs.
+
 ## Tone
 
 Talk naturally. No tool names or pipeline jargon in user messages.
