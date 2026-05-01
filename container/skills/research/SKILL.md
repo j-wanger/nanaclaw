@@ -80,21 +80,33 @@ Update `research-state.json` after each round with `raw_dir`, `wiki`, and topics
 
 ### 3. Summarize
 
-When you have enough raw sources, list the `raw_dir` from research_fetch to get all paths, then call `research_summarize`:
+Call `research_summarize` with `raw_dir` — the tool handles batching, dedup, and progress:
 
 ```
-# List raw articles directory to get paths
-# Then pass them to summarize:
 research_summarize({
-  paths: [list of .md files from raw_dir],
-  wiki: "<wiki name from research_fetch>",
+  wiki: "<wiki name>",
+  raw_dir: "<path to raw/articles/>",
+  batch_size: 60,
   tags: ["<relevant>", "<tags>"]
 })
 ```
 
-This mechanically dispatches one worker per raw article (skipping partials). You don't choose which articles to group or skip — the tool handles it.
+The tool automatically:
+- Skips articles already summarized (source_url match against episodic dir)
+- Skips partial/invalid extractions
+- Dispatches `batch_size` unsummarized articles as workers
+- Tracks progress in `summarize-state.json`
+- Returns `{dispatched, skipped_existing, skipped_partial, remaining}`
 
-The response includes a `review_args` object — save it for the next step.
+**Bulk summarization (hundreds/thousands of raws):** Keep calling `research_summarize` with the same `raw_dir` until `remaining` is 0. The tool tracks what's done — you don't need to manage offsets or file lists. After each batch completes, call again for the next batch.
+
+- Don't message the user for each batch. Send a progress update every ~5 batches.
+- On compaction recovery: just call `research_summarize` again — it reads `summarize-state.json` and resumes.
+- When `remaining` reaches 0, the tool deletes `summarize-state.json`.
+
+The response includes a `review_args` object — save it for the review step.
+
+**Claim extraction:** Workers now automatically extract atomic claims (tagged `[CLAIM]`) alongside summaries. Claims are stored in `<wiki>/claims.jsonl` — no agent action needed. This happens mechanically in the post-processing step.
 
 **END YOUR TURN after calling research_summarize.** Worker results auto-inject.
 
@@ -122,6 +134,23 @@ When review results arrive, tell the user:
 Delete `research-state.json`.
 
 No consolidation — that's wiki-consolidate's job later.
+
+## Claim Backfill
+
+For bulk claim extraction from existing raw articles without producing episodic articles:
+
+```
+loop:
+  1. research_summarize({ wiki, raw_dir, batch_size: 60, claims_only: true })
+  2. END YOUR TURN — workers auto-complete
+  3. When results arrive: check remaining count
+  4. If remaining > 0: call research_summarize again (same args — state file tracks progress)
+  5. If remaining == 0: call claim_embed({ wiki }) to vectorize claims.jsonl → claims.db
+  6. Validate: claim_search({ wiki, query: "<known topic>" }) — verify relevant results
+  7. Optional: claim_dedup({ wiki }) — find near-duplicate claim pairs
+```
+
+`claims_only=true` extracts [CLAIM] tags only — no ## Summary, no episodic article. Claims append to `<wiki>/claims.jsonl`. State file (`summarize-state.json`) survives session boundaries.
 
 ## Error Handling
 

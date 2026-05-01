@@ -5,7 +5,7 @@ import os from 'os';
 
 import type { TaskContract, TaskState } from './contract.js';
 import { writeTaskState } from './contract.js';
-import { handleDispatchWorker, handleGetWorkerStatus, handleCancelWorker } from './tools.js';
+import { handleDispatchWorker, handleGetWorkerStatus, handleCancelWorker, checkWorkerResults } from './tools.js';
 
 let tmpDir: string;
 
@@ -171,5 +171,76 @@ describe('handleCancelWorker', () => {
     const result = await handleCancelWorker({ task_id: 'nope' });
     const text = result.content[0].text;
     expect(text).toContain('not found');
+  });
+});
+
+describe('checkWorkerResults', () => {
+  function writeResult(id: string, status: 'completed' | 'failed' = 'completed'): void {
+    const resultsDir = path.join(tmpDir, 'worker-results');
+    fs.mkdirSync(resultsDir, { recursive: true });
+    const state: TaskState = {
+      contract: { ...validArgs(), id } as TaskContract,
+      status,
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      ...(status === 'completed' ? { result: { raw: 'ok', parsed: 'ok' }, verification: { passed: true, checks: [] } } : { error: 'failed' }),
+    };
+    writeTaskState(path.join(resultsDir, `${id}.json`), state);
+  }
+
+  it('releases completed results immediately', () => {
+    writeResult('r1');
+    writeResult('r2');
+    const result = checkWorkerResults();
+    expect(result).not.toBeNull();
+    expect(result).toContain('2 total');
+  });
+
+  it('returns null when no results', () => {
+    expect(checkWorkerResults()).toBeNull();
+  });
+
+  it('deletes result files after pickup', () => {
+    writeResult('r1');
+    checkWorkerResults();
+    const files = fs.readdirSync(path.join(tmpDir, 'worker-results'));
+    expect(files.length).toBe(0);
+  });
+
+  it('includes failed workers in output', () => {
+    writeResult('f1', 'failed');
+    const result = checkWorkerResults();
+    expect(result).not.toBeNull();
+    expect(result).toContain('failed');
+  });
+
+  it('deletes matching task file when result completes', () => {
+    const tasksDir = path.join(tmpDir, 'worker-tasks');
+    fs.mkdirSync(tasksDir, { recursive: true });
+    writeTaskState(path.join(tasksDir, 'r1.json'), {
+      contract: { ...validArgs(), id: 'r1' } as TaskContract,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+
+    writeResult('r1');
+    checkWorkerResults();
+
+    expect(fs.existsSync(path.join(tasksDir, 'r1.json'))).toBe(false);
+  });
+
+  it('does NOT delete task files without matching results', () => {
+    const tasksDir = path.join(tmpDir, 'worker-tasks');
+    fs.mkdirSync(tasksDir, { recursive: true });
+    writeTaskState(path.join(tasksDir, 'in-flight.json'), {
+      contract: { ...validArgs(), id: 'in-flight' } as TaskContract,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+
+    writeResult('other-task');
+    checkWorkerResults();
+
+    expect(fs.existsSync(path.join(tasksDir, 'in-flight.json'))).toBe(true);
   });
 });

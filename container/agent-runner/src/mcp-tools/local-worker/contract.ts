@@ -11,7 +11,7 @@ export interface T0Check {
 
 export interface WriteTo {
   wiki: string;
-  tier: 'episodic' | 'review';
+  tier: 'episodic' | 'review' | 'claims';
   title?: string;
   tags?: string[];
   target_path?: string;
@@ -68,6 +68,7 @@ export interface TaskState {
   verification?: VerificationResult;
   toolTrace?: ToolTraceEntry[];
   error?: string;
+  validationIssues?: string[];
 }
 
 const VALID_TYPES: TaskType[] = ['file-op', 'code-impl', 'research', 'structured-output'];
@@ -87,8 +88,8 @@ export function validateContract(c: TaskContract): { valid: boolean; errors: str
     errors.push('max_iterations must be positive');
   if (c.write_to) {
     if (!c.write_to.wiki) errors.push('write_to.wiki is required');
-    if (!['episodic', 'review'].includes(c.write_to.tier))
-      errors.push('write_to.tier must be "episodic" or "review"');
+    if (!['episodic', 'review', 'claims'].includes(c.write_to.tier))
+      errors.push('write_to.tier must be "episodic", "review", or "claims"');
   }
   return { valid: errors.length === 0, errors };
 }

@@ -1,22 +1,22 @@
 # Project: nanaclaw
 
-> Last updated: 2026-04-29 by /dev-debrief
+> Last updated: 2026-04-30 by /dev-debrief
 
 ## Recommended Next Action
 
-Phase 17 complete (6/6 tasks, all exit criteria met). Run `/dev-plan` to plan Phase 18. Consider: live E2E test of accumulation window via Telegram (send forwarded post + caption to Bob), research session with Jina fallback active, or new capability.
+Phase 24 complete (4/4 tasks). All exit criteria met. Run `/dev-plan` for Phase 25 — consider negative news entity extraction, wiki consolidation, or reactive memory search.
 
 ## Active Phase
 
-**[[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]]** (status: active)
+**[[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]]** (status: active)
 
-Exit criteria: 0/4 met
-Progress: ~0% (0/6 tasks done)
+Exit criteria: 5/5 met
+Progress: ~100% (4/4 tasks done)
 
 ## Active Phase Contract
 
-Phase: 17 - Message Batching + Research Extraction Resilience
-Tasks: 6 (see tasks.md)
+Phase: 24 - Deep Work Session Reliability
+Tasks: 4 (see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -24,9 +24,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
-| [[phase-17-message-batching-extraction-resilience]] | medium | 2026-04-29 |
-| [[phase-16-research-session-reliability]] | medium | 2026-04-29 |
-| [[phase-15-iterative-research-pipeline]] | high | 2026-04-28 |
+| [[phase-24-deep-work-session-reliability-approach]] | medium | 2026-04-30 |
+| [[phase-23-claim-backfill-e2e-approach]] | medium | 2026-04-30 |
+| [[phase-22-vector-claim-store-approach]] | medium | 2026-04-30 |
 
 ## Blockers and Open Questions
 
@@ -45,29 +45,24 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
-| container/agent-runner/src/poll-loop.ts | Main poll loop with 500ms accumulation window + AbortSignal | 2026-04-29 |
-| container/agent-runner/src/mcp-tools/jina.ts | Shared Jina Reader extraction helper | 2026-04-29 |
-| container/agent-runner/src/mcp-tools/research-fetch.ts | Scriptable search+extract with Jina fallback | 2026-04-29 |
-| container/agent-runner/src/mcp-tools/web-extract.ts | Page extraction with Jina fallback | 2026-04-29 |
-| data/searxng/settings.yml | SearXNG config: 7 web engines, karmasearch disabled | 2026-04-29 |
-| container/skills/research/SKILL.md | Iterative pipeline + progress updates + deep work awareness | 2026-04-29 |
-| src/channels/telegram-2.ts | Second Telegram bot adapter (Bob) | 2026-04-29 |
-| groups/dm-with-bob/ | Bob agent group (critical thinker personality) | 2026-04-29 |
+| container/agent-runner/src/poll-loop.ts | Main poll loop — idle deep work re-entry, retry backoff, deadline finalization | 2026-04-30 |
+| container/agent-runner/src/mcp-tools/deep-work.ts | Deep work state, continuation, finalizeExpiredDeepWork, calculateBackoffDelay | 2026-04-30 |
+| container/agent-runner/src/mcp-tools/deep-work.test.ts | 26 tests covering deep work tools + finalization + backoff | 2026-04-30 |
 
 ## Session Journal (last 5)
 
-- [2026-04-29] [[2026-04-29-phase-17-message-batching-extraction-resilience-complete|Phase 17: Message Batching + Extraction Resilience Complete]] — 6 tasks, poll-loop accumulation window + Jina fallback + SearXNG diversification, Bob duplicate response root cause fixed
-- [2026-04-29] [[2026-04-29-phase-16-research-session-reliability-complete|Phase 16: Research Session Reliability Complete]] — 6 tasks, compact outputs + source_url fix + skill communication, Bob agent + llama-server setup
-- [2026-04-28] [[2026-04-28-phase-15-iterative-research-pipeline-complete|Phase 15: Iterative Research Pipeline Complete]] — 8 tasks, research_fetch + url-index + write_to + iterative skill, reviewer 7/10 (review stage matching bug)
-- [2026-04-27] [[2026-04-27-phase-13-multi-stage-research-pipeline-complete|Phase 13: Multi-Stage Research Pipeline Complete]] — 6 tasks, raw tier + prompt templates + 5-stage pipeline, live test: 6 raw articles with sha256
-- [2026-04-27] [[2026-04-27-phase-12-worker-research-reliability-complete|Phase 12: Worker Research Reliability Complete]] — 5 tasks, toolTrace + max_iterations + prompt routing, live test revealed need for pipeline redesign
+- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]] — 4 tasks, 3 poll-loop bugs fixed, +8 tests, reviewer 9/10
+- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]] — 5/6 tasks, 2 E2E bugs fixed, embedding server up, backfill running
+- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]] — 6 tasks, 4 new modules, 3 MCP tools, reviewer 8/10→fixed
+- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-planned|Phase 22: Vector Claim Store Planned]] — 6 tasks planned, cross-wiki retrieval (5 articles), approach 7/10 + plan 6/10→revised
+- [2026-04-30] [[2026-04-30-phases-18-21-knowledge-pipeline-overhaul|Phases 18-21: Knowledge Pipeline Overhaul]] — 23 tasks across 4 phases, wiki tools + validation + stateful summarize + source scoring + claim extraction, +56 container tests
 
 ## Cross-References
 
 - docs/memory-architecture.md — Phase 1a research (memory design, retrieval strategy)
 - docs/qwen-experiment-log.md — Phase 3a findings (capabilities, failure modes, prompt patterns, context budget)
 - docs/tool-call-experiment-log.md — Phase 6a findings (Qwen tool-calling format, 12 experiments, behavioral analysis)
-- docs/worker-e2e-results.json — Phase 3c/8 E2E results (10/10 pass, calibration baseline)
 - agentic-engineering-wiki — context engineering, harness design, workflow patterns (184+ articles)
-- Hermes LLM Wiki skill — raw/ layer architecture, sha256 provenance, three-layer wiki pattern
-- trading-wiki (3,017 raw), aml-wiki (2,870 raw, 97 episodic, 279 articles) — live research output
+- trading-wiki (3,017 raw, ~2,900 episodic), aml-wiki (2,870 raw, ~1,878 episodic) — live research output
+- <wiki>/claims.jsonl — per-wiki atomic claim store (populated by Phase 21 workers)
+- <wiki>/claims.db — per-wiki vector claim store (Phase 22, nomic-embed-text-v1.5 768-dim embeddings)

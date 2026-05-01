@@ -261,4 +261,33 @@ export function checkDeepWorkContinuation(): string | null {
   );
 }
 
+/**
+ * Finalize an expired deep work session. Returns a summary string if the
+ * deadline has passed and the state file exists, null otherwise. Deletes
+ * the state file on finalization.
+ */
+export function finalizeExpiredDeepWork(filePath?: string): string | null {
+  const p = filePath ?? deepWorkPath();
+  const state = readDeepWorkState(p);
+  if (!state) return null;
+
+  const remaining = remainingMinutes(state);
+  if (remaining > 0) return null;
+
+  const elapsed = Math.round((Date.now() - new Date(state.started_at).getTime()) / 60_000);
+  fs.rmSync(p, { force: true });
+
+  return (
+    `[Deep Work Complete — deadline reached]\n` +
+    `Goal: ${state.goal}\n` +
+    `Completed: ${state.completed.length}/${state.plan.length} steps (${state.completed.join(', ') || 'none'})\n` +
+    `Elapsed: ${elapsed} min\n` +
+    `Session ended automatically.`
+  );
+}
+
+export function calculateBackoffDelay(consecutiveErrors: number): number {
+  return Math.min(3000 * Math.pow(2, consecutiveErrors), 30000);
+}
+
 registerTools([startDeepWork, updateDeepWork, endDeepWork, getDeepWorkStatus]);

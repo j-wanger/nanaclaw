@@ -9,6 +9,8 @@ import {
   writeDeepWorkState,
   parseDeadline,
   checkDeepWorkContinuation,
+  finalizeExpiredDeepWork,
+  calculateBackoffDelay,
 } from './deep-work.js';
 
 let tmpDir: string;
@@ -276,5 +278,90 @@ describe('checkDeepWorkContinuation', () => {
     writeDeepWorkState(statePath(), state);
     const prompt = checkDeepWorkContinuation()!;
     expect(prompt).toMatch(/wrap.?up|finish|final/i);
+  });
+});
+
+describe('finalizeExpiredDeepWork', () => {
+  beforeEach(() => {
+    process.env.NANOCLAW_AGENT_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.NANOCLAW_AGENT_DIR;
+  });
+
+  it('returns null when no state file exists', () => {
+    expect(finalizeExpiredDeepWork()).toBeNull();
+  });
+
+  it('returns null when deadline has not passed', () => {
+    const state: DeepWorkState = {
+      goal: 'Active task',
+      plan: ['A', 'B'],
+      started_at: new Date(Date.now() - 30 * 60_000).toISOString(),
+      deadline: new Date(Date.now() + 60 * 60_000).toISOString(),
+      completed: ['A'],
+      current: 'B',
+      updates: [],
+    };
+    writeDeepWorkState(statePath(), state);
+    expect(finalizeExpiredDeepWork()).toBeNull();
+    expect(readDeepWorkState(statePath())).not.toBeNull();
+  });
+
+  it('returns summary and deletes state file when deadline passed', () => {
+    const state: DeepWorkState = {
+      goal: 'Expired research',
+      plan: ['Search', 'Summarize', 'Review'],
+      started_at: new Date(Date.now() - 130 * 60_000).toISOString(),
+      deadline: new Date(Date.now() - 10 * 60_000).toISOString(),
+      completed: ['Search', 'Summarize'],
+      current: 'Review',
+      updates: [{ timestamp: new Date().toISOString(), note: 'progress' }],
+    };
+    writeDeepWorkState(statePath(), state);
+
+    const summary = finalizeExpiredDeepWork()!;
+    expect(summary).not.toBeNull();
+    expect(summary).toContain('Expired research');
+    expect(summary).toContain('2/3');
+    expect(summary).toContain('deadline');
+    expect(readDeepWorkState(statePath())).toBeNull();
+  });
+
+  it('includes elapsed time in summary', () => {
+    const state: DeepWorkState = {
+      goal: 'Timed task',
+      plan: ['A'],
+      started_at: new Date(Date.now() - 120 * 60_000).toISOString(),
+      deadline: new Date(Date.now() - 1 * 60_000).toISOString(),
+      completed: ['A'],
+      current: null,
+      updates: [],
+    };
+    writeDeepWorkState(statePath(), state);
+
+    const summary = finalizeExpiredDeepWork()!;
+    expect(summary).toContain('120');
+  });
+});
+
+describe('calculateBackoffDelay', () => {
+  it('returns base delay at 0 consecutive errors', () => {
+    expect(calculateBackoffDelay(0)).toBe(3000);
+  });
+
+  it('doubles delay per consecutive error', () => {
+    expect(calculateBackoffDelay(1)).toBe(6000);
+    expect(calculateBackoffDelay(2)).toBe(12000);
+  });
+
+  it('caps at 30000ms', () => {
+    expect(calculateBackoffDelay(5)).toBe(30000);
+    expect(calculateBackoffDelay(10)).toBe(30000);
+  });
+
+  it('returns 24000 at 3 consecutive errors', () => {
+    expect(calculateBackoffDelay(3)).toBe(24000);
   });
 });

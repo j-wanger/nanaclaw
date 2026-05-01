@@ -152,8 +152,7 @@ export function checkWorkerResults(): string | null {
   const files = fs.readdirSync(results).filter((f) => f.endsWith('.json'));
   if (files.length === 0) return null;
 
-  const completed: TaskState[] = [];
-  const skipped: string[] = [];
+  const completed: Array<{ state: TaskState; filePath: string }> = [];
 
   for (const file of files) {
     const filePath = path.join(results, file);
@@ -161,34 +160,68 @@ export function checkWorkerResults(): string | null {
     if (!state) continue;
 
     if (state.status === 'completed' || state.status === 'failed' || state.status === 'timeout') {
-      completed.push(state);
-      fs.unlinkSync(filePath);
-    } else {
-      skipped.push(file);
+      completed.push({ state, filePath });
     }
   }
 
   if (completed.length === 0) return null;
 
-  const parts = completed.map((s) => {
+  const completedIds = new Set<string>();
+  for (const { state, filePath } of completed) {
+    fs.unlinkSync(filePath);
+    completedIds.add(state.contract.id);
+  }
+
+  const tasks = taskDir(base);
+  if (fs.existsSync(tasks)) {
+    for (const file of fs.readdirSync(tasks).filter((f) => f.endsWith('.json'))) {
+      const id = file.replace('.json', '');
+      if (completedIds.has(id)) {
+        try { fs.unlinkSync(path.join(tasks, file)); } catch {}
+      }
+    }
+  }
+
+  const needsAttention: string[] = [];
+  let successCount = 0;
+  let reviewCount = 0;
+  const failedParts: string[] = [];
+
+  for (const { state: s } of completed) {
     const header = `[Worker ${s.contract.id}] ${s.status}`;
     const obj = `Objective: ${s.contract.objective}`;
     const writeTo = s.contract.write_to;
-    if (s.status === 'completed') {
-      const vStatus = s.verification?.passed ? 'T0 PASSED' : 'T0 FAILED';
-      if (writeTo) {
-        const dest = writeTo.tier === 'episodic'
-          ? `Written to: ${writeTo.wiki}/episodic/${writeTo.title || 'untitled'}`
-          : `Reviewed: ${writeTo.target_path || 'unknown'}`;
-        return `${header} (${vStatus}) — ${dest}`;
-      }
-      return `${header} (${vStatus})\n${obj}\nResult:\n${s.result?.parsed || ''}`;
-    }
-    if (s.error) {
-      return `${header}\n${obj}\nError: ${s.error}`;
-    }
-    return `${header}\n${obj}`;
-  });
 
-  return `Worker results ready for review:\n\n${parts.join('\n')}`;
+    if (s.status === 'completed' && writeTo && !s.validationIssues?.length) {
+      if (writeTo.tier === 'episodic') successCount++;
+      else if (writeTo.tier === 'review') reviewCount++;
+      continue;
+    }
+
+    if (s.status === 'completed' && s.validationIssues?.length) {
+      needsAttention.push(`${header} — NEEDS REVIEW: ${s.validationIssues.join(', ')}`);
+      continue;
+    }
+
+    if (s.status === 'completed' && !writeTo) {
+      needsAttention.push(`${header}\n${obj}\nResult:\n${s.result?.parsed || ''}`);
+      continue;
+    }
+
+    if (s.error) {
+      failedParts.push(`${header}\n${obj}\nError: ${s.error}`);
+    } else {
+      failedParts.push(`${header}\n${obj}`);
+    }
+  }
+
+  const lines: string[] = [];
+  if (successCount > 0) lines.push(`${successCount} episodic article(s) written successfully.`);
+  if (reviewCount > 0) lines.push(`${reviewCount} review(s) completed.`);
+  if (failedParts.length > 0) lines.push(`${failedParts.length} failed:\n${failedParts.join('\n')}`);
+  if (needsAttention.length > 0) lines.push(`${needsAttention.length} need attention:\n${needsAttention.join('\n')}`);
+
+  if (lines.length === 0) return null;
+
+  return `Worker batch complete (${completed.length} total):\n${lines.join('\n')}`;
 }

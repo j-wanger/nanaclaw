@@ -1,1 +1,10 @@
-{"debriefed": true, "timestamp": "2026-04-29T12:50:35Z", "phase": 17, "tasks_completed": 6}
+ended: 2026-05-01T02:41:41
+pending_commit: no
+session_buffer: no
+debriefed: yes
+recent_commits:
+3d53c4a Phase 17: message batching + Jina extraction fallback + SearXNG diversification
+f0a4db0 Phase 16: research session reliability + Bob agent + llama-server
+ca1e331 Compact worker result injection for write_to workers — metadata only, no article body
+3d75469 Add instructions.md to 5 container skills so they compose into agent context
+afdc7cd research_summarize returns episodic paths + review_args for automatic review dispatch

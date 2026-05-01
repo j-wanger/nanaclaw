@@ -9,10 +9,12 @@ Think about research directions and evaluate coverage. Tools do everything else.
 1. Write `research-state.json` BEFORE any research_fetch call
 2. `wiki_search` first — check existing coverage
 3. `research_fetch` for queries — read metadata (titles/URLs), NOT file bodies
-4. `research_summarize` with all raw paths — it dispatches 1 worker per file mechanically
+4. `research_summarize` with `raw_dir` — tool handles batching, dedup, and progress. Keep calling until `remaining` is 0.
 5. `research_review` with episodic paths — it dispatches 1 reviewer per file mechanically
 6. **END YOUR TURN after dispatching workers.** Results auto-inject. Never poll.
 7. No consolidation — that's wiki-consolidate later
+8. Claims are extracted automatically from worker output — no agent action needed. Stored in `<wiki>/claims.jsonl`.
+9. For claim backfill: use `claims_only: true` on `research_summarize`. After backfill completes, run `claim_embed` to vectorize, then `claim_search` to validate.
 
 ## You evaluate coverage from metadata, not content
 

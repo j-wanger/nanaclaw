@@ -131,7 +131,14 @@
 - [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — completed (partial, 2 tasks superseded by Phase 15)
 - [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — completed
 - [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — completed
-- [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — **active**
+- [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — completed
+- [[phase-18-wiki-project-management-integration|Phase 18: Knowledge Wiki + Project Management Agent Integration]] — completed
+- [[phase-19-worker-batching-article-validation|Phase 19: Worker Result Batching + Article Validation Gates]] — completed
+- [[phase-20-summarize-pipeline-reliability|Phase 20: Summarize Pipeline Reliability]] — completed
+- [[phase-21-source-triage-claim-extraction|Phase 21: Source Triage + Claim Extraction]] — completed
+- [[phase-22-vector-claim-store|Phase 22: Vector Claim Store]] — completed
+- [[phase-23-claim-backfill-e2e|Phase 23: Claim Backfill E2E]] — completed (1 task skipped)
+- [[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]] — **complete (pending confirmation)**
 
 ## Decisions
 
@@ -158,6 +165,19 @@
 - [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — high confidence
 - [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — medium confidence
 - [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — medium confidence
+- [[phase-18-wiki-project-integration-approach|Phase 18: Wiki + Project Management Integration]] — medium confidence
+- [[phase-19-worker-batching-validation-approach|Phase 19: Worker Result Batching + Article Validation]] — medium confidence
+- [[phase-20-summarize-pipeline-approach|Phase 20: Summarize Pipeline Reliability]] — medium confidence
+- [[phase-21-source-triage-claim-extraction-approach|Phase 21: Source Triage + Claim Extraction]] — medium confidence
+- [[phase-22-vector-claim-store-approach|Phase 22: Vector Claim Store]] — medium confidence
+- [[phase-23-claim-backfill-e2e-approach|Phase 23: Claim Backfill E2E]] — medium confidence
+- [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
+
+## Journal (recent)
+
+- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24 Complete]]
+- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23 In Progress]]
+- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22 Complete]]
 
 ## Journal
 

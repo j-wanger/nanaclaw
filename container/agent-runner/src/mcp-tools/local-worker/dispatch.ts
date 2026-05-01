@@ -13,6 +13,9 @@ import { parseWorkerResult } from './result-parser.js';
 import { routeTask, loadRoutingConfig, type RoutingConfig } from './routing.js';
 import { Semaphore } from './semaphore.js';
 import { verify } from './verification.js';
+import { validateEpisodicArticle } from '../article-validation.js';
+import { extractClaims, appendClaims } from '../claim-store.js';
+import { extractSourceUrl } from '../url-index.js';
 
 let _routingConfig: RoutingConfig | null | undefined;
 const _semaphores = new Map<string, Semaphore>();
@@ -77,10 +80,79 @@ export function postProcessResult(state: TaskState): void {
   const writeTo = state.contract.write_to;
   if (!writeTo) return;
   if (state.status !== 'completed' || !state.result) return;
+  const wikis = loadWikis();
 
   try {
     if (writeTo.tier === 'episodic') {
-      writeEpisodicArticle(writeTo, state.result.parsed);
+      const filePath = writeEpisodicArticle(writeTo, state.result.parsed);
+      if (filePath) {
+        const validation = validateEpisodicArticle(filePath);
+        if (!validation.valid) {
+          const repaired = autoRepairEpisodic(filePath, writeTo, validation.issues);
+          state.validationIssues = repaired.remainingIssues.length > 0 ? repaired.remainingIssues : undefined;
+          if (repaired.remainingIssues.length > 0) {
+            let content = fs.readFileSync(filePath, 'utf8');
+            const fmEnd = content.indexOf('\n---', 3);
+            if (fmEnd !== -1 && !content.includes('status: needs-review')) {
+              content = content.slice(0, fmEnd) + '\nstatus: needs-review' + content.slice(fmEnd);
+              fs.writeFileSync(filePath, content);
+            }
+            console.error(`[dispatch] episodic validation failed (${repaired.remainingIssues.join(', ')}): ${filePath}`);
+          }
+        }
+
+        const claims = extractClaims(state.result.parsed);
+        if (claims.length > 0) {
+          const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
+          if (wiki) {
+            let sourceScore = 0;
+            if (writeTo.source_url) {
+              try {
+                const rawDir = path.join(wiki.path, 'raw', 'articles');
+                for (const f of fs.readdirSync(rawDir).filter((x) => x.endsWith('.md'))) {
+                  const raw = fs.readFileSync(path.join(rawDir, f), 'utf8');
+                  if (extractSourceUrl(raw) === writeTo.source_url) {
+                    const scoreMatch = raw.match(/^source_score:\s*(\d+\.?\d*)/m);
+                    if (scoreMatch) sourceScore = parseFloat(scoreMatch[1]);
+                    break;
+                  }
+                }
+              } catch {}
+            }
+            appendClaims(wiki.path, claims, {
+              source_url: writeTo.source_url || null,
+              source_score: sourceScore,
+              wiki: writeTo.wiki,
+            });
+          }
+        }
+      }
+    } else if (writeTo.tier === 'claims') {
+      const claims = extractClaims(state.result.parsed);
+      if (claims.length > 0) {
+        const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
+        if (wiki) {
+          let sourceScore = 0;
+          if (writeTo.source_url) {
+            try {
+              const rawDir = path.join(wiki.path, 'raw', 'articles');
+              for (const f of fs.readdirSync(rawDir).filter((x) => x.endsWith('.md'))) {
+                const raw = fs.readFileSync(path.join(rawDir, f), 'utf8');
+                if (extractSourceUrl(raw) === writeTo.source_url) {
+                  const scoreMatch = raw.match(/^source_score:\s*(\d+\.?\d*)/m);
+                  if (scoreMatch) sourceScore = parseFloat(scoreMatch[1]);
+                  break;
+                }
+              }
+            } catch {}
+          }
+          appendClaims(wiki.path, claims, {
+            source_url: writeTo.source_url || null,
+            source_score: sourceScore,
+            wiki: writeTo.wiki,
+          });
+        }
+      }
     } else if (writeTo.tier === 'review' && writeTo.target_path) {
       applyReviewStatus(writeTo, state.result.parsed);
     }
@@ -89,11 +161,11 @@ export function postProcessResult(state: TaskState): void {
   }
 }
 
-function writeEpisodicArticle(writeTo: WriteTo, content: string): void {
+function writeEpisodicArticle(writeTo: WriteTo, content: string): string | null {
   const wikis = loadWikis();
-  if (!wikis) return;
+  if (!wikis) return null;
   const wiki = wikis.find((w) => w.name === writeTo.wiki) || wikis[0];
-  if (!wiki) return;
+  if (!wiki) return null;
 
   const title = writeTo.title || 'Untitled';
   const tags = writeTo.tags || [];
@@ -115,7 +187,31 @@ function writeEpisodicArticle(writeTo: WriteTo, content: string): void {
 
   const outputDir = path.join(wiki.path, 'episodic');
   fs.mkdirSync(outputDir, { recursive: true });
-  fs.writeFileSync(path.join(outputDir, `${slug}.md`), `${frontmatter}\n\n${content}\n`);
+  const filePath = path.join(outputDir, `${slug}.md`);
+  fs.writeFileSync(filePath, `${frontmatter}\n\n${content}\n`);
+  return filePath;
+}
+
+function autoRepairEpisodic(filePath: string, writeTo: WriteTo, issues: string[]): { remainingIssues: string[] } {
+  let content = fs.readFileSync(filePath, 'utf8');
+  const remaining: string[] = [];
+
+  for (const issue of issues) {
+    if (issue === 'missing source_url' && writeTo.source_url) {
+      const fmEnd = content.indexOf('\n---', 3);
+      if (fmEnd !== -1) {
+        content = content.slice(0, fmEnd) + `\nsource_url: ${writeTo.source_url}` + content.slice(fmEnd);
+      }
+    } else if (issue === 'empty tags' && writeTo.tags && writeTo.tags.length > 0) {
+      const tagStr = writeTo.tags.map((t) => `"${t}"`).join(', ');
+      content = content.replace(/^tags:\s*\[\s*\]/m, `tags: [${tagStr}]`);
+    } else {
+      remaining.push(issue);
+    }
+  }
+
+  fs.writeFileSync(filePath, content);
+  return { remainingIssues: remaining };
 }
 
 function applyReviewStatus(writeTo: WriteTo, reviewOutput: string): void {

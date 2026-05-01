@@ -20,6 +20,11 @@ import './wiki-search.js';
 import './research-fetch.js';
 import './research-summarize.js';
 import './research-review.js';
+import './wiki-read.js';
+import './wiki-stats.js';
+import './project-init.js';
+import './wiki-backfill.js';
+import './claim-tools.js';
 import { startMcpServer } from './server.js';
 
 function log(msg: string): void {

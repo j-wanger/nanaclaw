@@ -8,7 +8,7 @@ import {
   setContinuation,
 } from './db/session-state.js';
 import { formatMessages, extractRouting, categorizeMessage, isClearCommand, stripInternalTags, type RoutingContext } from './formatter.js';
-import { checkDeepWorkContinuation } from './mcp-tools/deep-work.js';
+import { checkDeepWorkContinuation, finalizeExpiredDeepWork, calculateBackoffDelay } from './mcp-tools/deep-work.js';
 import { checkWorkerResults } from './mcp-tools/local-worker/tools.js';
 import type { AgentProvider, AgentQuery, ProviderEvent } from './providers/types.js';
 
@@ -100,6 +100,51 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
           log(`Idle worker result injection error: ${err instanceof Error ? err.message : String(err)}`);
         }
         continue;
+      }
+
+      // Deep work continuation during idle — safety net for when the
+      // post-query while loop breaks (error, new messages, etc.).
+      if (lastRouting) {
+        const idleDwPrompt = checkDeepWorkContinuation();
+        if (idleDwPrompt) {
+          log('Deep work: resuming from idle');
+          const dwQuery = config.provider.query({
+            prompt: idleDwPrompt,
+            continuation,
+            cwd: config.cwd,
+            systemContext: config.systemContext,
+          });
+          try {
+            const dwResult = await processQuery(dwQuery, lastRouting, [], config.providerName, config.signal);
+            if (dwResult.continuation && dwResult.continuation !== continuation) {
+              continuation = dwResult.continuation;
+              setContinuation(config.providerName, continuation);
+            }
+          } catch (err) {
+            log(`Idle deep work continuation error: ${err instanceof Error ? err.message : String(err)}`);
+          }
+          continue;
+        }
+
+        const idleExpiry = finalizeExpiredDeepWork();
+        if (idleExpiry) {
+          log('Deep work deadline expired during idle, notifying user');
+          writeMessageOut({
+            id: generateId(),
+            kind: 'chat',
+            platform_id: lastRouting.platformId,
+            channel_type: lastRouting.channelType,
+            thread_id: lastRouting.threadId,
+            content: JSON.stringify({ text: idleExpiry }),
+          });
+        }
+      }
+
+      // Keep heartbeat alive while workers are in flight — the host sweep
+      // kills sessions with stale heartbeats. Touch every 30 polls (~30s)
+      // during idle so long-running worker drains don't trigger a kill.
+      if (pollCount % 30 === 0) {
+        touchHeartbeat();
       }
 
       await sleep(POLL_INTERVAL_MS);
@@ -269,6 +314,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     // Deep work auto-continuation: if a deep work session is active and the
     // deadline hasn't passed, wait briefly then re-enter the provider with a
     // continuation prompt so the agent keeps working autonomously.
+    let consecutiveErrors = 0;
     while (true) {
       const dwPrompt = checkDeepWorkContinuation();
       if (!dwPrompt) break;
@@ -297,10 +343,45 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
           continuation = dwResult.continuation;
           setContinuation(config.providerName, continuation);
         }
+        consecutiveErrors = 0;
       } catch (err) {
-        log(`Deep work continuation error: ${err instanceof Error ? err.message : String(err)}`);
-        break;
+        consecutiveErrors++;
+        const errMsg = err instanceof Error ? err.message : String(err);
+        log(`Deep work continuation error (${consecutiveErrors}/3): ${errMsg}`);
+
+        if (consecutiveErrors >= 3) {
+          log('Deep work: 3 consecutive errors, breaking to idle (will retry next cycle)');
+          writeMessageOut({
+            id: generateId(),
+            kind: 'chat',
+            platform_id: routing.platformId,
+            channel_type: routing.channelType,
+            thread_id: routing.threadId,
+            content: JSON.stringify({ text: `Deep work hit 3 consecutive errors — will retry on next poll cycle.\nLast error: ${errMsg}` }),
+          });
+          break;
+        }
+
+        const backoff = calculateBackoffDelay(consecutiveErrors - 1);
+        log(`Deep work: backing off ${backoff}ms before retry`);
+        await sleep(backoff);
       }
+    }
+
+    // Deadline expiry finalization after the while loop exits — covers the
+    // case where checkDeepWorkContinuation() returned null because the
+    // deadline passed mid-loop.
+    const postLoopExpiry = finalizeExpiredDeepWork();
+    if (postLoopExpiry) {
+      log('Deep work deadline expired after continuation loop, notifying user');
+      writeMessageOut({
+        id: generateId(),
+        kind: 'chat',
+        platform_id: routing.platformId,
+        channel_type: routing.channelType,
+        thread_id: routing.threadId,
+        content: JSON.stringify({ text: postLoopExpiry }),
+      });
     }
   }
 }

@@ -318,6 +318,62 @@ describe('postProcessResult', () => {
     expect(episodicFiles.length).toBe(0);
   });
 
+  it('claims tier extracts claims and appends to claims.jsonl without episodic article', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'claim-001',
+        outputFormat: 'markdown',
+        write_to: { wiki: 'test-wiki', tier: 'claims' as any, title: 'Claim Source', tags: ['test'], source_url: 'https://claim.example.com' },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: {
+        raw: '## Claims\n\n- [CLAIM] Water boils at 100°C at sea level.\n- [CLAIM] The Earth orbits the Sun.',
+        parsed: '## Claims\n\n- [CLAIM] Water boils at 100°C at sea level.\n- [CLAIM] The Earth orbits the Sun.',
+      },
+    };
+
+    postProcessResult(state);
+
+    // Should NOT create an episodic article
+    const episodicFiles = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(episodicFiles.length).toBe(0);
+
+    // Should append claims to claims.jsonl
+    const claimsPath = path.join(wikiDir, 'claims.jsonl');
+    expect(fs.existsSync(claimsPath)).toBe(true);
+    const lines = fs.readFileSync(claimsPath, 'utf8').trim().split('\n');
+    expect(lines.length).toBe(2);
+    const first = JSON.parse(lines[0]);
+    expect(first.claim).toBe('Water boils at 100°C at sea level.');
+    expect(first.source_url).toBe('https://claim.example.com');
+    expect(first.wiki).toBe('test-wiki');
+  });
+
+  it('claims tier with no claims in output does not create claims.jsonl', () => {
+    const state: TaskState = {
+      contract: testContract({
+        id: 'claim-empty-001',
+        outputFormat: 'markdown',
+        write_to: { wiki: 'test-wiki', tier: 'claims' as any, title: 'Empty', tags: [] },
+      }),
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      result: {
+        raw: '## Claims\n\nNo claims found.',
+        parsed: '## Claims\n\nNo claims found.',
+      },
+    };
+
+    postProcessResult(state);
+
+    const episodicFiles = fs.readdirSync(path.join(wikiDir, 'episodic'));
+    expect(episodicFiles.length).toBe(0);
+    expect(fs.existsSync(path.join(wikiDir, 'claims.jsonl'))).toBe(false);
+  });
+
   it('handles malformed worker output gracefully (logs warning, no crash)', () => {
     const state: TaskState = {
       contract: testContract({

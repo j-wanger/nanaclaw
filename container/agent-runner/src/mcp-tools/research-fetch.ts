@@ -7,6 +7,8 @@ import { parseHTML } from 'linkedom';
 import { registerTools } from './server.js';
 import { loadAllUrlIndexes, appendUrlIndex } from './url-index.js';
 import { tryJinaExtract } from './jina.js';
+import { validateRawArticle } from './article-validation.js';
+import { computeSourceScore, loadAuthorityConfig, type AuthorityConfig } from './source-score.js';
 import type { McpToolDefinition } from './types.js';
 
 function log(msg: string): void {
@@ -95,9 +97,10 @@ interface ArticleResult {
   url: string;
   quality: 'full' | 'partial';
   chars: number;
+  validation_issues?: string[];
 }
 
-function buildRawFrontmatter(title: string, sourceUrl: string, contentBody: string, quality: 'full' | 'partial'): string {
+function buildRawFrontmatter(title: string, sourceUrl: string, contentBody: string, quality: 'full' | 'partial', sourceScore?: number): string {
   const today = new Date().toISOString().slice(0, 10);
   const lines = [
     '---',
@@ -108,16 +111,20 @@ function buildRawFrontmatter(title: string, sourceUrl: string, contentBody: stri
     'tier: raw',
     'source: web-extract',
   ];
+  if (typeof sourceScore === 'number') lines.push(`source_score: ${sourceScore}`);
   if (quality === 'partial') lines.push('extraction: partial');
   lines.push('---');
   return lines.join('\n');
 }
+
+let authorityConfig: AuthorityConfig | undefined;
 
 async function fetchAndWrite(
   result: SearxngResult,
   wikiPath: string,
   maxChars: number,
 ): Promise<ArticleResult> {
+  if (!authorityConfig) authorityConfig = loadAuthorityConfig(wikiPath);
   const resp = await fetch(result.url);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
@@ -147,13 +154,25 @@ async function fetchAndWrite(
   const rawDir = path.join(wikiPath, 'raw', 'articles');
   fs.mkdirSync(rawDir, { recursive: true });
 
-  const frontmatter = buildRawFrontmatter(result.title || slug, result.url, content, quality);
+  const sourceScore = computeSourceScore(result.url, content.length, authorityConfig);
+  const frontmatter = buildRawFrontmatter(result.title || slug, result.url, content, quality, sourceScore);
   const filePath = path.join(rawDir, `${slug}.md`);
   fs.writeFileSync(filePath, `${frontmatter}\n\n${content}\n`);
 
   appendUrlIndex(wikiPath, result.url);
 
-  return { path: filePath, title: result.title || slug, url: result.url, quality, chars: content.length };
+  const validation = validateRawArticle(filePath);
+  if (!validation.valid) {
+    log(`Validation failed for ${slug}: ${validation.issues.join(', ')}`);
+    let raw = fs.readFileSync(filePath, 'utf8');
+    const fmEnd = raw.indexOf('\n---', 3);
+    if (fmEnd !== -1 && !raw.includes('extraction: invalid')) {
+      raw = raw.slice(0, fmEnd) + '\nextraction: invalid' + raw.slice(fmEnd);
+      fs.writeFileSync(filePath, raw);
+    }
+  }
+
+  return { path: filePath, title: result.title || slug, url: result.url, quality, chars: content.length, validation_issues: validation.valid ? undefined : validation.issues };
 }
 
 export async function fetchHandler(args: Record<string, unknown>) {
