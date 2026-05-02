@@ -3,7 +3,7 @@ import path from 'path';
 import { embedBatch } from './claim-embeddings.js';
 import { KnowledgeVectorStore } from './knowledge-vector-store.js';
 import { splitSentences } from './sentence-splitter.js';
-import type { ClaimEntry } from './claim-store.js';
+import type { ClaimEntry, InsightEntry } from './claim-store.js';
 
 const EMBED_BATCH_SIZE = 32;
 
@@ -43,6 +43,20 @@ function loadClaimTexts(wikiPath: string): Set<string> {
   return texts;
 }
 
+function loadInsightTexts(wikiPath: string): Set<string> {
+  const insightsPath = path.join(wikiPath, 'insights.jsonl');
+  const texts = new Set<string>();
+  if (!fs.existsSync(insightsPath)) return texts;
+  for (const line of fs.readFileSync(insightsPath, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const entry = JSON.parse(line) as InsightEntry;
+      texts.add(entry.insight.toLowerCase().trim());
+    } catch { /* skip */ }
+  }
+  return texts;
+}
+
 function extractFrontmatter(content: string): Record<string, string> {
   const fm: Record<string, string> = {};
   const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -57,7 +71,7 @@ function extractFrontmatter(content: string): Record<string, string> {
 interface PreparedSentence {
   text: string;
   contextual_text: string;
-  type: 'claim' | 'sentence';
+  type: 'claim' | 'sentence' | 'insight';
   source_url: string | null;
   article_slug: string;
   section: string;
@@ -129,6 +143,7 @@ export async function embedSentences(
   const state = readState(wikiPath);
   const processedSet = new Set(state.processedArticles);
   const claimTexts = loadClaimTexts(wikiPath);
+  const insightTexts = loadInsightTexts(wikiPath);
   const wikiName = wiki || path.basename(wikiPath);
 
   const toProcess: string[] = [];
@@ -176,11 +191,14 @@ export async function embedSentences(
 
       const prepared: PreparedSentence[] = sentences.map((s) => {
         const contextPrefix = s.section ? `[${title} | ${s.section}]` : `[${title}]`;
-        const isClaim = claimTexts.has(s.text.toLowerCase().trim());
+        const normalized = s.text.toLowerCase().trim();
+        const isClaim = claimTexts.has(normalized);
+        const isInsight = !isClaim && insightTexts.has(normalized);
+        const type: 'claim' | 'insight' | 'sentence' = isClaim ? 'claim' : isInsight ? 'insight' : 'sentence';
         return {
           text: s.text,
           contextual_text: `${contextPrefix} ${s.text}`,
-          type: isClaim ? 'claim' as const : 'sentence' as const,
+          type,
           source_url: sourceUrl,
           article_slug: slug,
           section: s.section,

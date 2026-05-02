@@ -155,4 +155,47 @@ describe('embedSentences', () => {
     expect(result.embedded).toBe(0);
     expect(result.articles_processed).toBe(0);
   });
+
+  it('classifies sentences matching insights.jsonl as type=insight', async () => {
+    fs.writeFileSync(path.join(wikiDir, 'raw', 'articles', 'td-bank.md'), ARTICLE_A);
+    fs.writeFileSync(
+      path.join(wikiDir, 'insights.jsonl'),
+      JSON.stringify({ insight: 'The investigation lasted three years.', source_url: 'https://example.com/td-bank', source_score: 0.5, wiki: 'test-wiki', created: '2026-05-01' }) + '\n',
+    );
+
+    globalThis.fetch = mock(dynamicMockFetch) as any;
+
+    await embedSentences(wikiDir, [path.join(wikiDir, 'raw', 'articles', 'td-bank.md')]);
+
+    const store = new KnowledgeVectorStore(wikiDir);
+    const insights = store.getAllByType('insight');
+    expect(insights.length).toBe(1);
+    expect(insights[0].text).toMatch(/investigation lasted three years/);
+    store.close();
+  });
+
+  it('claim takes priority over insight when sentence matches both', async () => {
+    fs.writeFileSync(path.join(wikiDir, 'raw', 'articles', 'td-bank.md'), ARTICLE_A);
+    const overlap = 'TD Bank was fined 1.8 billion dollars by FinCEN for AML failures.';
+    fs.writeFileSync(
+      path.join(wikiDir, 'claims.jsonl'),
+      JSON.stringify({ claim: overlap, source_url: 'https://example.com/td-bank', source_score: 0.5, wiki: 'test-wiki', created: '2026-05-01' }) + '\n',
+    );
+    fs.writeFileSync(
+      path.join(wikiDir, 'insights.jsonl'),
+      JSON.stringify({ insight: overlap, source_url: 'https://example.com/td-bank', source_score: 0.5, wiki: 'test-wiki', created: '2026-05-01' }) + '\n',
+    );
+
+    globalThis.fetch = mock(dynamicMockFetch) as any;
+
+    await embedSentences(wikiDir, [path.join(wikiDir, 'raw', 'articles', 'td-bank.md')]);
+
+    const store = new KnowledgeVectorStore(wikiDir);
+    const claims = store.getAllByType('claim');
+    const insights = store.getAllByType('insight');
+    // The overlapping sentence should be classified as claim, not insight
+    expect(claims.some((c) => c.text === overlap)).toBe(true);
+    expect(insights.some((i) => i.text === overlap)).toBe(false);
+    store.close();
+  });
 });

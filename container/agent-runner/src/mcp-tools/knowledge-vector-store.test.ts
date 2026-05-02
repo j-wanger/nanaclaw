@@ -50,6 +50,38 @@ describe('KnowledgeVectorStore', () => {
     store.close();
   });
 
+  it('inserts insight entries with type=insight', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    const id = store.insertEntry({
+      text: 'Use Pattern 2 (decision-tree) over natural-language for small models.',
+      contextual_text: '[Tool Use Patterns | Recommendations] Use Pattern 2 (decision-tree) over natural-language for small models.',
+      type: 'insight',
+      source_url: 'https://example.com/patterns',
+      article_slug: 'tool-use-patterns',
+      section: 'Recommendations',
+      source_score: 0.7,
+      wiki: 'test-wiki',
+      embedding: makeEmbedding(5),
+    });
+    const row = store.getById(id);
+    expect(row!.type).toBe('insight');
+    store.close();
+  });
+
+  it('getAllByType filters insight type correctly', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    store.insertEntry({ text: 'Claim', contextual_text: 'C', type: 'claim', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding(1) });
+    store.insertEntry({ text: 'Sentence', contextual_text: 'S', type: 'sentence', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding(2) });
+    store.insertEntry({ text: 'Insight 1', contextual_text: 'I1', type: 'insight', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding(3) });
+    store.insertEntry({ text: 'Insight 2', contextual_text: 'I2', type: 'insight', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding(4) });
+
+    expect(store.getAllByType('insight')).toHaveLength(2);
+    expect(store.getAllByType('claim')).toHaveLength(1);
+    expect(store.getAllByType('sentence')).toHaveLength(1);
+    expect(store.getAllByType()).toHaveLength(4);
+    store.close();
+  });
+
   it('inserts sentence entries with type=sentence', () => {
     const store = new KnowledgeVectorStore(tmpDir);
     const id = store.insertEntry({

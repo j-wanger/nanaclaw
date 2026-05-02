@@ -7,7 +7,7 @@ const SEARCH_CHUNK_SIZE = 10_000;
 export interface KnowledgeInsert {
   text: string;
   contextual_text: string;
-  type: 'claim' | 'sentence';
+  type: 'claim' | 'sentence' | 'insight';
   source_url: string | null;
   article_slug: string;
   section: string;
