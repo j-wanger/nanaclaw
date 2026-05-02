@@ -77,6 +77,23 @@ describe('handleKnowledgeConflicts', () => {
     const data = JSON.parse(result.content[0].text);
     expect(data.pairs).toHaveLength(0);
   });
+
+  test("type_filter='claim' restricts pairs to claim-vs-claim", async () => {
+    const store = new KnowledgeVectorStore(wikiDir);
+    store.insertEntry({ text: 'C in A', contextual_text: 'C in A', type: 'claim', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: makeEmb([1, 0, 0, 0]) });
+    store.insertEntry({ text: 'I in A', contextual_text: 'I in A', type: 'insight', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: makeEmb([0.99, 0.05, 0, 0]) });
+    store.insertEntry({ text: 'C in B', contextual_text: 'C in B', type: 'claim', source_url: null, article_slug: 'b', section: '', source_score: 0, wiki: 'w', embedding: makeEmb([0.98, 0.03, 0, 0]) });
+    store.insertEntry({ text: 'I in B', contextual_text: 'I in B', type: 'insight', source_url: null, article_slug: 'b', section: '', source_score: 0, wiki: 'w', embedding: makeEmb([0.97, 0.06, 0, 0]) });
+    store.close();
+
+    const result = await handleKnowledgeConflicts({ wiki: 'test-wiki', article_slug: 'a', classify: false, type_filter: 'claim', threshold: 0.5 });
+    const data = JSON.parse(result.content[0].text);
+    expect(data.pairs.length).toBeGreaterThan(0);
+    for (const p of data.pairs) {
+      expect(p.a.text).toMatch(/^C in/);
+      expect(p.b.text).toMatch(/^C in/);
+    }
+  });
 });
 
 describe('handleClaimDiscover', () => {

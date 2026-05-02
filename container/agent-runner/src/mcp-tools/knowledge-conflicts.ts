@@ -40,16 +40,23 @@ export function findArticleConflicts(
   articleSlug: string,
   topK: number,
   minSimilarity = 0.7,
+  typeFilter?: string,
 ): ConflictPair[] {
-  const articleRows = store.getByArticleSlug(articleSlug);
+  const articleRows = typeFilter
+    ? store.getByArticleSlug(articleSlug, typeFilter)
+    : store.getByArticleSlug(articleSlug);
   if (articleRows.length === 0) return [];
 
-  const allRows = store.db_allWithEmbeddings();
+  const allRows = typeFilter
+    ? store.db_allWithEmbeddings(typeFilter)
+    : store.db_allWithEmbeddings();
   const pairs: ConflictPair[] = [];
 
   for (const artRow of articleRows) {
     for (const other of allRows) {
       if (other.article_slug === articleSlug) continue;
+      // Default: skip insight-vs-insight pairs (different opinions ≠ contradiction)
+      if (!typeFilter && artRow.type === 'insight' && other.type === 'insight') continue;
 
       const sim = cosineSimilarity(artRow.embedding, other.embedding);
       if (sim < minSimilarity) continue;

@@ -127,3 +127,50 @@ describe('findQueryConflicts', () => {
     store.close();
   });
 });
+
+describe('findArticleConflicts type-aware', () => {
+  function seedTypedStore(store: KnowledgeVectorStore) {
+    // Article A has a claim, a sentence, and an insight — all near the same vector
+    store.insertEntry({ text: 'A claim from A', contextual_text: '[A] A claim', type: 'claim', source_url: null, article_slug: 'article-a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding([1, 0, 0, 0]) });
+    store.insertEntry({ text: 'A sentence from A', contextual_text: '[A] A sentence', type: 'sentence', source_url: null, article_slug: 'article-a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding([0.99, 0.05, 0, 0]) });
+    store.insertEntry({ text: 'An insight from A', contextual_text: '[A] An insight', type: 'insight', source_url: null, article_slug: 'article-a', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding([0.97, 0.1, 0, 0]) });
+
+    // Article B has a claim, a sentence, and an insight — all near A's cluster
+    store.insertEntry({ text: 'A claim from B', contextual_text: '[B] A claim', type: 'claim', source_url: null, article_slug: 'article-b', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding([0.98, 0.03, 0, 0]) });
+    store.insertEntry({ text: 'A sentence from B', contextual_text: '[B] A sentence', type: 'sentence', source_url: null, article_slug: 'article-b', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding([0.96, 0.06, 0, 0]) });
+    store.insertEntry({ text: 'An insight from B', contextual_text: '[B] An insight', type: 'insight', source_url: null, article_slug: 'article-b', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding([0.95, 0.09, 0, 0]) });
+  }
+
+  it("type_filter='claim' returns only claim-vs-claim pairs", () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    seedTypedStore(store);
+
+    const pairs = findArticleConflicts(store, 'article-a', 100, 0.5, 'claim');
+    expect(pairs.length).toBeGreaterThan(0);
+    for (const p of pairs) {
+      // We dropped the embedding/type from the pair entry, but text encodes it
+      expect(p.a.text).toMatch(/claim/);
+      expect(p.b.text).toMatch(/claim/);
+    }
+    store.close();
+  });
+
+  it('default excludes insight-vs-insight pairs but includes other combinations', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    seedTypedStore(store);
+
+    const pairs = findArticleConflicts(store, 'article-a', 100, 0.5);
+    expect(pairs.length).toBeGreaterThan(0);
+    for (const p of pairs) {
+      const aIsInsight = p.a.text.includes('insight');
+      const bIsInsight = p.b.text.includes('insight');
+      // No pair should have insight on both sides
+      expect(aIsInsight && bIsInsight).toBe(false);
+    }
+
+    // But mixed insight-with-claim/sentence pairs should still appear
+    const hasInsightInvolved = pairs.some((p) => p.a.text.includes('insight') || p.b.text.includes('insight'));
+    expect(hasInsightInvolved).toBe(true);
+    store.close();
+  });
+});
