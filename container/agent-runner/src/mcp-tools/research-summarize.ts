@@ -42,6 +42,18 @@ const ENTITIES_ONLY_POSTCONDITIONS = [
   { type: 'contains' as const, params: { substring: '## Entities' } },
 ];
 
+const INSIGHT_BOUNDARY = 'Extract actionable insights as [INSIGHT] tags in a ## Insights section. Each insight must be a heuristic, pattern, recommendation, or best practice — generalized guidance distilled from this source rather than a verifiable factual assertion';
+
+const INSIGHTS_ONLY_OBJECTIVE = 'Extract actionable insights from this source. Output a ## Insights section with [INSIGHT] tags only. Focus on heuristics, design patterns, recommendations, and best practices.';
+const INSIGHTS_ONLY_BOUNDARIES = [
+  'Use only insights from this source',
+  'Do NOT add external knowledge',
+  INSIGHT_BOUNDARY,
+];
+const INSIGHTS_ONLY_POSTCONDITIONS = [
+  { type: 'contains' as const, params: { substring: '## Insights' } },
+];
+
 interface WikiEntry { name: string; path: string; description: string; }
 
 function loadWikis(): WikiEntry[] | null {
@@ -132,6 +144,7 @@ async function dispatchForPaths(
   handleDispatch: typeof import('./local-worker/tools.js').handleDispatchWorker,
   claimsOnly = false,
   entitiesOnly = false,
+  insightsOnly = false,
 ): Promise<DispatchResult[]> {
   const results: DispatchResult[] = [];
 
@@ -155,10 +168,34 @@ async function dispatchForPaths(
     const body = stripFrontmatter(content);
     const sourceUrl = extractSourceUrl(content) || undefined;
 
-    const objective = entitiesOnly ? ENTITIES_ONLY_OBJECTIVE : claimsOnly ? CLAIMS_ONLY_OBJECTIVE : EPISODIC_OBJECTIVE;
-    const boundaries = entitiesOnly ? ENTITIES_ONLY_BOUNDARIES : claimsOnly ? CLAIMS_ONLY_BOUNDARIES : EPISODIC_BOUNDARIES;
-    const postconditions = entitiesOnly ? ENTITIES_ONLY_POSTCONDITIONS : claimsOnly ? CLAIMS_ONLY_POSTCONDITIONS : EPISODIC_POSTCONDITIONS;
-    const tier = entitiesOnly ? 'entities' as const : claimsOnly ? 'claims' as const : 'episodic' as const;
+    const objective = insightsOnly
+      ? INSIGHTS_ONLY_OBJECTIVE
+      : entitiesOnly
+        ? ENTITIES_ONLY_OBJECTIVE
+        : claimsOnly
+          ? CLAIMS_ONLY_OBJECTIVE
+          : EPISODIC_OBJECTIVE;
+    const boundaries = insightsOnly
+      ? INSIGHTS_ONLY_BOUNDARIES
+      : entitiesOnly
+        ? ENTITIES_ONLY_BOUNDARIES
+        : claimsOnly
+          ? CLAIMS_ONLY_BOUNDARIES
+          : EPISODIC_BOUNDARIES;
+    const postconditions = insightsOnly
+      ? INSIGHTS_ONLY_POSTCONDITIONS
+      : entitiesOnly
+        ? ENTITIES_ONLY_POSTCONDITIONS
+        : claimsOnly
+          ? CLAIMS_ONLY_POSTCONDITIONS
+          : EPISODIC_POSTCONDITIONS;
+    const tier = insightsOnly
+      ? ('insights' as const)
+      : entitiesOnly
+        ? ('entities' as const)
+        : claimsOnly
+          ? ('claims' as const)
+          : ('episodic' as const);
 
     const dispatchResult = await handleDispatch({
       type: 'research',
@@ -193,6 +230,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
   const batchSize = (args.batch_size as number) || 60;
   const claimsOnly = !!(args.claims_only as boolean);
   const entitiesOnly = !!(args.entities_only as boolean);
+  const insightsOnly = !!(args.insights_only as boolean);
 
   if (!rawDirParam && (!pathsParam || pathsParam.length === 0)) {
     return ok('Error: either raw_dir or paths is required');
@@ -212,7 +250,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
 
   // Legacy paths-based flow
   if (pathsParam && pathsParam.length > 0 && !rawDirParam) {
-    const results = await dispatchForPaths(pathsParam, wiki, tags, wikiPath, handleDispatch, claimsOnly, entitiesOnly);
+    const results = await dispatchForPaths(pathsParam, wiki, tags, wikiPath, handleDispatch, claimsOnly, entitiesOnly, insightsOnly);
     const dispatched = results.filter((r) => r.worker_id);
     const skipped = results.filter((r) => r.skipped);
     const rawDir = wikiPath ? path.join(wikiPath, 'raw', 'articles') : '';
@@ -272,7 +310,7 @@ export async function summarizeHandler(args: Record<string, unknown>) {
     }));
   }
 
-  const results = await dispatchForPaths(batch, wiki, tags, wikiPath, handleDispatch, claimsOnly, entitiesOnly);
+  const results = await dispatchForPaths(batch, wiki, tags, wikiPath, handleDispatch, claimsOnly, entitiesOnly, insightsOnly);
   const dispatched = results.filter((r) => r.worker_id);
   const remaining = unsummarized.length - batch.length;
 
@@ -332,6 +370,10 @@ const tools: McpToolDefinition[] = [
           entities_only: {
             type: 'boolean',
             description: 'When true, extract named entities only. Workers output ## Entities with [ENTITY type=TYPE] tags (PERSON, ORGANIZATION, LOCATION, AMOUNT, CASE, DATE); results append to entities.jsonl.',
+          },
+          insights_only: {
+            type: 'boolean',
+            description: 'When true, extract actionable insights only (no episodic article). Workers output ## Insights with [INSIGHT] tags (heuristics, design patterns, recommendations, best practices); results append to insights.jsonl.',
           },
         },
         required: ['wiki'],

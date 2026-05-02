@@ -14,7 +14,7 @@ import { routeTask, loadRoutingConfig, type RoutingConfig } from './routing.js';
 import { Semaphore } from './semaphore.js';
 import { verify } from './verification.js';
 import { validateEpisodicArticle } from '../article-validation.js';
-import { extractClaims, appendClaims } from '../claim-store.js';
+import { extractClaims, appendClaims, extractInsights, appendInsights } from '../claim-store.js';
 import { extractEntities, appendEntities, type EntityEntry } from '../entity-store.js';
 import { extractSourceUrl } from '../url-index.js';
 
@@ -148,6 +148,32 @@ export function postProcessResult(state: TaskState): void {
             } catch {}
           }
           appendClaims(wiki.path, claims, {
+            source_url: writeTo.source_url || null,
+            source_score: sourceScore,
+            wiki: writeTo.wiki,
+          });
+        }
+      }
+    } else if (writeTo.tier === 'insights') {
+      const insights = extractInsights(state.result.parsed);
+      if (insights.length > 0) {
+        const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
+        if (wiki) {
+          let sourceScore = 0;
+          if (writeTo.source_url) {
+            try {
+              const rawDir = path.join(wiki.path, 'raw', 'articles');
+              for (const f of fs.readdirSync(rawDir).filter((x) => x.endsWith('.md'))) {
+                const raw = fs.readFileSync(path.join(rawDir, f), 'utf8');
+                if (extractSourceUrl(raw) === writeTo.source_url) {
+                  const scoreMatch = raw.match(/^source_score:\s*(\d+\.?\d*)/m);
+                  if (scoreMatch) sourceScore = parseFloat(scoreMatch[1]);
+                  break;
+                }
+              }
+            } catch {}
+          }
+          appendInsights(wiki.path, insights, {
             source_url: writeTo.source_url || null,
             source_score: sourceScore,
             wiki: writeTo.wiki,
