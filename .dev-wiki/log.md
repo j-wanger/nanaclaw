@@ -1,5 +1,7 @@
 # Dev Wiki Log
 
+[2026-05-01T19:00:00] DEBRIEF -- Phase 27 complete (6/6 tasks), 1 decision, 4 new modules (conflicts, discovery, classify, analysis-tools), 2 MCP tools, +39 tests (491 total), reviewer 8/10, journal: phase-27-conflict-detection-claim-discovery-complete
+[2026-05-01T12:00:00] PLAN -- Phase 27 planned, 6 tasks (2S+4M), 1 decision (conflict detection + claim discovery — embedding similarity + Qwen classification), cross-wiki: 3 articles (agentic-engineering), approach reviewer 8/10 accept, plan reviewer 7/10 accept
 [2026-05-01T11:00:00] DEBRIEF -- Phase 26 complete (6/6 tasks), 1 decision, unified knowledge.db + sentence embed pipeline, +34 tests (452 total), claim-vector-store.ts deleted, journal: phase-26-unified-knowledge-vector-store-complete
 [2026-05-01T10:00:00] PLAN -- Phase 26 planned, 6 tasks (1L), 1 decision (unified knowledge vector store — sentence embeddings + claim migration), cross-wiki: 5 articles (agentic-engineering + database), approach reviewer 5/10→revised, plan reviewer 7/10→revised
 [2026-05-01T09:10:00] DEBRIEF -- Phase 25 complete (6/6 tasks), 1 decision, 2 tracks (init timeout + entity pipeline), +16 tests (418 total), journal: phase-25-session-resume-entity-extraction-complete

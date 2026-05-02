@@ -17,6 +17,8 @@ Think about research directions and evaluate coverage. Tools do everything else.
 9. For claim backfill: use `claims_only: true` on `research_summarize`. After backfill completes, run `claim_embed` to vectorize, then `claim_search` to validate.
 10. For entity extraction: use `entities_only: true` on `research_summarize`. Extracts PERSON, ORGANIZATION, LOCATION, AMOUNT, CASE, DATE entities as [ENTITY] tags. Stored in `<wiki>/entities.jsonl`. Focus on adverse-finding subjects, not incidental mentions.
 11. For knowledge embedding: use `knowledge_embed` to embed all article sentences into `knowledge.db`. Use `knowledge_search` for semantic search across claims and sentences. Both stored in the unified knowledge store.
+12. For conflict detection: use `knowledge_conflicts` with `article_slug` to find cross-article contradictions. Default `classify: true` dispatches a Qwen worker to label pairs as agree/contradict/unrelated. Use `classify: false` for fast embedding-only results.
+13. For claim discovery: use `claim_discover` with `article_slug` to find unclaimed sentences that resemble existing claims. Default `validate: true` dispatches a Qwen worker to confirm. High-similarity candidates are likely missed extractions.
 
 ## You evaluate coverage from metadata, not content
 

@@ -55,6 +55,7 @@ export class KnowledgeVectorStore {
       )
     `);
     this.db.run('CREATE INDEX IF NOT EXISTS idx_knowledge_type ON knowledge(type)');
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_knowledge_article ON knowledge(article_slug)');
   }
 
   insertEntry(entry: KnowledgeInsert): number {
@@ -92,6 +93,19 @@ export class KnowledgeVectorStore {
     return this.db.prepare(
       'SELECT id, text, contextual_text, type, source_url, article_slug, section, source_score, wiki, created FROM knowledge',
     ).all() as KnowledgeRow[];
+  }
+
+  getByArticleSlug(slug: string, type?: string): Array<KnowledgeRow & { embedding: Float32Array }> {
+    const sql = type
+      ? 'SELECT id, text, contextual_text, type, source_url, article_slug, section, source_score, wiki, created, embedding FROM knowledge WHERE article_slug = $slug AND type = $type'
+      : 'SELECT id, text, contextual_text, type, source_url, article_slug, section, source_score, wiki, created, embedding FROM knowledge WHERE article_slug = $slug';
+    const params: Record<string, string> = { $slug: slug };
+    if (type) params.$type = type;
+    const rows = this.db.prepare(sql).all(params) as Array<KnowledgeRow & { embedding: Buffer }>;
+    return rows.map((r) => ({
+      ...r,
+      embedding: new Float32Array(new Uint8Array(r.embedding).buffer),
+    }));
   }
 
   searchSimilar(query: Float32Array, topK: number, type?: string): SearchResult[] {

@@ -4,18 +4,18 @@
 
 ## Recommended Next Action
 
-Phase 26 complete (6/6 tasks). All exit criteria met. Run `/dev-plan` for Phase 27 — consider: conflict detection via sentence similarity, semi-automatic claim discovery, entity extraction live validation, or knowledge graph construction.
+Phase 27 complete (6/6 tasks). All exit criteria met. Run `/dev-plan` for Phase 28 — consider: chunked conflict search optimization, entity resolution + knowledge graph, or live validation E2E testing.
 
 ## Active Phase
 
-**[[phase-26-unified-knowledge-vector-store|Phase 26: Unified Knowledge Vector Store]]** (status: active)
+**[[phase-27-conflict-detection-claim-discovery|Phase 27: Conflict Detection + Claim Discovery]]** (status: active)
 
-Exit criteria: 7/7 met
-Progress: ~100% (6/6 tasks done)
+Exit criteria: 0/6 met
+Progress: ~0% (0/6 tasks done)
 
 ## Active Phase Contract
 
-Phase: 26 - Unified Knowledge Vector Store
+Phase: 27 - Conflict Detection + Claim Discovery
 Tasks: 6 (see tasks.md)
 Transition: fresh-session
 Abort: if blocked >3 attempts, ask user: skip or abort
@@ -24,9 +24,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-27-conflict-detection-claim-discovery-approach]] | medium | 2026-05-01 |
 | [[phase-26-sentence-embedding-store-approach]] | medium | 2026-05-01 |
 | [[phase-25-session-resume-entity-extraction-approach]] | medium | 2026-05-01 |
-| [[phase-24-deep-work-session-reliability-approach]] | medium | 2026-04-30 |
 
 ## Blockers and Open Questions
 
@@ -45,19 +45,19 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
-| container/agent-runner/src/mcp-tools/vector-utils.ts | Shared cosineSimilarity | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/sentence-splitter.ts | Markdown → sentences with section context | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/knowledge-vector-store.ts | Unified knowledge.db — claims + sentences, chunked search | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/sentence-embed-pipeline.ts | Batch articles → contextual embed → store | 2026-05-01 |
-| container/agent-runner/src/mcp-tools/knowledge-tools.ts | knowledge_search + knowledge_embed MCP tools | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-vector-store.ts | Unified knowledge.db — claims + sentences, chunked search, article_slug index | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-conflicts.ts | Cross-article conflict detection (findArticleConflicts, findQueryConflicts) | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-discovery.ts | Claim discovery by similarity (discoverClaimsInArticle) | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-classify.ts | Qwen worker classification (conflict pairs + claim validation) | 2026-05-01 |
+| container/agent-runner/src/mcp-tools/knowledge-analysis-tools.ts | knowledge_conflicts + claim_discover MCP tools | 2026-05-01 |
 
 ## Session Journal (last 5)
 
+- [2026-05-01] [[2026-05-01-phase-27-conflict-detection-claim-discovery-complete|Phase 27: Conflict Detection + Claim Discovery Complete]] — 6 tasks, 4 new modules, 2 MCP tools, +39 tests, 491 total
 - [2026-05-01] [[2026-05-01-phase-26-unified-knowledge-vector-store-complete|Phase 26: Unified Knowledge Vector Store Complete]] — 6 tasks, unified store + sentence embedding, +34 tests, 452 total
 - [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25: Session Resume + Entity Extraction Complete]] — 6 tasks, init timeout + entity pipeline, +16 tests
 - [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]] — 4 tasks, 3 poll-loop bugs fixed, +8 tests
 - [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]] — 5/6 tasks, embedding server up
-- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]] — 6 tasks, 4 new modules, 3 MCP tools
 
 ## Cross-References
 
@@ -65,3 +65,4 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 - aml-wiki — entity modeling, adverse media screening NER patterns
 - <wiki>/knowledge.db — unified vector store (claims + sentences, Phase 26)
 - <wiki>/claims.jsonl + entities.jsonl — JSONL stores (extraction output)
+- knowledge-conflicts.ts / knowledge-discovery.ts — Phase 27 analytical tools on knowledge.db

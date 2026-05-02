@@ -122,6 +122,55 @@ describe('KnowledgeVectorStore', () => {
     store.close();
   });
 
+  it('has article_slug index', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    const indexes = (store as any).db.prepare("PRAGMA index_list('knowledge')").all() as Array<{ name: string }>;
+    const names = indexes.map((i) => i.name);
+    expect(names).toContain('idx_knowledge_article');
+    store.close();
+  });
+
+  it('getByArticleSlug returns rows with embeddings for a given slug', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    const emb1 = makeEmbedding(10);
+    const emb2 = makeEmbedding(20);
+    const emb3 = makeEmbedding(30);
+
+    store.insertEntry({ text: 'S1 in article-a', contextual_text: 'S1', type: 'sentence', source_url: null, article_slug: 'article-a', section: 'Intro', source_score: 0, wiki: 'w', embedding: emb1 });
+    store.insertEntry({ text: 'C1 in article-a', contextual_text: 'C1', type: 'claim', source_url: null, article_slug: 'article-a', section: 'Body', source_score: 0.5, wiki: 'w', embedding: emb2 });
+    store.insertEntry({ text: 'S2 in article-b', contextual_text: 'S2', type: 'sentence', source_url: null, article_slug: 'article-b', section: '', source_score: 0, wiki: 'w', embedding: emb3 });
+
+    const results = store.getByArticleSlug('article-a');
+    expect(results).toHaveLength(2);
+    expect(results.every((r) => r.article_slug === 'article-a')).toBe(true);
+    expect(results[0].embedding).toBeInstanceOf(Float32Array);
+    expect(results[0].embedding.length).toBe(4);
+    store.close();
+  });
+
+  it('getByArticleSlug filters by type when provided', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+
+    store.insertEntry({ text: 'Sentence', contextual_text: 'S', type: 'sentence', source_url: null, article_slug: 'slug-x', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding(1) });
+    store.insertEntry({ text: 'Claim', contextual_text: 'C', type: 'claim', source_url: null, article_slug: 'slug-x', section: '', source_score: 0, wiki: 'w', embedding: makeEmbedding(2) });
+
+    const sentences = store.getByArticleSlug('slug-x', 'sentence');
+    expect(sentences).toHaveLength(1);
+    expect(sentences[0].type).toBe('sentence');
+
+    const claims = store.getByArticleSlug('slug-x', 'claim');
+    expect(claims).toHaveLength(1);
+    expect(claims[0].type).toBe('claim');
+    store.close();
+  });
+
+  it('getByArticleSlug returns empty array for unknown slug', () => {
+    const store = new KnowledgeVectorStore(tmpDir);
+    const results = store.getByArticleSlug('nonexistent');
+    expect(results).toHaveLength(0);
+    store.close();
+  });
+
   it('chunked search works correctly across batches', () => {
     const store = new KnowledgeVectorStore(tmpDir);
     const query = makeEmbedding(50);

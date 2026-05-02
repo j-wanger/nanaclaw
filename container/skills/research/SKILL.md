@@ -194,6 +194,32 @@ knowledge_search({ wiki: "<wiki name>", query: "<search text>", type: "claim" | 
 
 Omit `type` to search across all entries. Returns similarity scores + source metadata.
 
+## Knowledge Analysis
+
+After embedding articles, use these tools to find gaps and contradictions:
+
+### Conflict Detection
+
+Find cross-article sentences that say similar things — potential contradictions or duplicates:
+
+```
+knowledge_conflicts({ wiki: "<wiki name>", article_slug: "<slug>", threshold: 0.8, classify: true })
+```
+
+Returns pairs of similar sentences from different articles. With `classify: true` (default), a Qwen worker labels each pair as `agree`, `contradict`, or `unrelated`. With `classify: false`, returns embedding-similarity pairs only (faster, no worker needed).
+
+Use `query` instead of `article_slug` for topic-based conflict search.
+
+### Claim Discovery
+
+Find sentences that look like claims but weren't extracted:
+
+```
+claim_discover({ wiki: "<wiki name>", article_slug: "<slug>", top_k: 20, validate: true })
+```
+
+Ranks unclaimed sentences by similarity to existing claims. With `validate: true` (default), a Qwen worker confirms whether each candidate is a real claim. High-similarity candidates are likely missed during extraction — review and re-extract if needed.
+
 ## Error Handling
 
 | Failure | Action |
