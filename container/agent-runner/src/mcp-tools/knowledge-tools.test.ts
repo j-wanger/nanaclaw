@@ -69,6 +69,26 @@ describe('knowledge_search', () => {
     expect(data.results.length).toBe(1);
     expect(data.results[0].type).toBe('sentence');
   });
+
+  test('accepts type=insight and filters results', async () => {
+    const store = new KnowledgeVectorStore(wikiDir);
+    const v = new Float32Array(768); v[0] = 1;
+    store.insertEntry({ text: 'A claim', contextual_text: 'A claim', type: 'claim', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: v });
+    store.insertEntry({ text: 'A sentence', contextual_text: 'A sentence', type: 'sentence', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: v });
+    store.insertEntry({ text: 'An insight', contextual_text: 'An insight', type: 'insight', source_url: null, article_slug: 'a', section: '', source_score: 0, wiki: 'w', embedding: v });
+    store.close();
+
+    globalThis.fetch = mock(() => {
+      const emb = new Array(768).fill(0); emb[0] = 1;
+      return Promise.resolve(new Response(JSON.stringify([{ embedding: emb }]), { status: 200 }));
+    }) as any;
+
+    const result = await handleKnowledgeSearch({ wiki: 'test-wiki', query: 'test', type: 'insight' });
+    const data = JSON.parse(result.content[0].text);
+    expect(data.results.length).toBe(1);
+    expect(data.results[0].type).toBe('insight');
+    expect(data.results[0].text).toBe('An insight');
+  });
 });
 
 describe('knowledge_embed', () => {

@@ -44,7 +44,7 @@ export async function handleKnowledgeSearch(args: Record<string, unknown>): Prom
 
   const store = new KnowledgeVectorStore(wikiPath);
   try {
-    const validType = type === 'claim' || type === 'sentence' ? type : undefined;
+    const validType = type === 'claim' || type === 'sentence' || type === 'insight' ? type : undefined;
     const results = store.searchSimilar(queryVec, topK, validType);
     return text(JSON.stringify({
       results: results.map((r) => ({
@@ -92,14 +92,14 @@ const tools: McpToolDefinition[] = [
   {
     tool: {
       name: 'knowledge_search',
-      description: 'Semantic search across the unified knowledge store (claims + sentences). Returns top-k matches with similarity scores, type, and source attribution. Use type filter to search only claims or only sentences.',
+      description: 'Semantic search across the unified knowledge store (claims + insights + sentences). Returns top-k matches with similarity scores, type, and source attribution. Use type filter to search only claims, insights, or sentences.',
       inputSchema: {
         type: 'object' as const,
         properties: {
           wiki: { type: 'string', description: 'Wiki name to search' },
           query: { type: 'string', description: 'Search query text' },
           top_k: { type: 'number', description: 'Number of results (default: 10)' },
-          type: { type: 'string', description: 'Filter by type: "claim" or "sentence". Omit for all.' },
+          type: { type: 'string', description: 'Filter by type: "claim", "insight", or "sentence". Omit for all.' },
         },
         required: ['wiki', 'query'],
       },
