@@ -44,6 +44,39 @@ class SidecarClient:
     def __init__(self, config: SidecarConfig) -> None:
         self._config = config
 
+    def verdicts(
+        self,
+        query: str,
+        candidates: list[SearchResult],
+    ) -> dict[str, Optional[bool]]:
+        """Return {memory_id: relevant_bool_or_None} for each candidate.
+
+        verified=None means the sidecar could not produce a verdict
+        (disabled, offline, malformed) — caller should treat as unverified,
+        not as "not relevant".
+        """
+        if not candidates:
+            return {}
+        if not self._config.enabled:
+            return {c.memory.id: None for c in candidates}
+
+        cap = self._config.max_candidates
+        head = candidates[:cap]
+        tail = candidates[cap:]
+
+        raw = self._call_qwen(query, head)
+        out: dict[str, Optional[bool]] = {}
+        if raw is None:
+            for c in candidates:
+                out[c.memory.id] = None
+            return out
+
+        for idx, candidate in enumerate(head):
+            out[candidate.memory.id] = raw.get(idx, False)
+        for c in tail:
+            out[c.memory.id] = None
+        return out
+
     def verify_candidates(
         self,
         query: str,
