@@ -74,9 +74,18 @@ async function main(): Promise<void> {
         additionalDirectories.push(fullPath);
       }
     }
-    if (additionalDirectories.length > 0) {
-      log(`Additional directories: ${additionalDirectories.join(', ')}`);
-    }
+  }
+
+  // In host mode, add the project root so the agent can read/write
+  // .claude/rules/ and .dev-wiki/ (outside its CWD at groups/<folder>/).
+  const projectRoot = path.resolve(AGENT_DIR, '..', '..');
+  const projectClaudeRules = path.join(projectRoot, '.claude', 'rules');
+  if (fs.existsSync(projectClaudeRules)) {
+    additionalDirectories.push(projectRoot);
+  }
+
+  if (additionalDirectories.length > 0) {
+    log(`Additional directories: ${additionalDirectories.join(', ')}`);
   }
 
   // MCP server path — bun runs TS directly; no tsc build step in-image.
