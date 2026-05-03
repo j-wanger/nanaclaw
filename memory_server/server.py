@@ -226,3 +226,8 @@ def create_server(config: Optional[MemoryConfig] = None) -> FastMCP:
         return import_memories(conn, markdown, mode=mode)
 
     return mcp
+
+
+# Module-level instance for `from server import mcp` (used by entry-point and import smoke tests).
+# Tools are registered eagerly; tools open a DB connection lazily on first call.
+mcp = create_server()
