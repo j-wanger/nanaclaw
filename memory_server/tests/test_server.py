@@ -174,3 +174,34 @@ class TestSearchVerify:
         # No verified field set when not verifying
         for r in results:
             assert r.get("verified") is None
+
+
+class TestMemoryContradict:
+    def test_contradict_marks_both_sides(self, config):
+        mcp = server_module.create_server(config)
+        store = _get_tool(mcp, "memory_store")
+        a = store(content="Claim A")["id"]
+        b = store(content="Claim B")["id"]
+
+        contradict = _get_tool(mcp, "memory_contradict")
+        result = contradict(memory_id_a=a, memory_id_b=b)
+
+        assert result["success"] is True
+
+        from storage import get_by_id
+        conn = server_module._get_conn(config, "project")
+        entry_a = get_by_id(conn, a)
+        entry_b = get_by_id(conn, b)
+        assert b in entry_a.contradicts
+        assert a in entry_b.contradicts
+
+    def test_contradict_nonexistent_returns_error(self, config):
+        mcp = server_module.create_server(config)
+        store = _get_tool(mcp, "memory_store")
+        a = store(content="Claim A")["id"]
+
+        contradict = _get_tool(mcp, "memory_contradict")
+        result = contradict(memory_id_a=a, memory_id_b="mem_nope")
+
+        assert result["success"] is False
+        assert "error" in result

@@ -17,6 +17,7 @@ from storage import (
     get_by_id,
     import_memories,
     init_db,
+    mark_contradiction,
     search_fts,
     search_hybrid,
     stats,
@@ -153,6 +154,24 @@ def create_server(config: Optional[MemoryConfig] = None) -> FastMCP:
             verified = verdict_map.get(cand.memory.id)
             out.append(cand.model_copy(update={"verified": verified}).model_dump(mode="json"))
         return out
+
+    @mcp.tool()
+    def memory_contradict(
+        memory_id_a: str,
+        memory_id_b: str,
+        scope: str = "project",
+    ) -> dict:
+        """Mark two memories as contradictory (bidirectional, advisory only).
+
+        Both entries gain the other's id in their `contradicts` array. No
+        trust demotion or deactivation — the caller decides what to do.
+        """
+        conn = _get_conn(config, scope)
+        try:
+            mark_contradiction(conn, memory_id_a, memory_id_b)
+        except ValueError as e:
+            return {"success": False, "error": str(e)}
+        return {"success": True, "memory_id_a": memory_id_a, "memory_id_b": memory_id_b}
 
     @mcp.tool()
     def memory_forget(
