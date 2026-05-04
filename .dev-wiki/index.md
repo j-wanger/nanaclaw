@@ -113,7 +113,7 @@
 - [[phase-00-fresh-fork-smoke-test|Phase 0: Fresh Fork + Smoke Test]] — completed
 - [[phase-01a-memory-architecture-research|Phase 1a: Memory Architecture Research]] — completed
 - [[phase-01b-memory-module|Phase 1b: Memory Module Implementation]] — completed
-- [[phase-02-host-mode-runner|Phase 2: Host-Mode Agent Runner]] — **complete (pending smoke test)**
+- [[phase-02-host-mode-runner|Phase 2: Host-Mode Agent Runner]] — completed
 - [[phase-03a-qwen-experiments|Phase 3a: Qwen Worker Baseline Experiments]] — completed
 - [[phase-03b-dispatch-module|Phase 3b: Dispatch Module Implementation]] — completed
 - [[phase-03c-dispatch-iteration|Phase 3c: Dispatch Integration + Iteration]] — completed
@@ -128,7 +128,7 @@
 - [[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]] — completed
 - [[phase-12-worker-research-reliability|Phase 12: Worker Research Reliability]] — completed
 - [[phase-13-multi-stage-research-pipeline|Phase 13: Multi-Stage Research Pipeline]] — completed
-- [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — completed (partial, 2 tasks superseded by Phase 15)
+- [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — completed (partial)
 - [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — completed
 - [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — completed
 - [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — completed
@@ -141,70 +141,37 @@
 - [[phase-24-deep-work-session-reliability|Phase 24: Deep Work Session Reliability]] — completed
 - [[phase-25-session-resume-entity-extraction|Phase 25: Session Resume Guard + Entity Extraction Pipeline]] — completed
 - [[phase-26-unified-knowledge-vector-store|Phase 26: Unified Knowledge Vector Store]] — completed
-- [[phase-27-conflict-detection-claim-discovery|Phase 27: Conflict Detection + Claim Discovery]] — **complete (pending confirmation)**
+- [[phase-27-conflict-detection-claim-discovery|Phase 27: Conflict Detection + Claim Discovery]] — completed
+- [[phase-28-insight-extraction|Phase 28: Insight Extraction]] — completed
+- [[phase-29-memory-mcp-core|Phase 29: Memory MCP Server — Core Storage + Tools]] — completed
+- [[phase-30-memory-mcp-embeddings|Phase 30: Memory MCP Server — Embeddings + Claude Code]] — completed
+- [[phase-31-memory-mcp-sidecar|Phase 31: Memory MCP Server — Sidecar + Trust Lifecycle]] — completed
+- [[phase-32-memory-mcp-integration|Phase 32: Memory MCP Server — Nanaclaw + Consolidation]] — active
 
 ## Decisions
 
 - [[fresh-fork-over-v1-continuation|Fresh Fork over V1 Continuation]] — high confidence
 - [[two-tier-heterogeneous-architecture|Two-Tier Heterogeneous Architecture]] — high confidence
 - [[memory-architecture-decisions|Memory Architecture Decisions]] — high confidence
-- [[phase-2-host-mode-approach|Phase 2 Host-Mode Approach]] — high confidence
-- [[phase-1b-memory-approach|Phase 1b Memory Module Approach]] — high confidence
-- [[phase-3a-experiment-approach|Phase 3a Experiment Approach]] — high confidence
-- [[phase-3b-async-dispatch-approach|Phase 3b Async Container-Side Dispatch]] — high confidence
-- [[phase-3c-host-routing-approach|Phase 3c Host-Side Model Routing]] — medium confidence
-- [[phase-4-voice-io-approach|Phase 4: Voice I/O — Whisper Server + Edge TTS]] — medium confidence
-- [[phase-5-web-search-approach|Phase 5: SearXNG + Readability + Dynamic Wiki Routing]] — medium confidence
-- [[phase-6a-worker-tool-calling-approach|Phase 6a: Worker Tool-Calling via Multi-Turn Agent Loop]] — medium confidence
-- [[phase-6b-research-loop-approach|Phase 6b: Worker-Driven Research Loops + Episodic Wiki]] — medium confidence
-- [[phase-7-hardening-wiki-bridge-approach|Phase 7: Production Hardening + Wiki Bridge]] — medium confidence
-- [[phase-8-operational-deployment-approach|Phase 8: Operational Deployment + E2E Validation]] — medium confidence
-- [[phase-9-prompt-reconciliation-approach|Phase 9: Agent Prompt Reconciliation]] — medium confidence
-- [[phase-10-host-mode-test-coverage-approach|Phase 10: Host-Mode Integration Tests]] — medium confidence
-- [[phase-11-host-mode-fragment-path-fix|Phase 11: Host-Mode Fragment Path Fix]] — medium confidence
-- [[phase-12-worker-research-reliability|Phase 12: Worker Research Reliability]] — medium confidence
-- [[phase-13-multi-stage-research-pipeline|Phase 13: Multi-Stage Research Pipeline]] — medium confidence
-- [[phase-14-unified-research-skill|Phase 14: Unified Research Skill]] — high confidence
-- [[phase-15-iterative-research-pipeline|Phase 15: Iterative Research Pipeline]] — high confidence
-- [[phase-16-research-session-reliability|Phase 16: Research Session Reliability]] — medium confidence
-- [[phase-17-message-batching-extraction-resilience|Phase 17: Message Batching + Research Extraction Resilience]] — medium confidence
-- [[phase-18-wiki-project-integration-approach|Phase 18: Wiki + Project Management Integration]] — medium confidence
-- [[phase-19-worker-batching-validation-approach|Phase 19: Worker Result Batching + Article Validation]] — medium confidence
-- [[phase-20-summarize-pipeline-approach|Phase 20: Summarize Pipeline Reliability]] — medium confidence
-- [[phase-21-source-triage-claim-extraction-approach|Phase 21: Source Triage + Claim Extraction]] — medium confidence
-- [[phase-22-vector-claim-store-approach|Phase 22: Vector Claim Store]] — medium confidence
-- [[phase-23-claim-backfill-e2e-approach|Phase 23: Claim Backfill E2E]] — medium confidence
-- [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
-- [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume Guard + Entity Extraction]] — medium confidence
-- [[phase-26-sentence-embedding-store-approach|Phase 26: Unified Knowledge Vector Store]] — medium confidence
+- [[memory-mcp-server-architecture|Memory MCP Server Architecture]] — high confidence
+- [[phase-28-insight-extraction-approach|Phase 28: Insight Extraction]] — medium confidence
 - [[phase-27-conflict-detection-claim-discovery-approach|Phase 27: Conflict Detection + Claim Discovery]] — medium confidence
+- [[phase-26-sentence-embedding-store-approach|Phase 26: Unified Knowledge Vector Store]] — medium confidence
+- [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume + Entity Extraction]] — medium confidence
+- [[phase-32-nanaclaw-consolidation-approach|Phase 32: Nanaclaw + Consolidation]] — medium confidence
+- [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
 
-## Journal (recent)
+## Journal (recent 10)
 
-- [2026-05-01] [[2026-05-01-phase-26-unified-knowledge-vector-store-complete|Phase 26 Complete]]
-- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25 Complete]]
-- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24 Complete]]
-- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23 In Progress]]
-- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22 Complete]]
-
-## Journal
-
-- [2026-04-29] [[2026-04-29-phase-17-message-batching-extraction-resilience-complete|Phase 17: Message Batching + Extraction Resilience Complete]] — 6 tasks, accumulation window + Jina fallback + SearXNG, reviewer 9/10
-- [2026-04-28] [[2026-04-28-phase-15-iterative-research-pipeline-complete|Phase 15: Iterative Research Pipeline Complete]] — 8 tasks, research_fetch + url-index + write_to + iterative skill, reviewer 7/10
-- [2026-04-27] [[2026-04-27-phase-12-worker-research-reliability-complete|Phase 12: Worker Research Reliability Complete]] — 5 tasks, toolTrace + max_iterations + prompt routing, pipeline redesign needed
-- [2026-04-27] [[2026-04-27-phase-11-host-mode-fragment-fix-complete|Phase 11: Fragment Path Fix Complete]] — 5 fixes, host-mode fully operational
-- [2026-04-27] [[2026-04-27-phase-10-host-mode-integration-tests-complete|Phase 10: Integration Tests Complete]] — 4 tasks, 26 new tests, spawn pipeline + session DB + delivery
-- [2026-04-27] [[2026-04-27-phase-9-prompt-reconciliation-complete|Phase 9: Prompt Reconciliation Complete]] — 5 tasks, memory conflict resolved, SOUL.md wired, reviewer 8/10
-
-- [2026-04-27] [[2026-04-27-phase-8-operational-deployment-complete|Phase 8: Operational Deployment Complete]] — 6 tasks, 5 host-mode bugs fixed, full pipeline validated, reviewer 6/10→fixed
-- [2026-04-26] [[2026-04-26-phase-6b-research-loop-complete|Phase 6b: Research Loop + Episodic Integration Complete]] — 6 tasks, episodic wiki tier + research-loop skill, reviewer 8/10
-- [2026-04-26] [[2026-04-26-phase-5-web-search-complete|Phase 5: Web Search + Deep Research Complete]] — 5 tasks, 3 MCP tools + skill + pipeline test, reviewer 8/10
-- [2026-04-26] [[2026-04-26-phase-2-implementation-complete|Phase 2 Implementation Complete]] — Tasks 3-8, host-mode + deep work, reviewer 9/10
-- [2026-04-26] [[2026-04-26-phase-2-planning-and-scaffold|Phase 2 Planning and Scaffold]] — planned phase, revised approach, 2/8 tasks done
-- [2026-04-25] [[2026-04-25-phase-1b-memory-implementation|Phase 1b Memory Module Implementation]] — planned + implemented memory module, 6 tasks, 36 new tests
-- [2026-04-25] [[2026-04-25-phase-0-bootstrap-complete|Phase 0 Bootstrap Complete]] — fork + scan + plan + all tasks done + smoke test passed
-- [2026-04-26] [[2026-04-26-phase-3b-dispatch-module-complete|Phase 3b: Dispatch Module Complete]] — 7 tasks, 73 tests, async dispatch + poll-loop auto-pickup, reviewer 8/10
-- [2026-04-26] [[2026-04-26-phase-4-voice-io-complete|Phase 4: Voice I/O Complete]] — 5 tasks, STT + TTS, reviewer 7/10
-- [2026-04-26] [[2026-04-26-phase-3c-dispatch-integration-complete|Phase 3c: Dispatch Integration Complete]] — 7 tasks, 10/10 E2E, routing + semaphore, reviewer 8/10
-- [2026-04-26] [[2026-04-26-phase-3a-qwen-experiments-complete|Phase 3a: Qwen Experiments Complete]] — 12 experiments, 36/36 pass, thinking selective, 4K-8K context sweet spot
-- [2026-04-26] [[2026-04-26-phase-7-hardening-wiki-bridge-complete|Phase 7: Production Hardening + Wiki Bridge Complete]] — 5 tasks, wiki-bridge + wiki_search + smoke test, reviewer 7/10
+- [2026-05-03] [[2026-05-03-phase-32-memory-mcp-nanaclaw-consolidation-complete|Phase 32: Memory MCP Server — Nanaclaw + Consolidation Complete]] — 6 tasks, consolidation + migration + prune + global fan-out + MCP wiring, 186 tests, reviewer 8/10
+- [2026-05-03] [[2026-05-03-phase-31-memory-mcp-sidecar-complete|Phase 31: Memory MCP Server — Sidecar + Trust Lifecycle Complete]] — 6 tasks, sidecar verifier + contradiction tracking + extractor, 157 tests, reviewer 9/10
+- [2026-05-03] [[2026-05-03-phase-30-memory-mcp-embeddings-complete|Phase 30: Memory MCP Server — Embeddings + Claude Code Complete]] — 6 tasks, embedding search + RRF fusion + export/import + Claude Code rules, 130 tests, reviewer 7/10→fixed
+- [2026-05-03] [[2026-05-03-phase-29-memory-mcp-core-complete|Phase 29: Memory MCP Server Complete]] — 6 tasks, Python MCP server, 62 tests, reviewer 8/10
+- [2026-05-01] [[2026-05-01-phase-27-conflict-detection-claim-discovery-complete|Phase 27: Conflict Detection + Claim Discovery Complete]]
+- [2026-05-01] [[2026-05-01-phase-26-unified-knowledge-vector-store-complete|Phase 26: Unified Knowledge Vector Store Complete]]
+- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25: Session Resume + Entity Extraction Complete]]
+- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]]
+- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]]
+- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]]
+- [2026-04-30] [[2026-04-30-phases-18-21-knowledge-pipeline-overhaul|Phases 18-21: Knowledge Pipeline Overhaul]]
+- [2026-04-29] [[2026-04-29-phase-17-message-batching-extraction-resilience-complete|Phase 17: Message Batching + Extraction Resilience Complete]]

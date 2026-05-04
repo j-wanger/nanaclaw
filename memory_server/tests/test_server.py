@@ -41,7 +41,7 @@ def _seed_memories(mcp):
     store = _get_tool(mcp, "memory_store")
     ids = []
     for content in [
-        "Jake prefers Rust for systems work",
+        "Alice prefers Rust for systems work",
         "The dev wiki uses .dev-wiki/ for phases",
         "Memory MCP uses SQLite as primary store",
         "Terse responses preferred — no preamble",
@@ -120,7 +120,7 @@ class TestSearchVerify:
         monkeypatch.setattr("sidecar.httpx.post", _post)
 
         search = _get_tool(mcp, "memory_search")
-        results = search(query="Jake Rust", verify=True)
+        results = search(query="Alice Rust", verify=True)
 
         # All results should be verified=True (filtered to relevant)
         assert len(results) >= 1
@@ -138,7 +138,7 @@ class TestSearchVerify:
         monkeypatch.setattr("sidecar.httpx.post", _raise)
 
         search = _get_tool(mcp, "memory_search")
-        results = search(query="Jake", verify=True)
+        results = search(query="Alice", verify=True)
 
         # Fail-open: results returned unfiltered with verified=None
         assert len(results) >= 1
@@ -154,7 +154,7 @@ class TestSearchVerify:
         monkeypatch.setattr("sidecar.httpx.post", MagicMock(return_value=bad_resp))
 
         search = _get_tool(mcp, "memory_search")
-        results = search(query="Jake", verify=True)
+        results = search(query="Alice", verify=True)
 
         # Did not crash; returned results unfiltered
         assert isinstance(results, list)
@@ -168,12 +168,93 @@ class TestSearchVerify:
         monkeypatch.setattr("sidecar.httpx.post", post_mock)
 
         search = _get_tool(mcp, "memory_search")
-        results = search(query="Jake")
+        results = search(query="Alice")
 
         post_mock.assert_not_called()
         # No verified field set when not verifying
         for r in results:
             assert r.get("verified") is None
+
+
+class TestGlobalScope:
+    def test_memory_store_scope_global_writes_to_global_db(self, config):
+        mcp = server_module.create_server(config)
+        store_tool = _get_tool(mcp, "memory_store")
+        result = store_tool(content="A global preference", scope="global")
+        assert result["action"] == "created"
+
+        proj_conn = server_module._get_conn(config, "project")
+        glob_conn = server_module._get_conn(config, "global")
+
+        proj_count = proj_conn.execute(
+            "SELECT COUNT(*) FROM memories"
+        ).fetchone()[0]
+        glob_count = glob_conn.execute(
+            "SELECT COUNT(*) FROM memories"
+        ).fetchone()[0]
+        assert proj_count == 0
+        assert glob_count == 1
+
+    def test_memory_search_scope_all_returns_combined(self, config):
+        mcp = server_module.create_server(config)
+        store_tool = _get_tool(mcp, "memory_store")
+        store_tool(content="Project fact about NanoClaw widgets", scope="project")
+        store_tool(content="Global fact about Alice's widgets preference", scope="global")
+
+        search = _get_tool(mcp, "memory_search")
+        results = search(query="widgets", scope="all", limit=10)
+        contents = [r["memory"]["content"] for r in results]
+        assert any("Project fact" in c for c in contents)
+        assert any("Global fact" in c for c in contents)
+
+    def test_memory_stats_scope_global(self, config):
+        mcp = server_module.create_server(config)
+        store_tool = _get_tool(mcp, "memory_store")
+        store_tool(content="A global fact", scope="global")
+        store_tool(content="A project fact", scope="project")
+
+        stats_tool = _get_tool(mcp, "memory_stats")
+        global_stats = stats_tool(scope="global")
+        project_stats = stats_tool(scope="project")
+
+        assert global_stats["total_active"] == 1
+        assert project_stats["total_active"] == 1
+
+
+class TestPrune:
+    def test_prune_dry_run_tool(self, config):
+        mcp = server_module.create_server(config)
+        store_tool = _get_tool(mcp, "memory_store")
+        r = store_tool(content="prunable low-trust fact", trust="low")
+
+        prune_tool = _get_tool(mcp, "memory_prune")
+        result = prune_tool(dry_run=True)
+
+        assert result["dry_run"] is True
+        assert result["count"] >= 1
+        ids = [c["id"] for c in result["candidates"]]
+        assert r["id"] in ids
+
+        # Verify still active (not modified)
+        conn = server_module._get_conn(config, "project")
+        row = conn.execute("SELECT active FROM memories WHERE id = ?", (r["id"],)).fetchone()
+        assert row["active"] == 1
+
+    def test_prune_execute_tool(self, config):
+        mcp = server_module.create_server(config)
+        store_tool = _get_tool(mcp, "memory_store")
+        r = store_tool(content="prunable low-trust fact for archive", trust="low")
+
+        prune_tool = _get_tool(mcp, "memory_prune")
+        result = prune_tool(dry_run=False)
+
+        assert result["dry_run"] is False
+        ids = [c["id"] for c in result["candidates"]]
+        assert r["id"] in ids
+
+        conn = server_module._get_conn(config, "project")
+        row = conn.execute("SELECT active FROM memories WHERE id = ?", (r["id"],)).fetchone()
+        assert row["active"] == 0
 
 
 class TestMemoryContradict:

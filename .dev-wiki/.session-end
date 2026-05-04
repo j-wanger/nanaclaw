@@ -1,10 +1,10 @@
-ended: 2026-05-01T19:36:33
-pending_commit: yes
-session_buffer: yes
-debriefed: yes
+ended: 2026-05-04T12:05:17
+pending_commit: no
+session_buffer: no
+debriefed: no
 recent_commits:
-540deee Phase 25 debrief: add dispatch entity tier test + fix decision article
-d1355b6 Phase 25: session resume init timeout + entity extraction pipeline
-950b96d Phases 18-24: knowledge pipeline overhaul + deep work session reliability
-3d53c4a Phase 17: message batching + Jina extraction fallback + SearXNG diversification
-f0a4db0 Phase 16: research session reliability + Bob agent + llama-server
+0bb00f6 Phase 31 Task 6: mark Phase 30 exit criteria as met
+b10f9c3 Phase 31 Task 5: expose module-level mcp; full suite green
+adeb2dc Phase 31 Task 4: transcript-to-memories extractor
+531ce09 Phase 31 Task 3: bidirectional contradiction tracking
+8e4664e Phase 31 Task 2: wire sidecar into memory_search and memory_verify

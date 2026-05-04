@@ -8,6 +8,7 @@ from typing import Optional
 from mcp.server.fastmcp import FastMCP
 
 from config import MemoryConfig, load_config
+from consolidator import consolidate
 from embedding import EmbeddingProvider
 from models import Category, MemoryEntry, SearchResult, Source, Trust
 from sidecar import SidecarClient
@@ -18,6 +19,8 @@ from storage import (
     import_memories,
     init_db,
     mark_contradiction,
+    prune,
+    search_all,
     search_fts,
     search_hybrid,
     stats,
@@ -99,27 +102,42 @@ def create_server(config: Optional[MemoryConfig] = None) -> FastMCP:
         When verify=true, results are piped through the Qwen sidecar verifier
         and filtered to those judged relevant. On sidecar failure, results are
         returned unfiltered (verified=None) — fail-open.
+
+        When scope="all", fans out to both project and global stores and merges
+        via RRF (project entries preferred on equal score).
         """
-        conn = _get_conn(config, scope)
         cat = Category(category) if category else None
 
         # Try to embed the query for hybrid search
         query_embedding = _embedding_provider.embed(query)
 
-        if query_embedding is not None:
-            raw = search_hybrid(
-                conn, query, query_embedding, limit=limit, category=cat, active_only=active_only
+        if scope == "all":
+            proj_conn = _get_conn(config, "project")
+            glob_conn = _get_conn(config, "global")
+            raw = search_all(
+                proj_conn, glob_conn, query, query_embedding,
+                limit=limit, category=cat, active_only=active_only,
             )
             results = [
                 SearchResult(memory=entry, score=score, match_type=match_type)
                 for entry, score, match_type in raw
             ]
         else:
-            raw_fts = search_fts(conn, query, limit=limit, category=cat, active_only=active_only)
-            results = [
-                SearchResult(memory=entry, score=score, match_type="fts5")
-                for entry, score in raw_fts
-            ]
+            conn = _get_conn(config, scope)
+            if query_embedding is not None:
+                raw = search_hybrid(
+                    conn, query, query_embedding, limit=limit, category=cat, active_only=active_only
+                )
+                results = [
+                    SearchResult(memory=entry, score=score, match_type=match_type)
+                    for entry, score, match_type in raw
+                ]
+            else:
+                raw_fts = search_fts(conn, query, limit=limit, category=cat, active_only=active_only)
+                results = [
+                    SearchResult(memory=entry, score=score, match_type="fts5")
+                    for entry, score in raw_fts
+                ]
 
         if verify:
             results = _sidecar.verify_candidates(query, results)
@@ -214,6 +232,57 @@ def create_server(config: Optional[MemoryConfig] = None) -> FastMCP:
         conn = _get_conn(config, scope)
         cat = Category(category) if category else None
         return export_memories(conn, category=cat)
+
+    @mcp.tool()
+    def memory_prune(
+        dry_run: bool = True,
+        scope: str = "project",
+        max_age_days: int = 180,
+        min_access_count: int = 2,
+    ) -> dict:
+        """Identify and optionally archive stale memories.
+
+        Stale = active, trust='low', strength=1, AND (created_at older than
+        max_age_days OR access_count < min_access_count). When dry_run=True
+        (default), returns candidates without modification. When dry_run=False,
+        sets active=0 on matching memories and returns the archived list.
+        """
+        conn = _get_conn(config, scope)
+        candidates = prune(
+            conn,
+            dry_run=dry_run,
+            max_age_days=max_age_days,
+            min_access_count=min_access_count,
+        )
+        return {
+            "dry_run": dry_run,
+            "count": len(candidates),
+            "candidates": candidates,
+        }
+
+    @mcp.tool()
+    def memory_consolidate(
+        dry_run: bool = True,
+        scope: str = "project",
+        min_cluster_size: int = 3,
+        similarity_threshold: float = 0.80,
+    ) -> dict:
+        """Cluster semantically similar memories and merge each cluster via the Qwen sidecar.
+
+        Single-link clustering on cosine similarity > similarity_threshold;
+        clusters with fewer than min_cluster_size members are ignored. When
+        dry_run=True (default), returns cluster info without modification.
+        Fail-closed: if Qwen is unavailable for a cluster, that cluster is
+        skipped entirely (clusters_skipped is incremented).
+        """
+        conn = _get_conn(config, scope)
+        return consolidate(
+            conn,
+            config.sidecar,
+            dry_run=dry_run,
+            min_cluster_size=min_cluster_size,
+            similarity_threshold=similarity_threshold,
+        )
 
     @mcp.tool()
     def memory_import(

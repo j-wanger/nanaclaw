@@ -53,7 +53,7 @@ def config():
 class TestVerifyCandidates:
     def test_returns_filtered_when_qwen_responds(self, config, monkeypatch):
         candidates = [
-            _candidate("Jake prefers Rust", "mem_1"),
+            _candidate("Alice prefers Rust", "mem_1"),
             _candidate("The sky is blue", "mem_2"),
             _candidate("Memory MCP uses SQLite", "mem_3"),
         ]

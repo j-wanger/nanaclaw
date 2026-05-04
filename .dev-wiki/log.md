@@ -1,5 +1,12 @@
 # Dev Wiki Log
 
+[2026-05-03T18:00:00] DEBRIEF -- Phase 32 complete (6/6 tasks), 0 decisions (approach pre-planned), consolidation + migration + prune + global fan-out + MCP wiring, 186 tests (+29), reviewer 8/10 accept, journal: phase-32-memory-mcp-nanaclaw-consolidation-complete
+[2026-05-03T17:00:00] PLAN -- Phase 32 activated, 6 tasks (3M+3S), 1 decision (nanaclaw-consolidation-approach), approach reviewer 8/10 revise→fixed, Python-first config-only integration
+[2026-05-03T16:00:00] DEBRIEF -- Phase 31 complete (6/6 tasks), 1 decision (sidecar approach), sidecar verifier + contradiction tracking + extractor, 157 tests (+27), reviewer 9/10 accept, journal: phase-31-memory-mcp-sidecar-complete
+[2026-05-03T15:30:00] PLAN -- Phase 31 activated, 6 tasks (4M+2S), 1 decision (sidecar-trust-lifecycle-approach), 3/8 exit criteria pre-met from Phase 30, plan reviewer 9/10 accept
+[2026-05-03T15:00:00] DEBRIEF -- Phase 30 complete (6/6 tasks), 0 new decisions, embedding search + RRF fusion + export/import + Claude Code rules, 130 tests, reviewer 7/10→fixed (2 HIGH: recency sort + invalid categories), active knowledge carried forward (3 entries), journal: phase-30-memory-mcp-embeddings-complete
+[2026-05-03T12:00:00] PLAN -- Phase 30 activated, 6 tasks (5M+1S), 0 new decisions (architecture decision pre-existing), tasks pre-drafted, phase transition from Phase 29
+[2026-05-03T10:00:00] DEBRIEF -- Phase 29 complete (6/6 tasks), 0 new decisions (architecture decision pre-existing), standalone Python MCP server (memory_server/), 62 tests, reviewer 8/10, active knowledge carried forward (3 entries), journal: phase-29-memory-mcp-core-complete
 [2026-05-01T19:00:00] DEBRIEF -- Phase 27 complete (6/6 tasks), 1 decision, 4 new modules (conflicts, discovery, classify, analysis-tools), 2 MCP tools, +39 tests (491 total), reviewer 8/10, journal: phase-27-conflict-detection-claim-discovery-complete
 [2026-05-01T12:00:00] PLAN -- Phase 27 planned, 6 tasks (2S+4M), 1 decision (conflict detection + claim discovery — embedding similarity + Qwen classification), cross-wiki: 3 articles (agentic-engineering), approach reviewer 8/10 accept, plan reviewer 7/10 accept
 [2026-05-01T11:00:00] DEBRIEF -- Phase 26 complete (6/6 tasks), 1 decision, unified knowledge.db + sentence embed pipeline, +34 tests (452 total), claim-vector-store.ts deleted, journal: phase-26-unified-knowledge-vector-store-complete

@@ -7,7 +7,7 @@ parents: []
 created: 2026-05-02
 updated: 2026-05-03
 source: plan
-status: active
+status: completed
 scope: ["memory_server/sidecar.py", "memory_server/extractor.py", "memory_server/storage.py", "memory_server/server.py", "memory_server/tests/"]
 entry_criteria: "Phase 30 complete (embeddings + Claude Code integration working)"
 exit_criteria: "memory_verify filters irrelevant candidates via Qwen, near-duplicate auto-reinforcement works at cosine > 0.90, trust-based tie-breaking in search, session-end extractor produces reasonable entries from transcript"
@@ -35,11 +35,11 @@ Add Qwen sidecar verification (memory_verify tool, verify=true in memory_search)
 
 ## Exit Criteria
 
-- [ ] memory_verify sends candidates to Qwen and returns relevant/not-relevant per entry
-- [ ] memory_search(verify=true) filters to verified candidates only
-- [ ] Qwen offline: verify=true falls back gracefully with warning
+- [x] memory_verify sends candidates to Qwen and returns relevant/not-relevant per entry
+- [x] memory_search(verify=true) filters to verified candidates only
+- [x] Qwen offline: verify=true falls back gracefully with warning
 - [x] memory_store auto-reinforces at cosine > 0.90, warns at 0.85-0.90
 - [x] Search results tie-break by trust → strength → recency
 - [x] Supersede marks old inactive + links to replacement
-- [ ] mark_contradiction records bidirectional link
-- [ ] extractor.py produces reasonable entries from test transcript
+- [x] mark_contradiction records bidirectional link
+- [x] extractor.py produces reasonable entries from test transcript

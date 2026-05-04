@@ -1,0 +1,22 @@
+[
+  {"content": "Alice is a software engineer working in data infrastructure", "category": "fact", "trust": "high", "tags": ["user-profile"]},
+  {"content": "Preferred development machine is M1 Max MacBook Pro", "category": "entity", "trust": "high", "tags": ["hardware"]},
+  {"content": "Always use Python for automation and scripting tasks", "category": "preference", "trust": "high", "tags": ["coding"]},
+  {"content": "Prefers dark themes in all code editors", "category": "preference", "trust": "high", "tags": ["ui"]},
+  {"content": "NanoClaw uses a two-DB session architecture with inbound and outbound SQLite files", "category": "fact", "trust": "high", "tags": ["architecture"]},
+  {"content": "Qwen context window sweet spot is 4K to 8K tokens per worker", "category": "fact", "trust": "medium", "tags": ["llm", "qwen"]},
+  {"content": "FTS5 provides better relevance ranking than LIKE queries for keyword search", "category": "fact", "trust": "medium", "tags": ["database", "search"]},
+  {"content": "Memory system replaces flat MEMORY.md files with structured SQLite store", "category": "fact", "trust": "medium", "tags": ["architecture", "memory"]},
+  {"content": "Trading systems require sub-millisecond latency for market data feeds", "category": "fact", "trust": "low", "tags": ["trading"]},
+  {"content": "Use terse and technical communication style with no fluff", "category": "preference", "trust": "high", "tags": ["communication"]},
+  {"content": "LLM pipelines fail open by default with no crash signal on bad output", "category": "correction", "trust": "high", "tags": ["llm", "reliability"]},
+  {"content": "Decision-tree prompt patterns are more reliable than natural language for small models", "category": "correction", "trust": "medium", "tags": ["prompting"]},
+  {"content": "Sequential pipeline stages need bounded responsibility with quality gates", "category": "fact", "trust": "medium", "tags": ["pipeline", "architecture"]},
+  {"content": "Context shaping is the most impactful job for an orchestrator agent", "category": "fact", "trust": "medium", "tags": ["orchestration"]},
+  {"content": "Favorite programming language is Rust", "category": "preference", "trust": "high", "tags": ["coding"]},
+  {"content": "User timezone is America/Toronto (Eastern)", "category": "entity", "trust": "high", "tags": ["user-profile"]},
+  {"content": "Wiki generation with two-pass approach gives 15-25% accuracy improvement at 2x cost", "category": "fact", "trust": "medium", "tags": ["wiki", "pipeline"]},
+  {"content": "Raw wiki sources are immutable with sha256 frontmatter for drift detection", "category": "fact", "trust": "medium", "tags": ["wiki"]},
+  {"content": "Agent-memory-wiki has 2005 raw articles and 573 extracted insights", "category": "entity", "trust": "medium", "tags": ["project"]},
+  {"content": "OneCLI manages API keys and OAuth tokens for agent containers", "category": "fact", "trust": "high", "tags": ["infrastructure"]}
+]

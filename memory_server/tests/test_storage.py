@@ -15,7 +15,9 @@ from storage import (
     get_by_id,
     init_db,
     mark_contradiction,
+    prune,
     reinforce,
+    search_all,
     stats,
     store,
     tag,
@@ -72,7 +74,7 @@ class TestInitDb:
 
 class TestStore:
     def test_creates_entry(self, db):
-        result = store(db, "Jake prefers dark themes")
+        result = store(db, "Alice prefers dark themes")
         assert result.action == "created"
         assert result.id.startswith("mem_")
 
@@ -195,20 +197,20 @@ class TestReinforce:
 
 class TestDedup:
     def test_exact_match_reinforces(self, db):
-        r1 = store(db, "Jake prefers dark themes")
-        r2 = store(db, "Jake prefers dark themes")
+        r1 = store(db, "Alice prefers dark themes")
+        r2 = store(db, "Alice prefers dark themes")
         assert r1.action == "created"
         assert r2.action == "reinforced"
         assert r2.existing_id == r1.id
 
     def test_case_insensitive(self, db):
-        r1 = store(db, "Jake prefers dark themes")
-        r2 = store(db, "jake prefers dark themes")
+        r1 = store(db, "Alice prefers dark themes")
+        r2 = store(db, "alice prefers dark themes")
         assert r2.action == "reinforced"
 
     def test_whitespace_normalized(self, db):
-        r1 = store(db, "  Jake prefers dark themes  ")
-        r2 = store(db, "Jake prefers dark themes")
+        r1 = store(db, "  Alice prefers dark themes  ")
+        r2 = store(db, "Alice prefers dark themes")
         assert r2.action == "reinforced"
 
     def test_strength_increments(self, db):
@@ -311,3 +313,97 @@ class TestMarkContradiction:
         # Both still active
         assert get_by_id(db, a_id).active is True
         assert get_by_id(db, b_id).active is True
+
+
+class TestPrune:
+    def test_prune_finds_candidates(self, db):
+        # Low trust, never reinforced, freshly created (access_count=0 < 2) — prunable
+        r = store(db, "stale low-trust fact", trust=Trust.LOW)
+        candidates = prune(db, dry_run=True)
+        ids = [c["id"] for c in candidates]
+        assert r.id in ids
+
+    def test_prune_dry_run_no_modification(self, db):
+        r = store(db, "another stale fact", trust=Trust.LOW)
+        prune(db, dry_run=True)
+        entry = get_by_id(db, r.id)
+        assert entry.active is True
+
+    def test_prune_execute_archives(self, db):
+        r = store(db, "archive me", trust=Trust.LOW)
+        archived = prune(db, dry_run=False)
+        ids = [c["id"] for c in archived]
+        assert r.id in ids
+        # Use direct query to avoid get_by_id incrementing access_count
+        row = db.execute("SELECT active FROM memories WHERE id = ?", (r.id,)).fetchone()
+        assert row["active"] == 0
+
+    def test_prune_excludes_high_trust(self, db):
+        r = store(db, "high-trust fact", trust=Trust.HIGH)
+        candidates = prune(db, dry_run=True)
+        ids = [c["id"] for c in candidates]
+        assert r.id not in ids
+
+    def test_prune_excludes_reinforced(self, db):
+        r = store(db, "reinforced low-trust fact", trust=Trust.LOW)
+        reinforce(db, r.id, session_id="sess_1")
+        # strength is now 2
+        candidates = prune(db, dry_run=True)
+        ids = [c["id"] for c in candidates]
+        assert r.id not in ids
+
+
+@pytest.fixture
+def project_global_dbs(tmp_path):
+    proj = init_db(tmp_path / "project.db")
+    glob = init_db(tmp_path / "global.db")
+    yield proj, glob
+    proj.close()
+    glob.close()
+
+
+class TestSearchAllGlobalFanout:
+    def test_search_all_queries_both_dbs(self, project_global_dbs):
+        proj, glob = project_global_dbs
+        store(proj, "Project memory about NanoClaw architecture")
+        store(glob, "Global memory about Alice's general preferences")
+
+        results = search_all(proj, glob, "memory", limit=10)
+        contents = [entry.content for entry, _, _ in results]
+        assert any("Project memory" in c for c in contents)
+        assert any("Global memory" in c for c in contents)
+
+    def test_search_all_global_project_preference_on_tie(self, project_global_dbs):
+        proj, glob = project_global_dbs
+        # Identical content in each — same FTS rank in each DB
+        store(proj, "shared topic alpha beta gamma")
+        store(glob, "shared topic alpha beta gamma")
+
+        results = search_all(proj, glob, "shared topic alpha beta gamma", limit=10)
+        assert len(results) == 2
+        # Project must come first on tied rank
+        proj_id = proj.execute("SELECT id FROM memories LIMIT 1").fetchone()["id"]
+        assert results[0][0].id == proj_id
+
+    def test_search_all_global_empty_one_db_returns_only_other(self, project_global_dbs):
+        proj, glob = project_global_dbs
+        store(proj, "Only project has this content about widgets")
+
+        results = search_all(proj, glob, "widgets", limit=10)
+        assert len(results) == 1
+        assert "Only project" in results[0][0].content
+
+        # And the inverse
+        store(glob, "Only global has this content about gadgets")
+        results2 = search_all(proj, glob, "gadgets", limit=10)
+        assert len(results2) == 1
+        assert "Only global" in results2[0][0].content
+
+    def test_search_all_global_respects_limit(self, project_global_dbs):
+        proj, glob = project_global_dbs
+        for i in range(5):
+            store(proj, f"shared topic alpha beta proj-{i}")
+            store(glob, f"shared topic alpha beta glob-{i}")
+
+        results = search_all(proj, glob, "shared topic alpha beta", limit=3)
+        assert len(results) == 3

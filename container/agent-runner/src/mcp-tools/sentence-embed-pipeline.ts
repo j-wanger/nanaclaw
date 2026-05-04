@@ -208,8 +208,8 @@ export async function embedSentences(
 
       const embedded = await embedAndStore(store, prepared);
       if (embedded === 0) {
-        console.error(`[sentence-embed] 0/${prepared.length} sentences embedded for ${path.basename(articlePath)} — skipping (embedding server may be down)`);
-        break;
+        console.error(`[sentence-embed] 0/${prepared.length} sentences embedded for ${path.basename(articlePath)} — skipping`);
+        continue;
       }
       totalEmbedded += embedded;
       articlesProcessed++;

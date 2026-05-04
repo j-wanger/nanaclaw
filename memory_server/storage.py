@@ -4,7 +4,7 @@ import json
 import logging
 import sqlite3
 import struct
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -413,6 +413,54 @@ def reinforce(
     conn.commit()
 
 
+def prune(
+    conn: sqlite3.Connection,
+    *,
+    dry_run: bool = True,
+    max_age_days: int = 180,
+    min_access_count: int = 2,
+) -> list[dict]:
+    """Identify and optionally archive stale memories.
+
+    A memory is prunable when active=1, trust='low', strength=1, and either
+    older than max_age_days or access_count < min_access_count. When
+    dry_run=False, matching memories are deactivated (active=0).
+    """
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat()
+    rows = conn.execute(
+        """SELECT id, content, created_at, access_count, trust
+           FROM memories
+           WHERE active = 1
+             AND trust = 'low'
+             AND strength = 1
+             AND (created_at < ? OR access_count < ?)""",
+        (cutoff, min_access_count),
+    ).fetchall()
+
+    candidates = [
+        {
+            "id": r["id"],
+            "content": r["content"][:100],
+            "created_at": r["created_at"],
+            "access_count": r["access_count"],
+            "trust": r["trust"],
+        }
+        for r in rows
+    ]
+
+    if not dry_run and candidates:
+        ids = [c["id"] for c in candidates]
+        now = _now_iso()
+        placeholders = ",".join(["?"] * len(ids))
+        conn.execute(
+            f"UPDATE memories SET active = 0, updated_at = ? WHERE id IN ({placeholders})",
+            (now, *ids),
+        )
+        conn.commit()
+
+    return candidates
+
+
 def stats(conn: sqlite3.Connection) -> StatsResponse:
     total_active = conn.execute("SELECT COUNT(*) FROM memories WHERE active = 1").fetchone()[0]
     total_superseded = conn.execute("SELECT COUNT(*) FROM memories WHERE active = 0").fetchone()[0]
@@ -627,6 +675,46 @@ def search_hybrid(
         results.append((entry, rrf, match_type))
 
     return results
+
+
+def search_all(
+    project_conn: sqlite3.Connection,
+    global_conn: sqlite3.Connection,
+    query: str,
+    query_embedding: Optional[list[float]] = None,
+    *,
+    limit: int = 10,
+    category: Optional[Category] = None,
+    active_only: bool = True,
+    alpha: float = 0.4,
+    k: int = 60,
+) -> list[tuple[MemoryEntry, float, str]]:
+    """Fan out a hybrid search to project and global stores, then merge.
+
+    Each store is searched independently via search_hybrid; results are merged
+    using RRF over each item's rank within its source list. On equal RRF score
+    project entries rank higher than global entries.
+    """
+    proj_results = search_hybrid(
+        project_conn, query, query_embedding,
+        limit=limit * 2, category=category, active_only=active_only,
+        alpha=alpha, k=k,
+    )
+    glob_results = search_hybrid(
+        global_conn, query, query_embedding,
+        limit=limit * 2, category=category, active_only=active_only,
+        alpha=alpha, k=k,
+    )
+
+    # source_pref: 0 = project, 1 = global. Lower wins on RRF tie.
+    combined: list[tuple[MemoryEntry, float, str, int]] = []
+    for rank, (entry, _score, mt) in enumerate(proj_results, start=1):
+        combined.append((entry, 1.0 / (k + rank), mt, 0))
+    for rank, (entry, _score, mt) in enumerate(glob_results, start=1):
+        combined.append((entry, 1.0 / (k + rank), mt, 1))
+
+    combined.sort(key=lambda item: (-item[1], item[3]))
+    return [(entry, rrf, mt) for entry, rrf, mt, _ in combined[:limit]]
 
 
 def export_memories(

@@ -28,6 +28,15 @@ groups/*
 # Temp files
 .tmp-*
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Per-install agent profile (contains PII)
+.claude/rules/memory-profile.md
+
 # OS
 .DS_Store
 

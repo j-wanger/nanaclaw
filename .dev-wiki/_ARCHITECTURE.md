@@ -1,8 +1,8 @@
 # Architecture: nanoclaw
 
-> Last updated: 2026-04-25 by /dev-scan
+> Last updated: 2026-05-03 by /dev-debrief (Phase 32)
 
-Personal Claude assistant (v2.0.13) — runs agents in isolated Docker containers. Two runtimes: Node.js host (pnpm, better-sqlite3) + Bun container (bun:sqlite). 178 source files (excluding tests).
+Personal Claude assistant (v2.0.13) — runs agents in isolated Docker containers. Three runtimes: Node.js host (pnpm, better-sqlite3) + Bun container (bun:sqlite) + Python memory server (uv, sqlite3). ~185 source files (excluding tests).
 
 ## Directory Layout
 
@@ -22,6 +22,16 @@ nanoclaw/
     src/db/                  # Session DB ops — 6 files (messages in/out, state, routing)
     src/mcp-tools/           # MCP tool definitions — 8 files (core, scheduling, agents, self-mod)
     src/providers/           # Agent providers — 6 files (Claude SDK, factory, registry)
+  memory_server/             # Memory MCP Server (Python) — 11 .py files (~2,800 lines)
+    storage.py               # SQLite + FTS5 + sqlite-vec layer (store, search, dedup, prune, global fan-out)
+    embedding.py             # Configurable embedding provider (local fastembed / HTTP server)
+    server.py                # FastMCP tool wiring (12 tools)
+    models.py                # Pydantic data models (Source.CONSOLIDATED added)
+    config.py                # YAML/env config loading
+    consolidator.py          # Single-link cosine clustering + Qwen merge (fail-closed)
+    migrate.py               # MEMORY.md parser + migrator CLI
+    extract_cli.py           # Post-session transcript extraction CLI
+    tests/                   # 186 pytest tests (8 test files)
   setup/                     # Interactive setup wizard — 44 files (env, auth, container, channels)
   scripts/                   # Utility scripts — 9 files
   docs/                      # Architecture docs, DB docs, specs — 20 .md files
@@ -33,6 +43,7 @@ nanoclaw/
 |-------|---------|---------|
 | `src/index.ts` | Node.js | init DB → migrations → container runtime → adapters → delivery polls → sweep |
 | `container/agent-runner/src/index.ts` | Bun | load config → create provider → poll loop |
+| `memory_server/__main__.py` | Python | create MCP server → run stdio transport |
 | `setup/index.ts` | Node.js | Interactive setup wizard |
 | `nanoclaw.sh` | Shell | Bootstrap: install deps, run setup, start service |
 
@@ -53,6 +64,7 @@ nanoclaw/
 3. **Message-only IO** — Host/container communicate exclusively via session DBs. No IPC, no file watchers, no stdin.
 4. **Heartbeat liveness** — Container touches `.heartbeat`; host sweep checks mtime at 60s intervals.
 5. **OneCLI credential injection** — API keys never in env vars or chat. OneCLI gateway injects at request time.
+6. **Memory MCP server** — Standalone Python process, consumed via stdio MCP transport by both Claude Code and Nanaclaw agents.
 
 ## Data Flow
 
@@ -60,12 +72,14 @@ nanoclaw/
 - **Outbound:** `poll-loop.ts` (write messages_out) → `delivery.ts` (poll + deliver via adapter) → Platform
 - **Scheduling:** MCP tool → messages_out → `delivery.ts` → `scheduling/actions.ts` → messages_in (future task)
 - **Approvals:** MCP self-mod → messages_out → delivery → `approvals/primitive.ts` → DM approver → response → apply
+- **Memory:** Agent → MCP stdio → memory_server → SQLite (project or global) → FTS5 ranked results
 
 ## Dependencies
 
 **Host (Node.js):** better-sqlite3 11.10.0, @onecli-sh/sdk ^0.3.1, chat ^4.24.0, cron-parser 5.5.0, @clack/core + @clack/prompts, kleur
 **Container (Bun):** @anthropic-ai/claude-agent-sdk, bun:sqlite, @modelcontextprotocol/sdk
-**Dev:** vitest, bun:test, typescript ^5.7.0, tsx, eslint + typescript-eslint, prettier, husky
+**Memory Server (Python):** mcp>=1.0, pydantic>=2.0, pyyaml>=6.0, nanoid>=2.0, fastembed>=0.4, httpx>=0.27, sqlite-vec>=0.1.6
+**Dev:** vitest, bun:test, pytest, typescript ^5.7.0, tsx, eslint + typescript-eslint, prettier, husky
 
 ## Development Toolchain
 
@@ -73,10 +87,12 @@ nanoclaw/
 |----------|------|-------------|--------|
 | Testing | Vitest (host) | vitest.config.ts | detected |
 | Testing | bun:test (container) | container/agent-runner/package.json | detected |
+| Testing | pytest (memory) | memory_server/tests/ | detected |
 | Type Checking | TypeScript (strict) | tsconfig.json | detected |
 | Linting | ESLint + typescript-eslint | eslint.config.js | detected |
 | Formatting | Prettier | package.json | detected |
 | Deps | pnpm 10.33.0 | pnpm-workspace.yaml | detected |
+| Deps | uv (Python) | memory_server/.venv/ | detected |
 | Git Hooks | Husky | package.json | detected |
 | Build | tsc (host), Bun native (container) | tsconfig.json | detected |
 

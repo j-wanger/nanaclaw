@@ -144,7 +144,9 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
           type: 'inline',
           content: fs.readFileSync(rulesPath, 'utf-8'),
         });
-      } catch { /* skip unreadable */ }
+      } catch {
+        /* skip unreadable */
+      }
     }
   }
 
