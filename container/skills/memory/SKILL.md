@@ -1,19 +1,19 @@
 ---
 name: memory
-description: Operational memory system. MEMORY.md is your persistent, structured memory — facts you learn are stored here and loaded into your context at the start of every session.
+description: Operational memory system. Persistent facts are stored via memory_store MCP tool and loaded into your context at the start of every session.
 ---
 
 # Memory System
 
-Your operational memory lives in `memory/MEMORY.md` in your workspace. This file is your source of truth for facts about the user, their projects, preferences, and anything else worth remembering across sessions.
+Your operational memory is stored in a SQLite database via the `memory_store` MCP tool. At session start, the host reads your stored memories and injects a frozen snapshot into your context.
 
 ## How It Works
 
-1. You write facts to `memory/MEMORY.md` during conversations
-2. At the start of each new session, the host reads MEMORY.md and injects a frozen snapshot into your context
-3. The snapshot is **frozen at spawn** — changes you make mid-session take effect at the **next spawn**, not immediately
+1. You store facts using `memory_store` during conversations
+2. At the start of each new session, the host reads memory.db (and legacy MEMORY.md if present) and injects a merged snapshot into your context
+3. The snapshot is **frozen at spawn** — facts you store mid-session take effect at the **next spawn**, not immediately
 
-## When to Write Memory
+## When to Store Memory
 
 - User shares their role, preferences, or expertise
 - Key project decisions are made
@@ -21,43 +21,43 @@ Your operational memory lives in `memory/MEMORY.md` in your workspace. This file
 - Important reference information surfaces (tools, URLs, contacts)
 - You learn something about the user's workflow or constraints
 
-## MEMORY.md Format
+## Memory Tools
 
-Each entry is a markdown section with a type tag and date:
+| Tool | Purpose |
+|------|---------|
+| `memory_store` | Store a new memory (primary write path) |
+| `memory_search` | Search existing memories by keyword or semantic similarity |
+| `memory_forget` | Deactivate a memory (soft delete, supersede with reason) |
+| `memory_tag` | Add tags to an existing memory for categorization |
+| `memory_export` | Export memories as structured data |
 
-```markdown
-# Memory
+### memory_store Parameters
 
-## [user] Entry title (YYYY-MM-DD)
-Content of the memory entry. Can be multiple lines.
-
-## [project] Another entry (YYYY-MM-DD)
-More content here.
-```
-
-### Types
-
-| Type | When to use |
-|------|------------|
-| `user` | Facts about the user: role, skills, preferences, hardware |
-| `feedback` | Corrections to your behavior, confirmed approaches |
-| `project` | Ongoing work, goals, deadlines, context |
-| `reference` | External resources, URLs, tool locations, contacts |
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `content` | yes | The fact to remember (one atomic fact per entry) |
+| `category` | yes | `user`, `feedback`, `project`, `reference`, `fact`, `entity`, `correction`, `preference`, `custom` |
+| `context` | no | What triggered this memory (conversation moment, not a summary) |
+| `trust` | no | `high`, `medium` (default), `low` |
+| `tags` | no | Array of tags for cross-cutting concerns |
 
 ### Rules
 
-- Keep entries concise — each one costs context tokens every session
-- Use today's date when creating entries
-- Update existing entries rather than creating duplicates
-- Remove entries that are no longer relevant
-- MEMORY.md is the sole memory store — do NOT write memory entries to CLAUDE.local.md or ad-hoc files
+- One atomic fact per entry — "Jake prefers X" not "Jake prefers X and also mentioned Y"
+- Include the *why* when storing decisions — "Chose SQLite because single-user" beats "Using SQLite"
+- Search before storing to avoid duplicates
+- Use `memory_forget` to supersede outdated memories rather than storing contradictions
 
 ## Cold Start
 
-If `memory/MEMORY.md` doesn't exist or is empty, ask the user these three seed questions before proceeding with their request:
+If your context fragment contains no memory section, seed your memory by asking:
 
 1. **Role:** "What's your role and what do you primarily work on?"
 2. **Goals:** "What are your current key projects or goals?"
-3. **Preferences:** "Any communication preferences I should know? (e.g., terse vs detailed, timezone, tools you use)"
+3. **Preferences:** "Any communication preferences I should know?"
 
-Save their answers as memory entries. After the first session, the memory system runs silently — you'll see your memories in the context fragment at the top of each session.
+Save answers using `memory_store` with `category: "user"` and `category: "project"`. Then proceed with the user's request.
+
+## Legacy: MEMORY.md
+
+If `memory/MEMORY.md` exists in your workspace, its entries are still loaded at spawn alongside memory.db entries. Do NOT write new entries to MEMORY.md — use `memory_store` instead. Existing MEMORY.md entries will continue to appear in your context until migrated.

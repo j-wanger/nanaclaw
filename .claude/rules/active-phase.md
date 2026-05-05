@@ -1,8 +1,7 @@
 # Active Phase Context
 
-Phase: 38 -- Review Remediation
-Objective: Address 4 external review issues: search routing guidance, code dedup, wiki-manager taxonomy, context builder dual-read.
-Status: Complete. 7/7 tasks done, 5/5 exit criteria met, reviewer 6/10->fixed.
-Scope: container/agent-runner/src/mcp-tools/*.ts, container/skills/wiki-manager/, src/modules/memory/context-builder.ts
-Exit criteria: All met. Routing docs, dedup, taxonomy aligned, dual-read working, tests passing.
-Next: Commit and push, then run /dev-plan for next work area.
+Phase: 39 -- Memory Write Convergence
+Objective: Direct agents to memory_store MCP as primary write path, MEMORY.md as legacy read source.
+Status: Complete. Documentation-only. memory skill updated.
+Scope: container/skills/memory/SKILL.md, instructions.md
+Next: All review issues resolved. No outstanding memory design gaps.
