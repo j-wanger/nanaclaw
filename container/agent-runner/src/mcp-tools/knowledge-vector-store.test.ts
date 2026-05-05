@@ -203,6 +203,115 @@ describe('KnowledgeVectorStore', () => {
     store.close();
   });
 
+  describe('getWindow', () => {
+    function insertArticleSentences(store: KnowledgeVectorStore, slug: string, count: number): number[] {
+      const ids: number[] = [];
+      for (let i = 0; i < count; i++) {
+        ids.push(store.insertEntry({
+          text: `${slug} sentence ${i}`,
+          contextual_text: `Document: ${slug}. ${slug} sentence ${i}`,
+          type: 'sentence',
+          source_url: null,
+          article_slug: slug,
+          section: '',
+          source_score: 0,
+          wiki: 'w',
+          embedding: makeEmbedding(i),
+        }));
+      }
+      return ids;
+    }
+
+    it('returns N sentences before and after matched ID', () => {
+      const store = new KnowledgeVectorStore(tmpDir);
+      const ids = insertArticleSentences(store, 'article-a', 10);
+      const mid = ids[5]; // sentence 5, with 5 before and 4 after
+
+      const window = store.getWindow(mid, 'article-a', 3);
+      expect(window).toHaveLength(7); // 3 before + match + 3 after
+      expect(window[0].text).toBe('article-a sentence 2');
+      expect(window[3].text).toBe('article-a sentence 5');
+      expect(window[6].text).toBe('article-a sentence 8');
+      // Sorted by id ascending
+      for (let i = 1; i < window.length; i++) {
+        expect(window[i].id).toBeGreaterThan(window[i - 1].id);
+      }
+      store.close();
+    });
+
+    it('returns fewer neighbors at article start', () => {
+      const store = new KnowledgeVectorStore(tmpDir);
+      const ids = insertArticleSentences(store, 'article-a', 10);
+      const first = ids[1]; // sentence 1, only 1 before
+
+      const window = store.getWindow(first, 'article-a', 3);
+      expect(window).toHaveLength(5); // 1 before + match + 3 after
+      expect(window[0].text).toBe('article-a sentence 0');
+      expect(window[1].text).toBe('article-a sentence 1');
+      store.close();
+    });
+
+    it('returns fewer neighbors at article end', () => {
+      const store = new KnowledgeVectorStore(tmpDir);
+      const ids = insertArticleSentences(store, 'article-a', 10);
+      const last = ids[8]; // sentence 8, only 1 after
+
+      const window = store.getWindow(last, 'article-a', 3);
+      expect(window).toHaveLength(5); // 3 before + match + 1 after
+      expect(window[4].text).toBe('article-a sentence 9');
+      store.close();
+    });
+
+    it('returns empty for non-existent ID', () => {
+      const store = new KnowledgeVectorStore(tmpDir);
+      insertArticleSentences(store, 'article-a', 5);
+
+      const window = store.getWindow(99999, 'article-a', 3);
+      expect(window).toHaveLength(0);
+      store.close();
+    });
+
+    it('does not cross article boundaries', () => {
+      const store = new KnowledgeVectorStore(tmpDir);
+      insertArticleSentences(store, 'article-a', 5);
+      const idsB = insertArticleSentences(store, 'article-b', 5);
+
+      // First sentence of article-b — should not include article-a sentences
+      const window = store.getWindow(idsB[0], 'article-b', 3);
+      expect(window.every((r) => r.article_slug === 'article-b')).toBe(true);
+      expect(window).toHaveLength(4); // 0 before + match + 3 after
+      store.close();
+    });
+
+    it('handles ID gaps within article gracefully', () => {
+      const store = new KnowledgeVectorStore(tmpDir);
+      // Insert article-a sentences, then another article, then more article-a
+      // This creates non-contiguous IDs for article-a
+      const ids1 = insertArticleSentences(store, 'article-a', 3);
+      insertArticleSentences(store, 'other', 5); // gap
+      const ids2: number[] = [];
+      for (let i = 3; i < 6; i++) {
+        ids2.push(store.insertEntry({
+          text: `article-a sentence ${i}`,
+          contextual_text: `Document: article-a. article-a sentence ${i}`,
+          type: 'sentence',
+          source_url: null,
+          article_slug: 'article-a',
+          section: '',
+          source_score: 0,
+          wiki: 'w',
+          embedding: makeEmbedding(i + 100),
+        }));
+      }
+
+      // Window around first of the second batch — should get neighbors from both batches
+      const window = store.getWindow(ids2[0], 'article-a', 2);
+      expect(window.every((r) => r.article_slug === 'article-a')).toBe(true);
+      expect(window.length).toBeGreaterThanOrEqual(3); // at least 2 before + match (LIMIT finds nearest by id)
+      store.close();
+    });
+  });
+
   it('chunked search works correctly across batches', () => {
     const store = new KnowledgeVectorStore(tmpDir);
     const query = makeEmbedding(50);

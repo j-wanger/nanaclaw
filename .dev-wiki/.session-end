@@ -1,10 +1,10 @@
-ended: 2026-05-04T12:05:17
+ended: 2026-05-05T14:56:46
 pending_commit: no
 session_buffer: no
-debriefed: no
+debriefed: yes
 recent_commits:
+f6198c3 Phases 28-32: Memory MCP Server + PII cleanup
 0bb00f6 Phase 31 Task 6: mark Phase 30 exit criteria as met
 b10f9c3 Phase 31 Task 5: expose module-level mcp; full suite green
 adeb2dc Phase 31 Task 4: transcript-to-memories extractor
 531ce09 Phase 31 Task 3: bidirectional contradiction tracking
-8e4664e Phase 31 Task 2: wire sidecar into memory_search and memory_verify

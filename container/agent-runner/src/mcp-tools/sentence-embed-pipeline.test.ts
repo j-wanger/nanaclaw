@@ -85,7 +85,7 @@ describe('embedSentences', () => {
     const sentences = store.getAllByType('sentence');
     const summSentence = sentences.find((s) => s.section === 'Summary');
     expect(summSentence).toBeDefined();
-    expect(summSentence!.contextual_text).toMatch(/^\[TD Bank AML Failure \| Summary\]/);
+    expect(summSentence!.contextual_text).toMatch(/^Document: TD Bank AML Failure\. Section: Summary\./);
     store.close();
   });
 

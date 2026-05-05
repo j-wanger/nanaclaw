@@ -78,6 +78,11 @@ interface PreparedSentence {
   wiki: string;
 }
 
+function buildContextPrefix(title: string, section: string | undefined): string {
+  if (section) return `Document: ${title}. Section: ${section}.`;
+  return `Document: ${title}.`;
+}
+
 async function embedAndStore(
   store: KnowledgeVectorStore,
   sentences: PreparedSentence[],
@@ -190,7 +195,7 @@ export async function embedSentences(
       }
 
       const prepared: PreparedSentence[] = sentences.map((s) => {
-        const contextPrefix = s.section ? `[${title} | ${s.section}]` : `[${title}]`;
+        const contextPrefix = buildContextPrefix(title, s.section);
         const normalized = s.text.toLowerCase().trim();
         const isClaim = claimTexts.has(normalized);
         const isInsight = !isClaim && insightTexts.has(normalized);

@@ -1,23 +1,23 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-03 by /dev-debrief
+> Last updated: 2026-05-05 by /dev-debrief
 
 ## Recommended Next Action
 
-Phase 32 all tasks complete (6/6). Confirm phase completion, then run `/dev-plan` for next phase.
+Phase 37 complete (3/3 tasks, 578 tests). Option B 6-phase plan fully implemented. Run `/dev-plan` for next work area.
 
 ## Active Phase
 
-**[[phase-32-memory-mcp-integration|Phase 32: Memory MCP Server — Nanaclaw + Consolidation]]** (status: active, ~0%)
+**[[phase-37-small-to-big-retrieval|Phase 37: Small-to-Big Retrieval]]** (status: active, ~0%)
 
-Entry criteria: MET (Phase 31 complete)
-Exit criteria: 0/8 met. 8 remaining.
-Progress: ~0% (0/6 tasks done)
+Entry criteria: MET (Phase 36 complete, knowledge_search returns sentence-level results with article_slug + section metadata)
+Exit criteria: 0/4 met. 4 remaining.
+Progress: ~0% (0/3 tasks done)
 
 ## Active Phase Contract
 
-Phase: 32 - Memory MCP Server — Nanaclaw + Consolidation
-Tasks: 6 (3M + 3S, see tasks.md)
+Phase: 37 - Small-to-Big Retrieval
+Tasks: 3 (2M + 1S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -25,9 +25,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
-| [[phase-32-nanaclaw-consolidation-approach]] | medium | 2026-05-03 |
-| [[phase-31-sidecar-trust-lifecycle-approach]] | medium | 2026-05-03 |
-| [[memory-mcp-server-architecture]] | high | 2026-05-02 |
+| [[phase-37-small-to-big-retrieval-approach]] | medium | 2026-05-05 |
+| [[phase-36-claim-reconciliation-approach]] | medium | 2026-05-04 |
+| [[phase-35-claim-conflict-detection-approach]] | medium | 2026-05-04 |
 
 ## Blockers and Open Questions
 
@@ -47,24 +47,24 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 | Path | Purpose | Last Modified |
 |------|---------|---------------|
 | memory_server/ | Standalone Python MCP server — 12 MCP tools, 186 tests | 2026-05-03 |
-| memory_server/storage.py | SQLite layer: store, search, dedup, export/import, prune, global fan-out | 2026-05-03 |
-| memory_server/consolidator.py | Single-link cosine clustering + Qwen sidecar merge (fail-closed) | 2026-05-03 |
-| memory_server/migrate.py | MEMORY.md parser + migrator with type→category mapping | 2026-05-03 |
-| memory_server/extract_cli.py | Post-session transcript extraction CLI | 2026-05-03 |
-| memory_server/server.py | FastMCP wiring: 12 MCP tools with scope routing | 2026-05-03 |
-| groups/dm-with-wang/container.json | Nanaclaw MCP wiring with MEMORY_PROJECT_DIR env | 2026-05-03 |
+| /Users/jwang/knowledge-wiki/skills/knowledge-wiki/claim-spec.md | Canonical claim provenance system spec | 2026-05-04 |
+| container/agent-runner/src/mcp-tools/claim-reconcile.ts | claim_reconcile MCP tool — detect-then-fix stale/orphan pipeline | 2026-05-05 |
+| container/agent-runner/src/mcp-tools/claim-conflicts.ts | claim_conflicts MCP tool — three-vector conflict detection | 2026-05-04 |
+| container/agent-runner/src/mcp-tools/claim-linker.ts | claim_link MCP tool — two-pass pipeline (vector + NLI) + parseClaimMetadata | 2026-05-04 |
+| container/agent-runner/src/mcp-tools/knowledge-tools.ts | knowledge_search + knowledge_embed + small-to-big expansion MCP tools | 2026-05-05 |
+| container/agent-runner/src/mcp-tools/knowledge-vector-store.ts | Unified knowledge store — search, insert, getWindow, getByArticleSlug | 2026-05-05 |
 
 ## Session Journal (last 5)
 
-- [2026-05-03] [[2026-05-03-phase-32-memory-mcp-nanaclaw-consolidation-complete|Phase 32: Memory MCP Server — Nanaclaw + Consolidation Complete]] — 6 tasks, consolidation + migration + prune + global fan-out + MCP wiring, 186 tests, reviewer 8/10
-- [2026-05-03] [[2026-05-03-phase-31-memory-mcp-sidecar-complete|Phase 31: Memory MCP Server — Sidecar + Trust Lifecycle Complete]] — 6 tasks, sidecar verifier + contradiction tracking + extractor, 157 tests, reviewer 9/10
-- [2026-05-03] [[2026-05-03-phase-30-memory-mcp-embeddings-complete|Phase 30: Memory MCP Server — Embeddings + Claude Code Complete]] — 6 tasks, embedding search + RRF fusion + export/import + Claude Code rules, 130 tests, reviewer 7/10→fixed
-- [2026-05-03] [[2026-05-03-phase-29-memory-mcp-core-complete|Phase 29: Memory MCP Server — Core Storage + Tools Complete]] — 6 tasks, standalone Python MCP server, 62 tests, reviewer 8/10
-- [2026-05-02] Phase 28 completed (all 6 tasks). Insight extraction pipeline operational.
+- [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window expansion + overlap merge, 12 new tests (578 total), approach pivot section→window
+- [2026-05-05] [[2026-05-05-phase-36-claim-reconciliation-complete|Phase 36: Claim Reconciliation Complete]] — 3 tasks, claim_reconcile MCP tool + detect-then-fix pipeline, 10 new tests (566 total), reviewer 8/10
+- [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, claim_conflicts MCP tool + 3 detection vectors, 22 new tests (556 total), reviewer 8/10
+- [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, claim_link MCP tool + NLI pipeline, 23 tests, reviewer 7/10→fixed
+- [2026-05-04] [[2026-05-04-phase-33-claim-markers-contextual-embeddings-complete|Phase 33: Claim Markers + Contextual Sentence Embeddings Complete]] — 7 tasks, claim provenance convention + contextual prefix upgrade, reviewer 7/10→fixed
 
 ## Cross-References
 
-- agentic-engineering-wiki — verifier-quality-and-scalable-oversight (TPR>96%, TNR<25% for LLM judges — validates fail-open approach)
+- agentic-engineering-wiki — chunking-and-embedding-strategies, wiki-retrieval-architecture (contextual retrieval, small-to-big patterns)
 - agent-memory-wiki — 2,005 raw articles, 573 insights in knowledge.db, research base for memory architecture
 - memory_server/ — standalone Python MCP server (Phases 29-32), SQLite + FTS5 + embedding + sidecar, 186 tests, 12 MCP tools
-- groups/dm-with-wang/memory-mcp-plan.md — Memory MCP Server consolidated plan (Phases 29-32)
+- knowledge-wiki (Option B plan) — All 6 phases complete (markers + embeddings + linker + conflict detection + reconciliation + small-to-big retrieval)

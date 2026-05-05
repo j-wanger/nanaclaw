@@ -153,6 +153,28 @@ export class KnowledgeVectorStore {
     }));
   }
 
+  getWindow(id: number, articleSlug: string, windowSize: number): KnowledgeRow[] {
+    const match = this.db.prepare(
+      'SELECT id FROM knowledge WHERE id = $id AND article_slug = $slug',
+    ).get({ $id: id, $slug: articleSlug }) as { id: number } | null;
+    if (!match) return [];
+
+    const before = this.db.prepare(
+      'SELECT id, text, contextual_text, type, source_url, article_slug, section, source_score, wiki, created FROM knowledge WHERE article_slug = $slug AND id < $id ORDER BY id DESC LIMIT $limit',
+    ).all({ $slug: articleSlug, $id: id, $limit: windowSize }) as KnowledgeRow[];
+
+    const center = this.db.prepare(
+      'SELECT id, text, contextual_text, type, source_url, article_slug, section, source_score, wiki, created FROM knowledge WHERE id = $id',
+    ).get({ $id: id }) as KnowledgeRow;
+
+    const after = this.db.prepare(
+      'SELECT id, text, contextual_text, type, source_url, article_slug, section, source_score, wiki, created FROM knowledge WHERE article_slug = $slug AND id > $id ORDER BY id ASC LIMIT $limit',
+    ).all({ $slug: articleSlug, $id: id, $limit: windowSize }) as KnowledgeRow[];
+
+    before.reverse();
+    return [...before, center, ...after];
+  }
+
   close(): void {
     this.db.close();
   }

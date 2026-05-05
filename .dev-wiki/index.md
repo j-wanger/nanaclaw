@@ -146,7 +146,12 @@
 - [[phase-29-memory-mcp-core|Phase 29: Memory MCP Server — Core Storage + Tools]] — completed
 - [[phase-30-memory-mcp-embeddings|Phase 30: Memory MCP Server — Embeddings + Claude Code]] — completed
 - [[phase-31-memory-mcp-sidecar|Phase 31: Memory MCP Server — Sidecar + Trust Lifecycle]] — completed
-- [[phase-32-memory-mcp-integration|Phase 32: Memory MCP Server — Nanaclaw + Consolidation]] — active
+- [[phase-32-memory-mcp-integration|Phase 32: Memory MCP Server — Nanaclaw + Consolidation]] — completed
+- [[phase-33-claim-markers-contextual-embeddings|Phase 33: Claim Markers + Contextual Sentence Embeddings]] — completed
+- [[phase-34-claim-linker|Phase 34: Claim Linker]] — completed
+- [[phase-35-claim-conflict-detection|Phase 35: Claim Conflict Detection]] — completed
+- [[phase-36-claim-reconciliation|Phase 36: Claim Reconciliation]] — completed
+- [[phase-37-small-to-big-retrieval|Phase 37: Small-to-Big Retrieval]] — completed
 
 ## Decisions
 
@@ -158,11 +163,20 @@
 - [[phase-27-conflict-detection-claim-discovery-approach|Phase 27: Conflict Detection + Claim Discovery]] — medium confidence
 - [[phase-26-sentence-embedding-store-approach|Phase 26: Unified Knowledge Vector Store]] — medium confidence
 - [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume + Entity Extraction]] — medium confidence
+- [[phase-36-claim-reconciliation-approach|Phase 36: Claim Reconciliation]] — medium confidence
+- [[phase-35-claim-conflict-detection-approach|Phase 35: Claim Conflict Detection]] — medium confidence
+- [[phase-34-claim-linker-approach|Phase 34: Claim Linker]] — medium confidence
+- [[phase-37-small-to-big-retrieval-approach|Phase 37: Small-to-Big Retrieval]] — high confidence
+- [[phase-33-claim-markers-contextual-embeddings-approach|Phase 33: Claim Markers + Contextual Embeddings]] — medium confidence
 - [[phase-32-nanaclaw-consolidation-approach|Phase 32: Nanaclaw + Consolidation]] — medium confidence
 - [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
 
 ## Journal (recent 10)
 
+- [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window expansion + overlap merge, 12 new tests (578 total)
+- [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, claim_conflicts MCP tool + 3 vectors, 22 new tests, reviewer 8/10
+- [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, claim_link MCP tool + NLI pipeline, 23 tests, reviewer 7/10→fixed
+- [2026-05-04] [[2026-05-04-phase-33-claim-markers-contextual-embeddings-complete|Phase 33: Claim Markers + Contextual Sentence Embeddings Complete]] — 7 tasks, claim provenance convention + contextual prefix upgrade
 - [2026-05-03] [[2026-05-03-phase-32-memory-mcp-nanaclaw-consolidation-complete|Phase 32: Memory MCP Server — Nanaclaw + Consolidation Complete]] — 6 tasks, consolidation + migration + prune + global fan-out + MCP wiring, 186 tests, reviewer 8/10
 - [2026-05-03] [[2026-05-03-phase-31-memory-mcp-sidecar-complete|Phase 31: Memory MCP Server — Sidecar + Trust Lifecycle Complete]] — 6 tasks, sidecar verifier + contradiction tracking + extractor, 157 tests, reviewer 9/10
 - [2026-05-03] [[2026-05-03-phase-30-memory-mcp-embeddings-complete|Phase 30: Memory MCP Server — Embeddings + Claude Code Complete]] — 6 tasks, embedding search + RRF fusion + export/import + Claude Code rules, 130 tests, reviewer 7/10→fixed

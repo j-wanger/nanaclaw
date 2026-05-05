@@ -1,5 +1,15 @@
 # Dev Wiki Log
 
+[2026-05-05T01:30:00] DEBRIEF -- Phase 37 complete (3/3 tasks), 1 decision (approach, pivoted section→window after 5/10 review), sentence-window expansion + overlap merge, 12 new tests (578 total), self-check clean, Option B 6-phase plan fully complete
+[2026-05-05T01:00:00] PLAN -- Phase 37 activated, 3 tasks (2M+1S), 1 decision (small-to-big-retrieval-approach), approach reviewer 5/10 revise (section expansion degenerate for raw articles → revised to sentence-window), plan reviewer 8/10 accept, sentence-window via knowledge.db ID ordering
+[2026-05-05T00:30:00] DEBRIEF -- Phase 36 complete (3/3 tasks), 1 decision (approach), claim_reconcile MCP tool + detect-then-fix pipeline, 10 new tests (566 total), reviewer 8/10 accept, 2 LOW fixes inline
+[2026-05-05T00:00:00] PLAN -- Phase 36 activated, 3 tasks (2M+1S), 1 decision (claim-reconciliation-approach), approach reviewer 8/10 accept, detect-then-fix pipeline reusing detectStaleClaims + linkArticleClaims
+[2026-05-04T12:00:00] DEBRIEF -- Phase 35 complete (6/6 tasks), 1 decision (approach), claim_conflicts MCP tool + 3 detection vectors, 22 new tests (556 total), reviewer 8/10 accept, empty catch blocks fixed
+[2026-05-04T11:00:00] PLAN -- Phase 35 activated, 6 tasks (4S+2M), 1 decision (claim-conflict-detection-approach), approach reviewer 7/10 revise (staleness+article_slug fixes), plan reviewer 8/10 accept, three vectors (shared-evidence+staleness+cross-claim NLI)
+[2026-05-04T10:00:00] DEBRIEF -- Phase 34 complete (6/6 tasks), 1 decision (approach), claim_link MCP tool + NLI pipeline, 23 new tests (534 total), reviewer 7/10→fixed (nli_score null + sentence_ids filtering)
+[2026-05-04T09:00:00] PLAN -- Phase 34 activated, 6 tasks (3S+3M), 1 decision (claim-linker-approach), approach reviewer 7/10 accept, plan reviewer 7/10 revise→fixed, two-pass pipeline (vector retrieval + Qwen NLI)
+[2026-05-04T08:30:00] DEBRIEF -- Phase 33 complete (7/7 tasks), 1 decision (approach), claim markers convention + contextual prefix upgrade, reviewer 7/10→fixed, 7/8 exit criteria met (test article E2E deferred)
+[2026-05-04T07:50:00] PLAN -- Phase 33 activated, 7 tasks (3S+1XS+3M), 1 decision (claim-markers-contextual-embeddings-approach), approach reviewer 8/10 revise→fixed, plan reviewer 7/10 revise→fixed, two parallel workstreams (knowledge-wiki + Nanaclaw)
 [2026-05-03T18:00:00] DEBRIEF -- Phase 32 complete (6/6 tasks), 0 decisions (approach pre-planned), consolidation + migration + prune + global fan-out + MCP wiring, 186 tests (+29), reviewer 8/10 accept, journal: phase-32-memory-mcp-nanaclaw-consolidation-complete
 [2026-05-03T17:00:00] PLAN -- Phase 32 activated, 6 tasks (3M+3S), 1 decision (nanaclaw-consolidation-approach), approach reviewer 8/10 revise→fixed, Python-first config-only integration
 [2026-05-03T16:00:00] DEBRIEF -- Phase 31 complete (6/6 tasks), 1 decision (sidecar approach), sidecar verifier + contradiction tracking + extractor, 157 tests (+27), reviewer 9/10 accept, journal: phase-31-memory-mcp-sidecar-complete

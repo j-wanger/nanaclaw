@@ -141,3 +141,9 @@ memory_server/tests/test_consolidation.py
 memory_server/extract_cli.py
 memory_server/tests/test_extract_cli.py
 .gitignore
+container/agent-runner/src/mcp-tools/claim-linker.test.ts
+container/agent-runner/src/mcp-tools/claim-linker.ts
+container/agent-runner/src/mcp-tools/claim-conflicts.test.ts
+container/agent-runner/src/mcp-tools/claim-conflicts.ts
+container/agent-runner/src/mcp-tools/claim-reconcile.test.ts
+container/agent-runner/src/mcp-tools/claim-reconcile.ts
