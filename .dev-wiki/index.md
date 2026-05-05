@@ -154,6 +154,7 @@
 - [[phase-37-small-to-big-retrieval|Phase 37: Small-to-Big Retrieval]] — completed
 - [[phase-38-review-remediation|Phase 38: Review Remediation]] — completed
 - [[phase-39-memory-write-convergence|Phase 39: Memory Write Convergence]] — completed
+- [[phase-40-memory-migration-claim-dedup|Phase 40: Memory Migration + Claim Dedup Guard]] — active
 
 ## Decisions
 
@@ -168,6 +169,7 @@
 - [[phase-36-claim-reconciliation-approach|Phase 36: Claim Reconciliation]] — medium confidence
 - [[phase-35-claim-conflict-detection-approach|Phase 35: Claim Conflict Detection]] — medium confidence
 - [[phase-34-claim-linker-approach|Phase 34: Claim Linker]] — medium confidence
+- [[phase-40-memory-migration-claim-dedup-approach|Phase 40: Memory Migration + Claim Dedup Guard]] — medium confidence
 - [[phase-38-review-remediation-approach|Phase 38: Review Remediation]] — medium confidence
 - [[phase-37-small-to-big-retrieval-approach|Phase 37: Small-to-Big Retrieval]] — high confidence
 - [[phase-33-claim-markers-contextual-embeddings-approach|Phase 33: Claim Markers + Contextual Embeddings]] — medium confidence

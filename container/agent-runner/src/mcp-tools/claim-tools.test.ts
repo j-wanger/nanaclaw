@@ -89,6 +89,39 @@ describe('claim_search', () => {
 });
 
 describe('claim_dedup', () => {
+  test('returns error when claim count exceeds max_claims', async () => {
+    const wikiDir = path.join(tmpDir, 'test-wiki');
+    const store = new KnowledgeVectorStore(wikiDir);
+
+    for (let i = 0; i < 5; i++) {
+      const v = new Float32Array(768);
+      v[i % 768] = 1;
+      store.insertEntry({ text: `Claim ${i}`, contextual_text: `Claim ${i}`, type: 'claim', source_url: null, article_slug: '', section: '', source_score: 0, wiki: 'test-wiki', embedding: v });
+    }
+    store.close();
+
+    const result = await handleClaimDedup({ wiki: 'test-wiki', max_claims: 3 });
+    const t = result.content[0].text;
+    expect(t).toContain('Error');
+    expect(t).toContain('5');
+    expect(t).toContain('3');
+  });
+
+  test('includes duration_ms in successful response', async () => {
+    const wikiDir = path.join(tmpDir, 'test-wiki');
+    const store = new KnowledgeVectorStore(wikiDir);
+
+    const v = new Float32Array(768);
+    v[0] = 1;
+    store.insertEntry({ text: 'Solo claim', contextual_text: 'Solo claim', type: 'claim', source_url: null, article_slug: '', section: '', source_score: 0, wiki: 'test-wiki', embedding: v });
+    store.close();
+
+    const result = await handleClaimDedup({ wiki: 'test-wiki' });
+    const data = JSON.parse(result.content[0].text);
+    expect(data.duration_ms).toBeDefined();
+    expect(typeof data.duration_ms).toBe('number');
+  });
+
   test('returns duplicate pairs above threshold with source attribution', async () => {
     const wikiDir = path.join(tmpDir, 'test-wiki');
     const store = new KnowledgeVectorStore(wikiDir);

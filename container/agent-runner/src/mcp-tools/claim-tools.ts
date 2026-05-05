@@ -50,6 +50,7 @@ export async function handleClaimSearch(args: Record<string, unknown>): Promise<
 export async function handleClaimDedup(args: Record<string, unknown>): Promise<CallToolResult> {
   const wiki = (args.wiki as string || '').trim();
   const threshold = (args.threshold as number) || 0.92;
+  const maxClaims = (args.max_claims as number) || 1000;
 
   if (!wiki) return text('Error: wiki is required');
 
@@ -58,7 +59,13 @@ export async function handleClaimDedup(args: Record<string, unknown>): Promise<C
 
   const store = new KnowledgeVectorStore(wikiPath);
   try {
+    const claimCount = store.getAllByType('claim').length;
+    if (claimCount > maxClaims) {
+      return text(`Error: ${claimCount} claims exceed max_claims limit of ${maxClaims}. Reduce threshold or filter input.`);
+    }
+
     const rows = store.db_allWithEmbeddings('claim');
+    const start = Date.now();
     const pairs: Array<{ a: { text: string; source_url: string | null }; b: { text: string; source_url: string | null }; similarity: number }> = [];
     for (let i = 0; i < rows.length; i++) {
       for (let j = i + 1; j < rows.length; j++) {
@@ -72,7 +79,7 @@ export async function handleClaimDedup(args: Record<string, unknown>): Promise<C
         }
       }
     }
-    return text(JSON.stringify({ duplicates: pairs }));
+    return text(JSON.stringify({ duplicates: pairs, duration_ms: Date.now() - start }));
   } finally {
     store.close();
   }
@@ -112,12 +119,13 @@ const tools: McpToolDefinition[] = [
   {
     tool: {
       name: 'claim_dedup',
-      description: 'Find duplicate claims above a similarity threshold. Returns pairs with source attribution for manual review.',
+      description: 'Find duplicate claims above a similarity threshold. Returns pairs with source attribution and scan duration. Capped at max_claims to prevent slow scans.',
       inputSchema: {
         type: 'object' as const,
         properties: {
           wiki: { type: 'string', description: 'Wiki name to check for duplicates' },
           threshold: { type: 'number', description: 'Similarity threshold (default: 0.92)' },
+          max_claims: { type: 'number', description: 'Maximum claims to scan (default: 1000). Returns error if exceeded.' },
         },
         required: ['wiki'],
       },

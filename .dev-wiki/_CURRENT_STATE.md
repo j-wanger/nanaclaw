@@ -1,23 +1,23 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-05 by /dev-debrief
+> Last updated: 2026-05-05 by /dev-plan
 
 ## Recommended Next Action
 
-Phase 39 complete. Memory write convergence done — agents directed to memory_store MCP. Commit and push.
+Begin Phase 40 implementation. Task 1: auto-migrate MEMORY.md at spawn.
 
 ## Active Phase
 
-**[[phase-38-review-remediation|Phase 38: Review Remediation]]** (status: active, ~0%)
+**[[phase-40-memory-migration-claim-dedup|Phase 40: Memory Migration + Claim Dedup Guard]]** (status: active, ~0%)
 
-Entry criteria: MET (Phase 37 complete, external review findings documented)
-Exit criteria: 0/5 met. 5 remaining.
-Progress: ~0% (0/7 tasks done)
+Entry criteria: MET (Phase 39 complete, context builder dual-read implemented, memory skill updated)
+Exit criteria: 0/3 met. 3 remaining.
+Progress: ~0% (0/3 tasks done)
 
 ## Active Phase Contract
 
-Phase: 38 - Review Remediation
-Tasks: 7 (3M + 4S, see tasks.md)
+Phase: 40 - Memory Migration + Claim Dedup Guard
+Tasks: 3 (1M + 2S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -25,9 +25,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-40-memory-migration-claim-dedup-approach]] | medium | 2026-05-05 |
 | [[phase-38-review-remediation-approach]] | medium | 2026-05-05 |
 | [[phase-37-small-to-big-retrieval-approach]] | high | 2026-05-05 |
-| [[phase-36-claim-reconciliation-approach]] | medium | 2026-05-04 |
 
 ## Blockers and Open Questions
 

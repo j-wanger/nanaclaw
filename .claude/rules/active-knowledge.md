@@ -1,21 +1,20 @@
 # Active Knowledge
-## Phase: 38 - Review Remediation
+## Phase: 40 - Memory Migration + Claim Dedup Guard
 
-### Dedup Landscape
-from: external review + codebase grep
+### Migration Schema + Mapping
+from: memory_server/storage.py + migrate.py
 retrieved: 2026-05-05
 
-- loadWikis duplicated in 13 files, resolveWikiPath in ~8 files, text() in 6 files
-- wiki-utils.ts already exports loadWikis, resolveWikiByName, WikiEntry, parseFrontmatter, stripFrontmatter
-- Drop-in files (all 3 duped): claim-tools, claim-linker, claim-conflicts, claim-reconcile, knowledge-tools, knowledge-analysis-tools
-- Adaptation files (loadWikis only): wiki-search, research-fetch, wiki-write, research-summarize (custom wiki resolution)
-- Partial files: url-index, local-worker/dispatch (loadWikis+WikiEntry only)
+- memories table: id TEXT PK, content, context, category, trust, strength, source, source_session, tags, active, superseded_by, contradicts, embedding, created_at, updated_at, access_count
+- Type-to-category: user→fact, feedback→correction, project→fact, reference→custom (from migrate.py, NOT invertible from CATEGORY_TO_TYPE)
+- Trust: feedback→high, all others→medium
+- Dedup: exact content match (SELECT 1 FROM memories WHERE content=$content AND active=1)
+- IDs: crypto.randomUUID() on Node side (Python uses nanoid with mem_ prefix — different format is fine, no FK constraints)
 
-### Memory DB Schema Gap
-from: [[decision:phase-38-review-remediation-approach]] + approach review
+### claim_dedup Current State
+from: claim-tools.ts + Phase 38 approach review
 retrieved: 2026-05-05
 
-- groups/<group>/memory/memory.db currently has FTS tables only (memory_fts), NOT the memory_server's memories table
-- MEMORY_PROJECT_DIR in container.json points to same directory -- memory_server would create memories table there
-- memories table schema: id, content, context, category, trust, strength, active, superseded_by, created_at, updated_at
-- Context builder must check for memories table existence before querying (graceful fallback to MEMORY.md-only)
+- db_allWithEmbeddings('claim') loads all rows + embeddings into memory, then O(n^2) cosine loop
+- searchSimilar also does full-table scan — per-claim calls would be same complexity with worse constants
+- Guard: COUNT query before load, cap at 1000 claims (~500K pairs, <2s on 768-dim vectors)

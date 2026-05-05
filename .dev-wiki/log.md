@@ -1,5 +1,6 @@
 # Dev Wiki Log
 
+[2026-05-05T03:30:00] PLAN -- Phase 40 activated, 3 tasks (1M+2S), 1 decision (memory-migration-claim-dedup-approach), approach reviewer 8/10 accept, plan reviewer 7/10 accept
 [2026-05-05T03:00:00] PLAN+IMPL -- Phase 39 (memory write convergence), documentation-only, memory skill updated to use memory_store MCP as primary write path, MEMORY.md marked legacy
 [2026-05-05T02:30:00] DEBRIEF -- Phase 38 complete (7/7 tasks), 1 decision (approach), search routing + dedup (12 files, ~240 lines removed) + taxonomy + dual-read, 5 new tests, reviewer 6/10→fixed (CallToolResult import + db.close)
 [2026-05-05T02:00:00] PLAN -- Phase 38 activated, 7 tasks (3M+4S), 1 decision (review-remediation-approach), approach reviewer 6/10 revise (memory.db schema + claim_dedup complexity corrections), plan reviewer 8/10 accept, 4 workstreams from external review

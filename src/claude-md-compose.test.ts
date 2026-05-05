@@ -178,9 +178,9 @@ describe('compose coherence', () => {
     expect(skill).not.toMatch(/coexist/i);
   });
 
-  it('memory skill declares sole authority', () => {
+  it('memory skill declares primary write path', () => {
     const skill = fs.readFileSync(path.join(process.cwd(), 'container', 'skills', 'memory', 'SKILL.md'), 'utf-8');
-    expect(skill).toMatch(/sole memory store/i);
+    expect(skill).toMatch(/memory_store/);
   });
 
   it('no /workspace/agent in container skill files', () => {

@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import Database from 'better-sqlite3';
-import { generateMemoryFragment } from './context-builder.js';
+import { generateMemoryFragment, migrateMemoryMdToDb } from './context-builder.js';
+import type { MemoryEntry } from './types.js';
 
 let tmpDir: string;
 
@@ -140,8 +141,10 @@ File-based entry
         access_count INTEGER NOT NULL DEFAULT 0
       )
     `);
-    db.prepare(`INSERT INTO memories (id, content, category, created_at, updated_at, active)
-      VALUES ('mem_001', 'MCP-stored memory content', 'fact', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`).run();
+    db.prepare(
+      `INSERT INTO memories (id, content, category, created_at, updated_at, active)
+      VALUES ('mem_001', 'MCP-stored memory content', 'fact', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`,
+    ).run();
     db.close();
 
     generateMemoryFragment(tmpDir);
@@ -159,6 +162,70 @@ Just from file
     generateMemoryFragment(tmpDir);
     const content = fs.readFileSync(fragmentPath(), 'utf-8');
     expect(content).toContain('Just from file');
+  });
+
+  describe('migrateMemoryMdToDb', () => {
+    it('creates memories table and inserts entries with correct mapping', () => {
+      const memDir = path.join(tmpDir, 'memory');
+      fs.mkdirSync(memDir, { recursive: true });
+      const dbPath = path.join(memDir, 'memory.db');
+
+      const entries: MemoryEntry[] = [
+        { type: 'user', title: 'Jake profile', content: 'Senior engineer', created: '2026-04-25' },
+        { type: 'feedback', title: 'Be terse', content: 'No fluff', created: '2026-04-26' },
+        { type: 'project', title: 'NanoClaw', content: 'Agent system', created: '2026-04-27' },
+        { type: 'reference', title: 'Docs URL', content: 'https://docs.example.com', created: '2026-04-28' },
+      ];
+
+      const result = migrateMemoryMdToDb(entries, dbPath);
+      expect(result.imported).toBe(4);
+      expect(result.skipped).toBe(0);
+
+      const db = new Database(dbPath);
+      const rows = db.prepare('SELECT content, category, trust FROM memories WHERE active = 1').all() as Array<{ content: string; category: string; trust: string }>;
+      db.close();
+
+      expect(rows).toHaveLength(4);
+      const byContent = Object.fromEntries(rows.map((r) => [r.content, r]));
+      expect(byContent['Senior engineer'].category).toBe('fact');
+      expect(byContent['Senior engineer'].trust).toBe('medium');
+      expect(byContent['No fluff'].category).toBe('correction');
+      expect(byContent['No fluff'].trust).toBe('high');
+      expect(byContent['Agent system'].category).toBe('fact');
+      expect(byContent['https://docs.example.com'].category).toBe('custom');
+    });
+
+    it('is idempotent — second call imports nothing new', () => {
+      const memDir = path.join(tmpDir, 'memory');
+      fs.mkdirSync(memDir, { recursive: true });
+      const dbPath = path.join(memDir, 'memory.db');
+
+      const entries: MemoryEntry[] = [
+        { type: 'user', title: 'Test', content: 'Same content', created: '2026-04-25' },
+      ];
+
+      const first = migrateMemoryMdToDb(entries, dbPath);
+      expect(first.imported).toBe(1);
+
+      const second = migrateMemoryMdToDb(entries, dbPath);
+      expect(second.imported).toBe(0);
+      expect(second.skipped).toBe(1);
+
+      const db = new Database(dbPath);
+      const count = (db.prepare('SELECT count(*) as cnt FROM memories').get() as { cnt: number }).cnt;
+      db.close();
+      expect(count).toBe(1);
+    });
+
+    it('returns zeros for empty entries', () => {
+      const memDir = path.join(tmpDir, 'memory');
+      fs.mkdirSync(memDir, { recursive: true });
+      const dbPath = path.join(memDir, 'memory.db');
+
+      const result = migrateMemoryMdToDb([], dbPath);
+      expect(result.imported).toBe(0);
+      expect(result.skipped).toBe(0);
+    });
   });
 
   it('deduplicates entries with same title from both sources', () => {
@@ -180,8 +247,10 @@ From file
         access_count INTEGER NOT NULL DEFAULT 0
       )
     `);
-    db.prepare(`INSERT INTO memories (id, content, category, created_at, updated_at, active)
-      VALUES ('mem_002', 'From MCP', 'user', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`).run();
+    db.prepare(
+      `INSERT INTO memories (id, content, category, created_at, updated_at, active)
+      VALUES ('mem_002', 'From MCP', 'user', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`,
+    ).run();
     db.close();
 
     generateMemoryFragment(tmpDir);

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import Database from 'better-sqlite3';
 import { parseMemoryMd } from './memory-store.js';
 import { rebuildIndex } from './fts.js';
@@ -8,6 +9,84 @@ import type { MemoryEntry, MemoryType } from './types.js';
 const TOKEN_BUDGET = 1500;
 const CHARS_PER_TOKEN = 4;
 const CHAR_BUDGET = TOKEN_BUDGET * CHARS_PER_TOKEN;
+
+const TYPE_TO_CATEGORY: Record<string, string> = {
+  user: 'fact',
+  feedback: 'correction',
+  project: 'fact',
+  reference: 'custom',
+};
+
+const TYPE_TO_TRUST: Record<string, string> = {
+  feedback: 'high',
+};
+
+const MEMORIES_DDL = `CREATE TABLE IF NOT EXISTS memories (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  context TEXT,
+  category TEXT NOT NULL DEFAULT 'fact',
+  trust TEXT NOT NULL DEFAULT 'medium',
+  strength INTEGER NOT NULL DEFAULT 1,
+  source TEXT,
+  source_session TEXT,
+  tags TEXT NOT NULL DEFAULT '[]',
+  active INTEGER NOT NULL DEFAULT 1,
+  superseded_by TEXT,
+  contradicts TEXT NOT NULL DEFAULT '[]',
+  embedding BLOB,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  access_count INTEGER NOT NULL DEFAULT 0
+)`;
+
+export function migrateMemoryMdToDb(
+  entries: MemoryEntry[],
+  dbPath: string,
+): { imported: number; skipped: number } {
+  if (entries.length === 0) return { imported: 0, skipped: 0 };
+
+  const dir = path.dirname(dbPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+  const db = new Database(dbPath);
+  try {
+    db.exec(MEMORIES_DDL);
+
+    const checkStmt = db.prepare('SELECT 1 FROM memories WHERE content = @content AND active = 1');
+    const insertStmt = db.prepare(
+      `INSERT INTO memories (id, content, context, category, trust, source, tags, created_at, updated_at)
+       VALUES (@id, @content, @context, @category, @trust, @source, @tags, @created_at, @updated_at)`,
+    );
+
+    let imported = 0;
+    let skipped = 0;
+
+    for (const entry of entries) {
+      if (checkStmt.get({ content: entry.content })) {
+        skipped++;
+        continue;
+      }
+      const now = new Date().toISOString();
+      insertStmt.run({
+        id: crypto.randomUUID(),
+        content: entry.content,
+        context: `Migrated from MEMORY.md: ${entry.title}`,
+        category: TYPE_TO_CATEGORY[entry.type] || 'fact',
+        trust: TYPE_TO_TRUST[entry.type] || 'medium',
+        source: 'imported',
+        tags: JSON.stringify([`source-type:${entry.type}`]),
+        created_at: entry.created ? `${entry.created}T00:00:00Z` : now,
+        updated_at: now,
+      });
+      imported++;
+    }
+
+    return { imported, skipped };
+  } finally {
+    db.close();
+  }
+}
 
 const CATEGORY_TO_TYPE: Record<string, MemoryType> = {
   user: 'user',
@@ -26,14 +105,12 @@ function readMcpMemories(dbPath: string): MemoryEntry[] {
   let db: InstanceType<typeof Database> | null = null;
   try {
     db = new Database(dbPath, { readonly: true });
-    const hasTable = db.prepare(
-      "SELECT 1 FROM sqlite_master WHERE type='table' AND name='memories'",
-    ).get();
+    const hasTable = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='memories'").get();
     if (!hasTable) return [];
 
-    const rows = db.prepare(
-      'SELECT content, category, created_at FROM memories WHERE active = 1 ORDER BY created_at DESC',
-    ).all() as Array<{ content: string; category: string; created_at: string }>;
+    const rows = db
+      .prepare('SELECT content, category, created_at FROM memories WHERE active = 1 ORDER BY created_at DESC')
+      .all() as Array<{ content: string; category: string; created_at: string }>;
 
     return rows.map((r) => {
       const firstLine = r.content.split('\n')[0].slice(0, 80);
@@ -57,13 +134,15 @@ export function generateMemoryFragment(groupDir: string): void {
   const dbPath = path.join(memoryDir, 'memory.db');
 
   const fileEntries = fs.existsSync(memoryFile) ? parseMemoryMd(memoryFile) : [];
+
+  if (fileEntries.length > 0) {
+    migrateMemoryMdToDb(fileEntries, dbPath);
+    rebuildIndex(dbPath, fileEntries);
+  }
+
   const mcpEntries = readMcpMemories(dbPath);
 
   if (fileEntries.length === 0 && mcpEntries.length === 0) return;
-
-  if (fileEntries.length > 0) {
-    rebuildIndex(dbPath, fileEntries);
-  }
 
   const fileTitles = new Set(fileEntries.map((e) => e.title));
   const deduped = [...fileEntries, ...mcpEntries.filter((e) => !fileTitles.has(e.title))];
