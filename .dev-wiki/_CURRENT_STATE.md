@@ -4,20 +4,20 @@
 
 ## Recommended Next Action
 
-Phase 37 complete (3/3 tasks, 578 tests). Option B 6-phase plan fully implemented. Run `/dev-plan` for next work area.
+Phase 38 complete (7/7 tasks, reviewer 6/10->fixed). Commit and push, then run `/dev-plan` for next work area.
 
 ## Active Phase
 
-**[[phase-37-small-to-big-retrieval|Phase 37: Small-to-Big Retrieval]]** (status: active, ~0%)
+**[[phase-38-review-remediation|Phase 38: Review Remediation]]** (status: active, ~0%)
 
-Entry criteria: MET (Phase 36 complete, knowledge_search returns sentence-level results with article_slug + section metadata)
-Exit criteria: 0/4 met. 4 remaining.
-Progress: ~0% (0/3 tasks done)
+Entry criteria: MET (Phase 37 complete, external review findings documented)
+Exit criteria: 0/5 met. 5 remaining.
+Progress: ~0% (0/7 tasks done)
 
 ## Active Phase Contract
 
-Phase: 37 - Small-to-Big Retrieval
-Tasks: 3 (2M + 1S, see tasks.md)
+Phase: 38 - Review Remediation
+Tasks: 7 (3M + 4S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -25,9 +25,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
-| [[phase-37-small-to-big-retrieval-approach]] | medium | 2026-05-05 |
+| [[phase-38-review-remediation-approach]] | medium | 2026-05-05 |
+| [[phase-37-small-to-big-retrieval-approach]] | high | 2026-05-05 |
 | [[phase-36-claim-reconciliation-approach]] | medium | 2026-05-04 |
-| [[phase-35-claim-conflict-detection-approach]] | medium | 2026-05-04 |
 
 ## Blockers and Open Questions
 
@@ -56,11 +56,11 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 ## Session Journal (last 5)
 
-- [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window expansion + overlap merge, 12 new tests (578 total), approach pivot section→window
-- [2026-05-05] [[2026-05-05-phase-36-claim-reconciliation-complete|Phase 36: Claim Reconciliation Complete]] — 3 tasks, claim_reconcile MCP tool + detect-then-fix pipeline, 10 new tests (566 total), reviewer 8/10
-- [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, claim_conflicts MCP tool + 3 detection vectors, 22 new tests (556 total), reviewer 8/10
-- [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, claim_link MCP tool + NLI pipeline, 23 tests, reviewer 7/10→fixed
-- [2026-05-04] [[2026-05-04-phase-33-claim-markers-contextual-embeddings-complete|Phase 33: Claim Markers + Contextual Sentence Embeddings Complete]] — 7 tasks, claim provenance convention + contextual prefix upgrade, reviewer 7/10→fixed
+- [2026-05-05] [[2026-05-05-phase-38-review-remediation-complete|Phase 38: Review Remediation Complete]] — 7 tasks, search routing + dedup + taxonomy + dual-read, reviewer 6/10→fixed
+- [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window expansion + overlap merge, 12 new tests
+- [2026-05-05] [[2026-05-05-phase-36-claim-reconciliation-complete|Phase 36: Claim Reconciliation Complete]] — 3 tasks, claim_reconcile MCP tool + detect-then-fix pipeline, reviewer 8/10
+- [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, claim_conflicts MCP tool + 3 detection vectors, reviewer 8/10
+- [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, claim_link MCP tool + NLI pipeline, reviewer 7/10→fixed
 
 ## Cross-References
 

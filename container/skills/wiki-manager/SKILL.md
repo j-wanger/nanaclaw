@@ -1,11 +1,11 @@
 ---
 name: wiki-manager
-description: Knowledge wiki awareness. Read articles, check stats, understand the 4-tier lifecycle. Complements the research skill (which writes) with read and management awareness.
+description: Knowledge wiki awareness. Read articles, check stats, understand content lifecycle. Complements the research skill (which writes) with read and management awareness.
 ---
 
 # Wiki Management
 
-You have access to knowledge wikis — structured collections of domain knowledge organized in four tiers.
+You have access to knowledge wikis — structured collections of domain knowledge with a pipeline and lifecycle model.
 
 ## Trigger Patterns
 
@@ -14,16 +14,19 @@ You have access to knowledge wikis — structured collections of domain knowledg
 - Domain questions that existing wiki articles might answer
 - Requests to look up or read specific wiki content
 
-## The Four Tiers
+## Content Pipeline
 
-| Tier | Purpose | How content arrives |
-|------|---------|-------------------|
-| **raw** | Immutable source material with sha256 checksums | `research_fetch` writes here |
-| **episodic** | Per-source summaries from research workers | `research_summarize` writes here via `write_to` |
-| **inbox** | Staged entries awaiting human review | Direct `wiki_write` calls |
-| **articles** | Polished, cross-linked knowledge (organized in categories) | Promoted by the user from inbox/episodic |
+| Stage | Purpose | How content arrives |
+|-------|---------|-------------------|
+| **raw** | Immutable source material with sha256 checksums (pipeline input, not an article tier) | `research_fetch` writes here |
+| **episodic** | Per-source research findings, append-only | `research_summarize` writes here via `write_to` |
+| **articles** | Polished, cross-linked knowledge (organized in categories) | Promoted by the user from episodic |
 
-Content flows: raw → episodic → (inbox →) articles. Your research pipeline handles raw and episodic. **Promoting episodic content to articles is the user's job** — don't attempt consolidation yourself.
+Content flows: raw → episodic → articles. Your research pipeline handles raw and episodic. **Promoting episodic content to articles is the user's job** — don't attempt consolidation yourself.
+
+## Article Lifecycle
+
+Articles progress through status stages: **draft** → **reviewed** → **verified** → **stale**. Claim provenance tools (`claim_link`, `claim_conflicts`, `claim_reconcile`) operate on the verified/stale transition. See `knowledge-routing.md` for the full tool routing table.
 
 ## Tools
 

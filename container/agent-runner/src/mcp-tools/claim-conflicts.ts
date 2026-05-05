@@ -1,9 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { registerTools } from './server.js';
 import type { McpToolDefinition } from './types.js';
+import { resolveWikiPath, text, type CallToolResult } from './wiki-utils.js';
 import { parseClaimMetadata, parseClaimMarkers } from './claim-linker.js';
 import type { ClaimMeta, ParsedClaim } from './claim-linker.js';
 import type { ConflictPair } from './knowledge-conflicts.js';
@@ -184,25 +183,6 @@ export async function findClaimNliConflicts(
 }
 
 // --- MCP Tool ---
-
-interface WikiEntry { name: string; path: string; description: string; }
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    return (JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as { wikis: WikiEntry[] }).wikis || [];
-  } catch { return null; }
-}
-
-function resolveWikiPath(wikiName: string): string | null {
-  const wikis = loadWikis();
-  const entry = wikis?.find((w) => w.name === wikiName) || wikis?.[0];
-  return entry?.path || null;
-}
-
-function text(msg: string): CallToolResult {
-  return { content: [{ type: 'text', text: msg }] };
-}
 
 function findArticleFiles(articlesDir: string, slugFilter?: string): Array<{ slug: string; filePath: string }> {
   if (!fs.existsSync(articlesDir)) return [];

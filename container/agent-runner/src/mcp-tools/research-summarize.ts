@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { registerTools } from './server.js';
 import { extractSourceUrl } from './url-index.js';
 import { AGENT_DIR } from '../config.js';
 import type { McpToolDefinition } from './types.js';
+import { loadWikis, type WikiEntry } from './wiki-utils.js';
 
 const CLAIM_BOUNDARY = 'Extract atomic claims as [CLAIM] tags in a ## Claims section. Each claim must be a standalone factual assertion — atomic, independent, declarative, and attributable to this source';
 
@@ -53,16 +53,6 @@ const INSIGHTS_ONLY_BOUNDARIES = [
 const INSIGHTS_ONLY_POSTCONDITIONS = [
   { type: 'contains' as const, params: { substring: '## Insights' } },
 ];
-
-interface WikiEntry { name: string; path: string; description: string; }
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as { wikis: WikiEntry[] };
-    return raw.wikis || [];
-  } catch { return null; }
-}
 
 function generateSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);

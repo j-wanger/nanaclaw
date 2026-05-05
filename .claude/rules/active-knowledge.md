@@ -1,20 +1,21 @@
 # Active Knowledge
-## Phase: 37 - Small-to-Big Retrieval
+## Phase: 38 - Review Remediation
 
-### Sentence-Window Expansion Pattern
-from: [[decision:phase-37-small-to-big-retrieval-approach]] + approach review findings
+### Dedup Landscape
+from: external review + codebase grep
 retrieved: 2026-05-05
 
-- 98.3% of raw articles in knowledge.db have no sub-section headings (45/2654 with >1 section) — section expansion returns entire articles
-- Sentence-window via ID ordering: N rows before/after matched ID within same article_slug using LIMIT (no contiguity assumption)
-- Overlap merging: same-article matches with overlapping windows collapse into single parent_text with best similarity
-- IDs are sequential within articles due to sequential embed pipeline (embedSentences processes one article at a time)
+- loadWikis duplicated in 13 files, resolveWikiPath in ~8 files, text() in 6 files
+- wiki-utils.ts already exports loadWikis, resolveWikiByName, WikiEntry, parseFrontmatter, stripFrontmatter
+- Drop-in files (all 3 duped): claim-tools, claim-linker, claim-conflicts, claim-reconcile, knowledge-tools, knowledge-analysis-tools
+- Adaptation files (loadWikis only): wiki-search, research-fetch, wiki-write, research-summarize (custom wiki resolution)
+- Partial files: url-index, local-worker/dispatch (loadWikis+WikiEntry only)
 
-### Existing Infrastructure
-from: knowledge-vector-store.ts + knowledge-tools.ts
+### Memory DB Schema Gap
+from: [[decision:phase-38-review-remediation-approach]] + approach review
 retrieved: 2026-05-05
 
-- KnowledgeVectorStore.searchSimilar returns SearchResult[] with id, text, contextual_text, article_slug, section, similarity
-- handleKnowledgeSearch embeds query → searchSimilar → JSON response with results array
-- knowledge table has idx_knowledge_article index on article_slug (used by getByArticleSlug, will support getWindow)
-- bun:sqlite uses $name params in both SQL and JS keys
+- groups/<group>/memory/memory.db currently has FTS tables only (memory_fts), NOT the memory_server's memories table
+- MEMORY_PROJECT_DIR in container.json points to same directory -- memory_server would create memories table there
+- memories table schema: id, content, context, category, trust, strength, active, superseded_by, created_at, updated_at
+- Context builder must check for memories table existence before querying (graceful fallback to MEMORY.md-only)

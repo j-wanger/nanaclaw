@@ -1,9 +1,8 @@
 # Active Phase Context
 
-Phase: 37 — Small-to-Big Retrieval
-Objective: Add sentence-window expansion to knowledge_search — search at sentence level, return surrounding context from knowledge.db.
-Status: Complete. 3/3 tasks done, 4/4 exit criteria met, 578/578 tests passing.
-Scope: container/agent-runner/src/mcp-tools/knowledge-vector-store.ts, knowledge-tools.ts, *.test.ts
-Key constraints: Window via knowledge.db ID ordering (no disk reads). Overlap merging for same-article matches. expand="none" default preserves backward compat.
-Exit criteria: All met. expand param accepted, sentence window returns parent_text, overlap merging works, 578 tests passing.
-Next: Option B 6-phase plan fully complete. Run /dev-plan for next work area.
+Phase: 38 -- Review Remediation
+Objective: Address 4 external review issues: search routing guidance, code dedup, wiki-manager taxonomy, context builder dual-read.
+Status: Complete. 7/7 tasks done, 5/5 exit criteria met, reviewer 6/10->fixed.
+Scope: container/agent-runner/src/mcp-tools/*.ts, container/skills/wiki-manager/, src/modules/memory/context-builder.ts
+Exit criteria: All met. Routing docs, dedup, taxonomy aligned, dual-read working, tests passing.
+Next: Commit and push, then run /dev-plan for next work area.

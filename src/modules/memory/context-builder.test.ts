@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import Database from 'better-sqlite3';
 import { generateMemoryFragment } from './context-builder.js';
 
 let tmpDir: string;
@@ -118,5 +119,74 @@ Content here
     generateMemoryFragment(tmpDir);
     const dbFile = path.join(tmpDir, 'memory', 'memory.db');
     expect(fs.existsSync(dbFile)).toBe(true);
+  });
+
+  it('includes entries from memories table when present', () => {
+    writeMemory(`# Memory
+
+## [user] From MEMORY.md (2026-04-25)
+File-based entry
+`);
+    const memDir = path.join(tmpDir, 'memory');
+    const db = new Database(path.join(memDir, 'memory.db'));
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS memories (
+        id TEXT PRIMARY KEY, content TEXT NOT NULL, context TEXT,
+        category TEXT NOT NULL DEFAULT 'fact', trust TEXT NOT NULL DEFAULT 'medium',
+        strength INTEGER NOT NULL DEFAULT 1, source TEXT, source_session TEXT,
+        tags TEXT NOT NULL DEFAULT '[]', active INTEGER NOT NULL DEFAULT 1,
+        superseded_by TEXT, contradicts TEXT NOT NULL DEFAULT '[]',
+        embedding BLOB, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+        access_count INTEGER NOT NULL DEFAULT 0
+      )
+    `);
+    db.prepare(`INSERT INTO memories (id, content, category, created_at, updated_at, active)
+      VALUES ('mem_001', 'MCP-stored memory content', 'fact', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`).run();
+    db.close();
+
+    generateMemoryFragment(tmpDir);
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    expect(content).toContain('File-based entry');
+    expect(content).toContain('MCP-stored memory content');
+  });
+
+  it('falls back to MEMORY.md-only when memories table absent', () => {
+    writeMemory(`# Memory
+
+## [user] Only file entry (2026-04-25)
+Just from file
+`);
+    generateMemoryFragment(tmpDir);
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    expect(content).toContain('Just from file');
+  });
+
+  it('deduplicates entries with same title from both sources', () => {
+    writeMemory(`# Memory
+
+## [user] Shared Title (2026-04-25)
+From file
+`);
+    const memDir = path.join(tmpDir, 'memory');
+    const db = new Database(path.join(memDir, 'memory.db'));
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS memories (
+        id TEXT PRIMARY KEY, content TEXT NOT NULL, context TEXT,
+        category TEXT NOT NULL DEFAULT 'fact', trust TEXT NOT NULL DEFAULT 'medium',
+        strength INTEGER NOT NULL DEFAULT 1, source TEXT, source_session TEXT,
+        tags TEXT NOT NULL DEFAULT '[]', active INTEGER NOT NULL DEFAULT 1,
+        superseded_by TEXT, contradicts TEXT NOT NULL DEFAULT '[]',
+        embedding BLOB, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+        access_count INTEGER NOT NULL DEFAULT 0
+      )
+    `);
+    db.prepare(`INSERT INTO memories (id, content, category, created_at, updated_at, active)
+      VALUES ('mem_002', 'From MCP', 'user', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`).run();
+    db.close();
+
+    generateMemoryFragment(tmpDir);
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    const titleCount = (content.match(/Shared Title/g) || []).length;
+    expect(titleCount).toBe(1);
   });
 });

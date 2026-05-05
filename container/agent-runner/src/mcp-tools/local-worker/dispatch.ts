@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { createHash } from 'crypto';
+import { loadWikis, type WikiEntry } from '../wiki-utils.js';
 
 import { AGENT_DIR } from '../../config.js';
 import type { TaskContract, TaskState, WriteTo } from './contract.js';
@@ -40,21 +40,6 @@ function getSemaphore(url: string): Semaphore {
   return sem;
 }
 
-interface WikiEntry {
-  name: string;
-  path: string;
-  description: string;
-}
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as { wikis: WikiEntry[] };
-    return raw.wikis || [];
-  } catch {
-    return null;
-  }
-}
 
 function generateSlug(title: string): string {
   return title

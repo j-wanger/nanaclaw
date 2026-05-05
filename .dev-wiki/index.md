@@ -152,6 +152,7 @@
 - [[phase-35-claim-conflict-detection|Phase 35: Claim Conflict Detection]] — completed
 - [[phase-36-claim-reconciliation|Phase 36: Claim Reconciliation]] — completed
 - [[phase-37-small-to-big-retrieval|Phase 37: Small-to-Big Retrieval]] — completed
+- [[phase-38-review-remediation|Phase 38: Review Remediation]] — completed
 
 ## Decisions
 
@@ -166,6 +167,7 @@
 - [[phase-36-claim-reconciliation-approach|Phase 36: Claim Reconciliation]] — medium confidence
 - [[phase-35-claim-conflict-detection-approach|Phase 35: Claim Conflict Detection]] — medium confidence
 - [[phase-34-claim-linker-approach|Phase 34: Claim Linker]] — medium confidence
+- [[phase-38-review-remediation-approach|Phase 38: Review Remediation]] — medium confidence
 - [[phase-37-small-to-big-retrieval-approach|Phase 37: Small-to-Big Retrieval]] — high confidence
 - [[phase-33-claim-markers-contextual-embeddings-approach|Phase 33: Claim Markers + Contextual Embeddings]] — medium confidence
 - [[phase-32-nanaclaw-consolidation-approach|Phase 32: Nanaclaw + Consolidation]] — medium confidence
@@ -173,6 +175,7 @@
 
 ## Journal (recent 10)
 
+- [2026-05-05] [[2026-05-05-phase-38-review-remediation-complete|Phase 38: Review Remediation Complete]] — 7 tasks, search routing + dedup + taxonomy + dual-read, reviewer 6/10→fixed
 - [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window expansion + overlap merge, 12 new tests (578 total)
 - [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, claim_conflicts MCP tool + 3 vectors, 22 new tests, reviewer 8/10
 - [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, claim_link MCP tool + NLI pipeline, 23 tests, reviewer 7/10→fixed

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { registerTools } from './server.js';
 import type { McpToolDefinition } from './types.js';
+import { loadWikis, type WikiEntry } from './wiki-utils.js';
 
 function log(msg: string): void {
   console.error(`[wiki-search] ${msg}`);
@@ -12,31 +12,10 @@ function ok(text: string) {
   return { content: [{ type: 'text' as const, text }] };
 }
 
-interface WikiEntry {
-  name: string;
-  path: string;
-  description: string;
-}
-
-interface WikisJson {
-  version: number;
-  wikis: WikiEntry[];
-}
-
 interface SearchResult {
   slug: string;
   title: string;
   score: number;
-}
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as WikisJson;
-    return raw.wikis || [];
-  } catch {
-    return null;
-  }
 }
 
 function resolveWiki(wikis: WikiEntry[], wikiName?: string): WikiEntry | null {

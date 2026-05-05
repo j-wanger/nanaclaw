@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { createHash } from 'crypto';
 import { registerTools } from './server.js';
 import type { McpToolDefinition } from './types.js';
+import { loadWikis, type WikiEntry } from './wiki-utils.js';
 
 function log(msg: string): void {
   console.error(`[wiki-write] ${msg}`);
@@ -11,27 +11,6 @@ function log(msg: string): void {
 
 function ok(text: string) {
   return { content: [{ type: 'text' as const, text }] };
-}
-
-interface WikiEntry {
-  name: string;
-  path: string;
-  description: string;
-}
-
-interface WikisJson {
-  version: number;
-  wikis: WikiEntry[];
-}
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as WikisJson;
-    return raw.wikis || [];
-  } catch {
-    return null;
-  }
 }
 
 function scoreWiki(wiki: WikiEntry, topic: string, tags: string[]): number {

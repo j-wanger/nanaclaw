@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+export type { CallToolResult };
 
 export interface WikiEntry {
   name: string;
@@ -33,6 +35,17 @@ export function loadWikis(): WikiEntry[] | null {
 
 export function resolveWikiByName(wikis: WikiEntry[], name: string): WikiEntry | null {
   return wikis.find((w) => w.name === name) ?? null;
+}
+
+export function resolveWikiPath(wikiName: string): string | null {
+  const wikis = loadWikis();
+  if (!wikis || wikis.length === 0) return null;
+  const entry = wikis.find((w) => w.name === wikiName) || wikis[0];
+  return entry?.path || null;
+}
+
+export function text(msg: string): CallToolResult {
+  return { content: [{ type: 'text', text: msg }] };
 }
 
 export function parseFrontmatter(content: string): WikiFrontmatter | null {

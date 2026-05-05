@@ -1,27 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
-
-interface WikiEntry {
-  name: string;
-  path: string;
-  description: string;
-}
-
-interface WikisJson {
-  version: number;
-  wikis: WikiEntry[];
-}
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    const raw = JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as WikisJson;
-    return raw.wikis || [];
-  } catch {
-    return null;
-  }
-}
+import { loadWikis, type WikiEntry } from './wiki-utils.js';
 
 export function extractSourceUrl(markdown: string): string | null {
   const fmMatch = markdown.match(/^---\n([\s\S]*?)\n---/);

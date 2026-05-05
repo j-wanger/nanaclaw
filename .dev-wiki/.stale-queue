@@ -147,3 +147,7 @@ container/agent-runner/src/mcp-tools/claim-conflicts.test.ts
 container/agent-runner/src/mcp-tools/claim-conflicts.ts
 container/agent-runner/src/mcp-tools/claim-reconcile.test.ts
 container/agent-runner/src/mcp-tools/claim-reconcile.ts
+container/agent-runner/src/mcp-tools/wiki-utils.test.ts
+container/agent-runner/src/mcp-tools/wiki-search.ts
+src/modules/memory/context-builder.test.ts
+src/modules/memory/context-builder.ts

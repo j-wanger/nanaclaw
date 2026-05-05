@@ -267,13 +267,12 @@ export function updateClaimsFrontmatter(content: string, updates: ClaimUpdate[])
 
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { registerTools } from './server.js';
 import type { McpToolDefinition } from './types.js';
 import { embedText } from './claim-embeddings.js';
 import { KnowledgeVectorStore, type SearchResult } from './knowledge-vector-store.js';
 import { executeAgentLoop, type AgentLoopResult } from './local-worker/agent-loop.js';
+import { resolveWikiPath, text, type CallToolResult } from './wiki-utils.js';
 
 const DEFAULT_THRESHOLD = 0.7;
 const DEFAULT_TOP_K = 10;
@@ -445,25 +444,6 @@ export async function linkArticleClaims(
 }
 
 // --- MCP Tool Registration ---
-
-interface WikiEntry { name: string; path: string; description: string; }
-
-function loadWikis(): WikiEntry[] | null {
-  const wikisPath = process.env.WIKIS_JSON_PATH || path.join(os.homedir(), '.claude', 'wikis.json');
-  try {
-    return (JSON.parse(fs.readFileSync(wikisPath, 'utf8')) as { wikis: WikiEntry[] }).wikis || [];
-  } catch { return null; }
-}
-
-function resolveWikiPath(wikiName: string): string | null {
-  const wikis = loadWikis();
-  const entry = wikis?.find((w) => w.name === wikiName) || wikis?.[0];
-  return entry?.path || null;
-}
-
-function text(msg: string): CallToolResult {
-  return { content: [{ type: 'text', text: msg }] };
-}
 
 async function defaultNliFn(prompt: string): Promise<AgentLoopResult> {
   return executeAgentLoop({

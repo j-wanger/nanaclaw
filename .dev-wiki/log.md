@@ -1,5 +1,7 @@
 # Dev Wiki Log
 
+[2026-05-05T02:30:00] DEBRIEF -- Phase 38 complete (7/7 tasks), 1 decision (approach), search routing + dedup (12 files, ~240 lines removed) + taxonomy + dual-read, 5 new tests, reviewer 6/10→fixed (CallToolResult import + db.close)
+[2026-05-05T02:00:00] PLAN -- Phase 38 activated, 7 tasks (3M+4S), 1 decision (review-remediation-approach), approach reviewer 6/10 revise (memory.db schema + claim_dedup complexity corrections), plan reviewer 8/10 accept, 4 workstreams from external review
 [2026-05-05T01:30:00] DEBRIEF -- Phase 37 complete (3/3 tasks), 1 decision (approach, pivoted section→window after 5/10 review), sentence-window expansion + overlap merge, 12 new tests (578 total), self-check clean, Option B 6-phase plan fully complete
 [2026-05-05T01:00:00] PLAN -- Phase 37 activated, 3 tasks (2M+1S), 1 decision (small-to-big-retrieval-approach), approach reviewer 5/10 revise (section expansion degenerate for raw articles → revised to sentence-window), plan reviewer 8/10 accept, sentence-window via knowledge.db ID ordering
 [2026-05-05T00:30:00] DEBRIEF -- Phase 36 complete (3/3 tasks), 1 decision (approach), claim_reconcile MCP tool + detect-then-fix pipeline, 10 new tests (566 total), reviewer 8/10 accept, 2 LOW fixes inline
