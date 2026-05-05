@@ -182,7 +182,11 @@ Just from file
       expect(result.skipped).toBe(0);
 
       const db = new Database(dbPath);
-      const rows = db.prepare('SELECT content, category, trust FROM memories WHERE active = 1').all() as Array<{ content: string; category: string; trust: string }>;
+      const rows = db.prepare('SELECT content, category, trust FROM memories WHERE active = 1').all() as Array<{
+        content: string;
+        category: string;
+        trust: string;
+      }>;
       db.close();
 
       expect(rows).toHaveLength(4);
@@ -200,9 +204,7 @@ Just from file
       fs.mkdirSync(memDir, { recursive: true });
       const dbPath = path.join(memDir, 'memory.db');
 
-      const entries: MemoryEntry[] = [
-        { type: 'user', title: 'Test', content: 'Same content', created: '2026-04-25' },
-      ];
+      const entries: MemoryEntry[] = [{ type: 'user', title: 'Test', content: 'Same content', created: '2026-04-25' }];
 
       const first = migrateMemoryMdToDb(entries, dbPath);
       expect(first.imported).toBe(1);
@@ -228,34 +230,57 @@ Just from file
     });
   });
 
-  it('deduplicates entries with same title from both sources', () => {
+  it('deduplicates by content — migrated entries do not appear twice', () => {
     writeMemory(`# Memory
 
-## [user] Shared Title (2026-04-25)
-From file
+## [user] Jake Profile (2026-04-25)
+Senior engineer in AML
 `);
-    const memDir = path.join(tmpDir, 'memory');
-    const db = new Database(path.join(memDir, 'memory.db'));
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS memories (
-        id TEXT PRIMARY KEY, content TEXT NOT NULL, context TEXT,
-        category TEXT NOT NULL DEFAULT 'fact', trust TEXT NOT NULL DEFAULT 'medium',
-        strength INTEGER NOT NULL DEFAULT 1, source TEXT, source_session TEXT,
-        tags TEXT NOT NULL DEFAULT '[]', active INTEGER NOT NULL DEFAULT 1,
-        superseded_by TEXT, contradicts TEXT NOT NULL DEFAULT '[]',
-        embedding BLOB, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
-        access_count INTEGER NOT NULL DEFAULT 0
-      )
-    `);
-    db.prepare(
-      `INSERT INTO memories (id, content, category, created_at, updated_at, active)
-      VALUES ('mem_002', 'From MCP', 'user', '2026-05-01T00:00:00Z', '2026-05-01T00:00:00Z', 1)`,
-    ).run();
-    db.close();
-
     generateMemoryFragment(tmpDir);
     const content = fs.readFileSync(fragmentPath(), 'utf-8');
-    const titleCount = (content.match(/Shared Title/g) || []).length;
-    expect(titleCount).toBe(1);
+    const matches = (content.match(/Senior engineer in AML/g) || []).length;
+    expect(matches).toBe(1);
+  });
+
+  it('uses source-type tag to preserve original MemoryType through round-trip', () => {
+    writeMemory(`# Memory
+
+## [user] Jake (2026-04-25)
+Engineer profile
+`);
+    generateMemoryFragment(tmpDir);
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    const dbEntries = content.match(/\[user\]/g) || [];
+    expect(dbEntries.length).toBeGreaterThanOrEqual(1);
+    expect(content).not.toContain('[reference] Engineer profile');
+  });
+
+  it('rebuilds memories_fts after migration when table exists', () => {
+    const memDir = path.join(tmpDir, 'memory');
+    fs.mkdirSync(memDir, { recursive: true });
+    const dbPath = path.join(memDir, 'memory.db');
+
+    const db = new Database(dbPath);
+    db.exec(`CREATE TABLE IF NOT EXISTS memories (
+      id TEXT PRIMARY KEY, content TEXT NOT NULL, context TEXT,
+      category TEXT NOT NULL DEFAULT 'fact', trust TEXT NOT NULL DEFAULT 'medium',
+      strength INTEGER NOT NULL DEFAULT 1, source TEXT, source_session TEXT,
+      tags TEXT NOT NULL DEFAULT '[]', active INTEGER NOT NULL DEFAULT 1,
+      superseded_by TEXT, contradicts TEXT NOT NULL DEFAULT '[]',
+      embedding BLOB, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      access_count INTEGER NOT NULL DEFAULT 0
+    )`);
+    db.exec("CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(content, tags, content='memories', content_rowid='rowid')");
+    db.close();
+
+    const entries: MemoryEntry[] = [
+      { type: 'user', title: 'Test', content: 'Searchable memory text', created: '2026-04-25' },
+    ];
+    migrateMemoryMdToDb(entries, dbPath);
+
+    const db2 = new Database(dbPath);
+    const ftsResult = db2.prepare("SELECT * FROM memories_fts WHERE memories_fts MATCH 'Searchable'").all();
+    db2.close();
+    expect(ftsResult.length).toBe(1);
   });
 });

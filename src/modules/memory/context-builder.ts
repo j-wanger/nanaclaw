@@ -40,10 +40,7 @@ const MEMORIES_DDL = `CREATE TABLE IF NOT EXISTS memories (
   access_count INTEGER NOT NULL DEFAULT 0
 )`;
 
-export function migrateMemoryMdToDb(
-  entries: MemoryEntry[],
-  dbPath: string,
-): { imported: number; skipped: number } {
+export function migrateMemoryMdToDb(entries: MemoryEntry[], dbPath: string): { imported: number; skipped: number } {
   if (entries.length === 0) return { imported: 0, skipped: 0 };
 
   const dir = path.dirname(dbPath);
@@ -82,6 +79,13 @@ export function migrateMemoryMdToDb(
       imported++;
     }
 
+    if (imported > 0) {
+      const hasFts = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='memories_fts'").get();
+      if (hasFts) {
+        db.exec("INSERT INTO memories_fts(memories_fts) VALUES('rebuild')");
+      }
+    }
+
     return { imported, skipped };
   } finally {
     db.close();
@@ -109,17 +113,21 @@ function readMcpMemories(dbPath: string): MemoryEntry[] {
     if (!hasTable) return [];
 
     const rows = db
-      .prepare('SELECT content, category, created_at FROM memories WHERE active = 1 ORDER BY created_at DESC')
-      .all() as Array<{ content: string; category: string; created_at: string }>;
+      .prepare('SELECT content, category, tags, created_at FROM memories WHERE active = 1 ORDER BY created_at DESC')
+      .all() as Array<{ content: string; category: string; tags: string; created_at: string }>;
 
     return rows.map((r) => {
       const firstLine = r.content.split('\n')[0].slice(0, 80);
-      return {
-        type: CATEGORY_TO_TYPE[r.category] || 'reference',
-        title: firstLine,
-        content: r.content,
-        created: r.created_at.slice(0, 10),
-      };
+      let type: MemoryType = CATEGORY_TO_TYPE[r.category] || 'reference';
+      try {
+        const tags = JSON.parse(r.tags) as string[];
+        const sourceTag = tags.find((t) => t.startsWith('source-type:'));
+        if (sourceTag) {
+          const original = sourceTag.slice('source-type:'.length) as MemoryType;
+          if (['user', 'feedback', 'project', 'reference'].includes(original)) type = original;
+        }
+      } catch { /* skip */ }
+      return { type, title: firstLine, content: r.content, created: r.created_at.slice(0, 10) };
     });
   } catch {
     return [];
@@ -144,8 +152,8 @@ export function generateMemoryFragment(groupDir: string): void {
 
   if (fileEntries.length === 0 && mcpEntries.length === 0) return;
 
-  const fileTitles = new Set(fileEntries.map((e) => e.title));
-  const deduped = [...fileEntries, ...mcpEntries.filter((e) => !fileTitles.has(e.title))];
+  const fileContents = new Set(fileEntries.map((e) => e.content));
+  const deduped = [...fileEntries, ...mcpEntries.filter((e) => !fileContents.has(e.content))];
 
   const sorted = [...deduped].sort((a, b) => b.created.localeCompare(a.created));
   const selected = selectWithinBudget(sorted, CHAR_BUDGET);
