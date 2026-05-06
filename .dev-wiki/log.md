@@ -1,5 +1,6 @@
 # Dev Wiki Log
 
+[2026-05-06T08:00:00] DEBRIEF -- Phase 43 complete (6/6 tasks), 0 new decisions (4 pre-existing), 1 journal, active-knowledge transitioned (3 facts → working-knowledge), no code changes, skill_files_modified: yes
 [2026-05-06T00:00:00] PLAN -- Phase 43 planned, 6 tasks (6S), 2 decisions (include-knowledge-wiki-files-in-scope, simplify-episodic-tier-references), instruction cleanup for deleted pipeline tools
 [2026-05-05T07:00:00] DEBRIEF -- 2 decisions (pipeline-redesign, citation-convention), 1 journal (design discussion), 5 discovered tasks queued, state refreshed, skill_files_modified: yes
 [2026-05-05T06:00:00] DEBRIEF -- Phase 42 complete (6/6 tasks), 1 decision (approach, low→high), 20+ files deleted, 7 wikis cleaned, pipeline simplified to fetch→embed→search, 446 container tests + 374 host tests, active-knowledge transitioned (Phase 40 entries dropped — claim_dedup deleted, migration schema derivable from code)

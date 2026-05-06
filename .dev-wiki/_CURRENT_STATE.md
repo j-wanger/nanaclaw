@@ -1,19 +1,19 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-06 by /dev-plan (Phase 43 planned)
+> Last updated: 2026-05-06 by /dev-debrief (Phase 43 complete)
 
 ## Recommended Next Action
 
-Phase 43 active. 6 tasks — instruction cleanup across wiki-manager and knowledge-wiki skill files. Remove all references to deleted claim tools, simplify article lifecycle, codify inline citation convention. No code changes.
+Phase 43 complete. Run `/dev-plan` to plan next phase. Open candidates: domain expert agents with dedicated sessions, context size threshold calibration, compaction resilience patterns for agentic-engineering wiki.
 
 ## Active Phase
 
-**[[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]]** (status: active, ~0%)
+**[[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]]** (status: completed)
 
-Entry criteria: MET (Phase 42 complete, claim tools deleted, pipeline simplified)
-Exit criteria: Zero grep matches for deleted tool names in skill files, inline citation convention documented
+Entry criteria: MET
+Exit criteria: MET — zero grep matches for deleted tool names, inline citation convention documented
 
-Progress: ~0% (tasks planned, implementation not started)
+Progress: 100% (6/6 tasks complete)
 
 ## Active Phase Contract
 
@@ -45,11 +45,11 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 ## Session Journal (last 5)
 
+- [2026-05-06] [[2026-05-06-phase-43-instruction-cleanup-complete|Phase 43: Instruction Cleanup Complete]] — 6 tasks, skill instruction updates, citation convention codified
 - [2026-05-05] [[2026-05-05-knowledge-pipeline-redesign|Knowledge Pipeline Redesign Discussion]] — 2 decisions (pipeline design, citation convention), 5 discovered tasks for next phase
 - [2026-05-05] [[2026-05-05-phase-42-pipeline-simplification-complete|Phase 42: Pipeline Simplification Complete]] — 6 tasks, 20+ files deleted, 7 wikis cleaned, deterministic pipeline only
 - [2026-05-05] [[2026-05-05-phase-41-memory-migration-bugfixes-complete|Phase 41: Memory Migration Bugfixes]] — 3 bugs fixed (FTS rebuild, content dedup, source-type tag)
 - [2026-05-05] [[2026-05-05-phase-40-memory-migration-claim-dedup-complete|Phase 40: Memory Migration + Claim Dedup Guard Complete]] — 3 tasks, auto-migrate + max_claims cap, closes all review issues
-- [2026-05-05] [[2026-05-05-phase-38-review-remediation-complete|Phase 38: Review Remediation Complete]] — 7 tasks, search routing + dedup + taxonomy + dual-read, reviewer 6/10→fixed
 
 ## Key Artifacts
 
@@ -59,6 +59,7 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 | container/agent-runner/src/mcp-tools/knowledge-tools.ts | knowledge_search + knowledge_embed + small-to-big expansion MCP tools | 2026-05-05 |
 | container/agent-runner/src/mcp-tools/knowledge-vector-store.ts | Unified knowledge store — search, insert, getWindow, getByArticleSlug | 2026-05-05 |
 | container/agent-runner/src/mcp-tools/research-fetch.ts | research_fetch — SearXNG → raw articles with Jina fallback | 2026-05-05 |
+| container/skills/wiki-manager/ | Wiki management skill — updated instructions, routing, citation convention | 2026-05-06 |
 
 ## Cross-References
 
@@ -68,3 +69,4 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 - Knowledge pipeline — deterministic: research_fetch → knowledge_embed → knowledge_search + knowledge_conflicts
 - [[knowledge-pipeline-post-phase-42-design]] — articles as optional curated layer, sentence embeddings primary
 - [[inline-citation-convention]] — frontmatter sources + inline [slug] markers for provenance
+- ~/.claude/skills/knowledge-wiki/ — article conventions + content model updated Phase 43

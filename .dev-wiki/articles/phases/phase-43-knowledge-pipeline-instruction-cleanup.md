@@ -7,7 +7,7 @@ parents: [phase-42-pipeline-simplification]
 created: 2026-05-06
 updated: 2026-05-06
 source: plan
-status: active
+status: completed
 scope: ["container/skills/wiki-manager/*", "container/skills/research/*", "~/.claude/skills/knowledge-wiki/*"]
 entry_criteria: "Phase 42 complete, all claim tools deleted, pipeline simplified"
 exit_criteria: "Zero grep matches for deleted tool names across all skill instruction files. Inline citation convention documented. Article lifecycle reflects human review model."

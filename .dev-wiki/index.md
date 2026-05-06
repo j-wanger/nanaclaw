@@ -157,7 +157,7 @@
 - [[phase-40-memory-migration-claim-dedup|Phase 40: Memory Migration + Claim Dedup Guard]] — completed
 - [[phase-41-memory-migration-bugfixes|Phase 41: Memory Migration Bugfixes]] — completed
 - [[phase-42-pipeline-simplification|Phase 42: Pipeline Simplification]] — completed
-- [[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]] — active
+- [[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]] — completed
 
 ## Decisions
 
@@ -186,6 +186,7 @@
 
 ## Journal (recent 10)
 
+- [2026-05-06] [[2026-05-06-phase-43-instruction-cleanup-complete|Phase 43: Instruction Cleanup Complete]] — 6 tasks, skill instruction updates, citation convention
 - [2026-05-05] [[2026-05-05-knowledge-pipeline-redesign|Knowledge Pipeline Redesign Discussion]] — 2 decisions, 5 discovered tasks
 - [2026-05-05] [[2026-05-05-phase-42-pipeline-simplification-complete|Phase 42: Pipeline Simplification Complete]] — 6 tasks, 20+ files deleted, 7 wikis cleaned
 - [2026-05-05] [[2026-05-05-phase-41-memory-migration-bugfixes-complete|Phase 41: Memory Migration Bugfixes]] — 3 bugs fixed
@@ -195,4 +196,3 @@
 - [2026-05-05] [[2026-05-05-phase-36-claim-reconciliation-complete|Phase 36: Claim Reconciliation Complete]] — 3 tasks, claim_reconcile MCP tool
 - [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, 3 detection vectors
 - [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, NLI pipeline
-- [2026-05-04] [[2026-05-04-phase-33-claim-markers-contextual-embeddings-complete|Phase 33: Claim Markers + Contextual Embeddings Complete]] — 7 tasks
