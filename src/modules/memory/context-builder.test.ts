@@ -270,7 +270,9 @@ Engineer profile
       embedding BLOB, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       access_count INTEGER NOT NULL DEFAULT 0
     )`);
-    db.exec("CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(content, tags, content='memories', content_rowid='rowid')");
+    db.exec(
+      "CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(content, tags, content='memories', content_rowid='rowid')",
+    );
     db.close();
 
     const entries: MemoryEntry[] = [

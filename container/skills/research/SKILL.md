@@ -1,10 +1,9 @@
 ---
 name: research
-description: Iterative research pipeline. research_fetch for search/extract/dedup, research_summarize for 1:1 episodic articles, research_review for source-faithful scoring. All mechanical — Nana thinks about directions, tools do the work.
+description: Research pipeline. research_fetch for search/extract/dedup. knowledge_embed for sentence-level embeddings. knowledge_search + knowledge_conflicts for retrieval and analysis. Nana thinks about directions, tools do the work.
 writes:
   research-state.json: workspace state file (created/updated/deleted during pipeline)
   wiki raw/articles/*.md: raw extracted sources via research_fetch
-  wiki episodic/*.md: per-source summaries via research_summarize → write_to
 ---
 
 # Research Pipeline
@@ -29,8 +28,9 @@ Talk naturally. No pipeline jargon, no tool names, no token counts in messages. 
 |------|-------------|----------|
 | `wiki_search` | Search existing wiki articles | Evaluate existing coverage |
 | `research_fetch` | Search web → fetch → dedup → write raw articles | Generate good queries |
-| `research_summarize` | 1 raw article → 1 summarize worker → 1 episodic article | Pass the paths from research_fetch |
-| `research_review` | 1 episodic → 1 review worker (source-vs-summary) | Pass the episodic paths |
+| `knowledge_embed` | Embed article sentences into knowledge.db | Run after fetch to make content searchable |
+| `knowledge_search` | Semantic search across embedded sentences | Find specific facts |
+| `knowledge_conflicts` | Cross-article contradiction detection | Analyze quality and consistency |
 
 ## Pipeline
 
@@ -41,7 +41,7 @@ Write `research-state.json` first:
 {
   "topic": "...", "target_wiki": "...",
   "existing_coverage": [], "queries_executed": [],
-  "raw_articles": [], "episodic_articles": [],
+  "raw_articles": [],
   "stage": "fetch", "started_at": "..."
 }
 ```
@@ -74,112 +74,13 @@ loop:
 }
 ```
 
-Use titles and URLs to judge coverage direction. The response includes `raw_dir` and `wiki` — save these for the summarize step.
+Use titles and URLs to judge coverage direction. The response includes `raw_dir` and `wiki` — save these for the embed step.
 
 Update `research-state.json` after each round with `raw_dir`, `wiki`, and topics covered.
 
-### 3. Summarize
+### 3. Embed
 
-Call `research_summarize` with `raw_dir` — the tool handles batching, dedup, and progress:
-
-```
-research_summarize({
-  wiki: "<wiki name>",
-  raw_dir: "<path to raw/articles/>",
-  batch_size: 60,
-  tags: ["<relevant>", "<tags>"]
-})
-```
-
-The tool automatically:
-- Skips articles already summarized (source_url match against episodic dir)
-- Skips partial/invalid extractions
-- Dispatches `batch_size` unsummarized articles as workers
-- Tracks progress in `summarize-state.json`
-- Returns `{dispatched, skipped_existing, skipped_partial, remaining}`
-
-**Bulk summarization (hundreds/thousands of raws):** Keep calling `research_summarize` with the same `raw_dir` until `remaining` is 0. The tool tracks what's done — you don't need to manage offsets or file lists. After each batch completes, call again for the next batch.
-
-- Don't message the user for each batch. Send a progress update every ~5 batches.
-- On compaction recovery: just call `research_summarize` again — it reads `summarize-state.json` and resumes.
-- When `remaining` reaches 0, the tool deletes `summarize-state.json`.
-
-The response includes a `review_args` object — save it for the review step.
-
-**Claim extraction:** Workers now automatically extract atomic claims (tagged `[CLAIM]`) alongside summaries. Claims are stored in `<wiki>/claims.jsonl` — no agent action needed. This happens mechanically in the post-processing step.
-
-**END YOUR TURN after calling research_summarize.** Worker results auto-inject.
-
-### 4. Review
-
-When summarize results arrive, immediately call `research_review` using the `review_args` from the summarize response. Do NOT ask the user whether to review — review is automatic.
-
-```
-research_review(review_args)
-```
-
-The `review_args` from `research_summarize` has everything pre-filled. Each reviewer compares one summary against its raw source — faithfulness only, not fact-checking.
-
-**END YOUR TURN after calling research_review.** Results auto-inject.
-
-### 5. Report
-
-When review results arrive, tell the user:
-- How many sources found (full vs partial)
-- How many summaries written, review pass/fail
-- What topics are covered (from titles, not from reading content)
-- What gaps remain
-- Partial URLs that couldn't be fully extracted
-
-Delete `research-state.json`.
-
-No consolidation — that's wiki-consolidate's job later.
-
-## Claim Backfill
-
-For bulk claim extraction from existing raw articles without producing episodic articles:
-
-```
-loop:
-  1. research_summarize({ wiki, raw_dir, batch_size: 60, claims_only: true })
-  2. END YOUR TURN — workers auto-complete
-  3. When results arrive: check remaining count
-  4. If remaining > 0: call research_summarize again (same args — state file tracks progress)
-  5. If remaining == 0: call claim_embed({ wiki }) to vectorize claims.jsonl → claims.db
-  6. Validate: claim_search({ wiki, query: "<known topic>" }) — verify relevant results
-  7. Optional: claim_dedup({ wiki }) — find near-duplicate claim pairs
-```
-
-`claims_only=true` extracts [CLAIM] tags only — no ## Summary, no episodic article. Claims append to `<wiki>/claims.jsonl`. State file (`summarize-state.json`) survives session boundaries.
-
-## Entity Extraction
-
-For bulk entity extraction from existing raw articles (AML, negative news, financial crime):
-
-```
-loop:
-  1. research_summarize({ wiki, raw_dir, batch_size: 60, entities_only: true })
-  2. END YOUR TURN — workers auto-complete
-  3. When results arrive: check remaining count
-  4. If remaining > 0: call research_summarize again (same args — state file tracks progress)
-  5. If remaining == 0: report entity counts from entities.jsonl
-```
-
-`entities_only=true` extracts structured [ENTITY] tags — no episodic article, no claims. Entities append to `<wiki>/entities.jsonl`.
-
-Entity types and fields:
-- **PERSON:** name | gender | age | profession | role | jurisdiction
-- **ORGANIZATION:** name | type | jurisdiction | role
-- **LOCATION:** name | type (country/city/province/address) | context
-- **AMOUNT:** value | currency | context
-- **CASE:** name/number | agency | date | outcome
-- **DATE:** value | context
-
-Workers are instructed to extract only entities that are **subjects of adverse findings** — not incidental mentions. Dedup is exact-match (type + name + source_url).
-
-## Knowledge Embedding
-
-For building the unified sentence-level vector store from wiki articles:
+After fetching, embed all articles into the sentence-level vector store:
 
 ```
 knowledge_embed({ wiki: "<wiki name>", source: "raw" })
@@ -187,16 +88,26 @@ knowledge_embed({ wiki: "<wiki name>", source: "raw" })
 
 This splits every article into sentences, embeds each with contextual prefix `[title | section]`, and stores in `knowledge.db`. Incremental — tracks processed articles in `sentence-embed-state.json`.
 
-Search the unified store (claims + sentences) with:
+### 4. Report
+
+Tell the user:
+- How many sources found (full vs partial)
+- What topics are covered (from titles, not from reading content)
+- What gaps remain
+- Partial URLs that couldn't be fully extracted
+
+Delete `research-state.json`.
+
+## Knowledge Search
+
+Search the embedded store with:
 ```
-knowledge_search({ wiki: "<wiki name>", query: "<search text>", type: "claim" | "sentence" })
+knowledge_search({ wiki: "<wiki name>", query: "<search text>" })
 ```
 
-Omit `type` to search across all entries. Returns similarity scores + source metadata.
+Returns similarity scores + source metadata with surrounding sentence context.
 
 ## Knowledge Analysis
-
-After embedding articles, use these tools to find gaps and contradictions:
 
 ### Conflict Detection
 
@@ -210,22 +121,12 @@ Returns pairs of similar sentences from different articles. With `classify: true
 
 Use `query` instead of `article_slug` for topic-based conflict search.
 
-### Claim Discovery
-
-Find sentences that look like claims but weren't extracted:
-
-```
-claim_discover({ wiki: "<wiki name>", article_slug: "<slug>", top_k: 20, validate: true })
-```
-
-Ranks unclaimed sentences by similarity to existing claims. With `validate: true` (default), a Qwen worker confirms whether each candidate is a real claim. High-similarity candidates are likely missed during extraction — review and re-extract if needed.
-
 ## Error Handling
 
 | Failure | Action |
 |---------|--------|
 | research_fetch returns 0 articles | Different query, max 1 retry |
-| Worker timeout | Note in report |
+| Embedding server unreachable | Report to user, retry later |
 | All queries return nothing | Tell user, delete state |
 
 ## Deep Work Awareness
@@ -233,8 +134,8 @@ Ranks unclaimed sentences by similarity to existing claims. With `validate: true
 When research runs inside a deep work session (you have a `deep_work.json` deadline):
 
 - **Don't stop after your initial topic list is covered.** Explore adjacent areas, deeper subtopics, different angles on the same domain. The time budget is your guide, not the initial query list.
-- **Batch your work:** fetch in rounds, then summarize in batches, then review. Don't try to summarize after every single fetch round.
-- **Check `get_deep_work_status` periodically** to gauge remaining time. In the last 30 minutes, shift to summarizing and reviewing whatever you've collected rather than fetching more.
+- **Batch your work:** fetch in rounds, then embed when done.
+- **Check `get_deep_work_status` periodically** to gauge remaining time. In the last 30 minutes, shift to embedding whatever you've collected rather than fetching more.
 
 ## Compaction Recovery
 

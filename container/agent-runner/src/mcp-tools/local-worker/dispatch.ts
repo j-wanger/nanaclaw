@@ -14,8 +14,6 @@ import { routeTask, loadRoutingConfig, type RoutingConfig } from './routing.js';
 import { Semaphore } from './semaphore.js';
 import { verify } from './verification.js';
 import { validateEpisodicArticle } from '../article-validation.js';
-import { extractClaims, appendClaims, extractInsights, appendInsights } from '../claim-store.js';
-import { extractEntities, appendEntities, type EntityEntry } from '../entity-store.js';
 import { extractSourceUrl } from '../url-index.js';
 
 let _routingConfig: RoutingConfig | null | undefined;
@@ -85,100 +83,6 @@ export function postProcessResult(state: TaskState): void {
             }
             console.error(`[dispatch] episodic validation failed (${repaired.remainingIssues.join(', ')}): ${filePath}`);
           }
-        }
-
-        const claims = extractClaims(state.result.parsed);
-        if (claims.length > 0) {
-          const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
-          if (wiki) {
-            let sourceScore = 0;
-            if (writeTo.source_url) {
-              try {
-                const rawDir = path.join(wiki.path, 'raw', 'articles');
-                for (const f of fs.readdirSync(rawDir).filter((x) => x.endsWith('.md'))) {
-                  const raw = fs.readFileSync(path.join(rawDir, f), 'utf8');
-                  if (extractSourceUrl(raw) === writeTo.source_url) {
-                    const scoreMatch = raw.match(/^source_score:\s*(\d+\.?\d*)/m);
-                    if (scoreMatch) sourceScore = parseFloat(scoreMatch[1]);
-                    break;
-                  }
-                }
-              } catch {}
-            }
-            appendClaims(wiki.path, claims, {
-              source_url: writeTo.source_url || null,
-              source_score: sourceScore,
-              wiki: writeTo.wiki,
-            });
-          }
-        }
-      }
-    } else if (writeTo.tier === 'claims') {
-      const claims = extractClaims(state.result.parsed);
-      if (claims.length > 0) {
-        const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
-        if (wiki) {
-          let sourceScore = 0;
-          if (writeTo.source_url) {
-            try {
-              const rawDir = path.join(wiki.path, 'raw', 'articles');
-              for (const f of fs.readdirSync(rawDir).filter((x) => x.endsWith('.md'))) {
-                const raw = fs.readFileSync(path.join(rawDir, f), 'utf8');
-                if (extractSourceUrl(raw) === writeTo.source_url) {
-                  const scoreMatch = raw.match(/^source_score:\s*(\d+\.?\d*)/m);
-                  if (scoreMatch) sourceScore = parseFloat(scoreMatch[1]);
-                  break;
-                }
-              }
-            } catch {}
-          }
-          appendClaims(wiki.path, claims, {
-            source_url: writeTo.source_url || null,
-            source_score: sourceScore,
-            wiki: writeTo.wiki,
-          });
-        }
-      }
-    } else if (writeTo.tier === 'insights') {
-      const insights = extractInsights(state.result.parsed);
-      if (insights.length > 0) {
-        const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
-        if (wiki) {
-          let sourceScore = 0;
-          if (writeTo.source_url) {
-            try {
-              const rawDir = path.join(wiki.path, 'raw', 'articles');
-              for (const f of fs.readdirSync(rawDir).filter((x) => x.endsWith('.md'))) {
-                const raw = fs.readFileSync(path.join(rawDir, f), 'utf8');
-                if (extractSourceUrl(raw) === writeTo.source_url) {
-                  const scoreMatch = raw.match(/^source_score:\s*(\d+\.?\d*)/m);
-                  if (scoreMatch) sourceScore = parseFloat(scoreMatch[1]);
-                  break;
-                }
-              }
-            } catch {}
-          }
-          appendInsights(wiki.path, insights, {
-            source_url: writeTo.source_url || null,
-            source_score: sourceScore,
-            wiki: writeTo.wiki,
-          });
-        }
-      }
-    } else if (writeTo.tier === 'entities') {
-      const rawEntities = extractEntities(state.result.parsed);
-      if (rawEntities.length > 0) {
-        const wiki = wikis?.find((w) => w.name === writeTo.wiki) || wikis?.[0];
-        if (wiki) {
-          const today = new Date().toISOString().slice(0, 10);
-          const entries: EntityEntry[] = rawEntities.map((e) => ({
-            ...e,
-            source_url: writeTo.source_url || null,
-            wiki: writeTo.wiki,
-            created: today,
-          }));
-          appendEntities(wiki.path, entries);
-          console.error(`[dispatch] extracted ${entries.length} entities from worker result`);
         }
       }
     } else if (writeTo.tier === 'review' && writeTo.target_path) {

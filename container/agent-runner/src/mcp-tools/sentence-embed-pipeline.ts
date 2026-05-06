@@ -3,7 +3,8 @@ import path from 'path';
 import { embedBatch } from './claim-embeddings.js';
 import { KnowledgeVectorStore } from './knowledge-vector-store.js';
 import { splitSentences } from './sentence-splitter.js';
-import type { ClaimEntry, InsightEntry } from './claim-store.js';
+interface ClaimEntry { claim: string; }
+interface InsightEntry { insight: string; }
 
 const EMBED_BATCH_SIZE = 32;
 

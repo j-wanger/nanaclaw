@@ -2,8 +2,7 @@ import { registerTools } from './server.js';
 import type { McpToolDefinition } from './types.js';
 import { KnowledgeVectorStore } from './knowledge-vector-store.js';
 import { findArticleConflicts, findQueryConflicts } from './knowledge-conflicts.js';
-import { discoverClaimsInArticle } from './knowledge-discovery.js';
-import { classifyConflictPairs, validateClaimCandidates } from './knowledge-classify.js';
+import { classifyConflictPairs } from './knowledge-classify.js';
 import { embedText } from './claim-embeddings.js';
 import { resolveWikiPath, text, type CallToolResult } from './wiki-utils.js';
 
@@ -61,52 +60,6 @@ export async function handleKnowledgeConflicts(args: Record<string, unknown>): P
   }
 }
 
-export async function handleClaimDiscover(args: Record<string, unknown>): Promise<CallToolResult> {
-  const wiki = (args.wiki as string || '').trim();
-  const articleSlug = (args.article_slug as string || '').trim();
-  const topK = (args.top_k as number) || 20;
-  const minSimilarity = (args.min_similarity as number) || 0.0;
-  const validate = args.validate !== false;
-
-  if (!wiki) return text('Error: wiki is required');
-  if (!articleSlug) return text('Error: article_slug is required');
-
-  const wikiPath = resolveWikiPath(wiki);
-  if (!wikiPath) return text('Error: wiki not found');
-
-  const store = new KnowledgeVectorStore(wikiPath);
-  try {
-    const candidates = discoverClaimsInArticle(store, articleSlug, topK, minSimilarity);
-
-    if (validate && candidates.length > 0) {
-      const validated = await validateClaimCandidates(candidates);
-      return text(JSON.stringify({
-        candidates: validated.map((c) => ({
-          text: c.text,
-          article_slug: c.article_slug,
-          section: c.section,
-          similarity: c.similarity,
-          nearestClaim: c.nearestClaim,
-          validated: c.validated ?? null,
-          explanation: c.explanation ?? null,
-        })),
-      }));
-    }
-
-    return text(JSON.stringify({
-      candidates: candidates.map((c) => ({
-        text: c.text,
-        article_slug: c.article_slug,
-        section: c.section,
-        similarity: c.similarity,
-        nearestClaim: c.nearestClaim,
-      })),
-    }));
-  } finally {
-    store.close();
-  }
-}
-
 const tools: McpToolDefinition[] = [
   {
     tool: {
@@ -127,24 +80,6 @@ const tools: McpToolDefinition[] = [
       },
     },
     handler: handleKnowledgeConflicts,
-  },
-  {
-    tool: {
-      name: 'claim_discover',
-      description: 'Discover unclaimed sentences that resemble existing claims. Ranks sentences in a given article by their similarity to known claims, optionally validated by a Qwen worker. High-similarity unclaimed sentences are likely missed extraction candidates.',
-      inputSchema: {
-        type: 'object' as const,
-        properties: {
-          wiki: { type: 'string', description: 'Wiki name' },
-          article_slug: { type: 'string', description: 'Article to scan for claim candidates' },
-          top_k: { type: 'number', description: 'Maximum number of candidates (default: 20)' },
-          min_similarity: { type: 'number', description: 'Minimum similarity to nearest claim (default: 0.0)' },
-          validate: { type: 'boolean', description: 'Validate candidates via Qwen worker (default: true). Set false for embedding-only ranking.' },
-        },
-        required: ['wiki', 'article_slug'],
-      },
-    },
-    handler: handleClaimDiscover,
   },
 ];
 

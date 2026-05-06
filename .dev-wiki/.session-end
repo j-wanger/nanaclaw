@@ -1,10 +1,10 @@
-ended: 2026-05-05T17:02:15
+ended: 2026-05-06T00:08:30
 pending_commit: no
 session_buffer: no
 debriefed: yes
 recent_commits:
+e74eb70 Phase 41: Fix 3 memory migration bugs reported by Nana
+8e0ff85 Phase 40: Auto-migrate MEMORY.md at spawn + claim_dedup guard
+db67d78 Phase 39: Memory write convergence — MCP as primary write path
+da78ccd Phase 38: Review remediation — routing docs, code dedup, taxonomy, dual-read
 362e983 Phases 33-37: Knowledge-wiki claim provenance + small-to-big retrieval
-f6198c3 Phases 28-32: Memory MCP Server + PII cleanup
-0bb00f6 Phase 31 Task 6: mark Phase 30 exit criteria as met
-b10f9c3 Phase 31 Task 5: expose module-level mcp; full suite green
-adeb2dc Phase 31 Task 4: transcript-to-memories extractor

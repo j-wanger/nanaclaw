@@ -126,7 +126,9 @@ function readMcpMemories(dbPath: string): MemoryEntry[] {
           const original = sourceTag.slice('source-type:'.length) as MemoryType;
           if (['user', 'feedback', 'project', 'reference'].includes(original)) type = original;
         }
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
       return { type, title: firstLine, content: r.content, created: r.created_at.slice(0, 10) };
     });
   } catch {

@@ -1,14 +1,14 @@
 # Architecture: nanoclaw
 
-> Last updated: 2026-05-03 by /dev-debrief (Phase 32)
+> Last updated: 2026-05-05 by /dev-debrief (Phase 42)
 
-Personal Claude assistant (v2.0.13) — runs agents in isolated Docker containers. Three runtimes: Node.js host (pnpm, better-sqlite3) + Bun container (bun:sqlite) + Python memory server (uv, sqlite3). ~185 source files (excluding tests).
+Personal Claude assistant (v2.0.13) — runs agents in isolated Docker containers. Three runtimes: Node.js host (pnpm, better-sqlite3) + Bun container (bun:sqlite) + Python memory server (uv, sqlite3). ~170 source files (excluding tests).
 
 ## Directory Layout
 
 ```
 nanoclaw/
-  src/                       # Host process (Node.js) — 91 .ts files
+  src/                       # Host process (Node.js) — 97 .ts files
     db/                      # Central DB layer — 15 files (migrations/, schema, session-db)
     channels/                # Channel adapter infra — 6 files (adapter, registry, CLI, SDK bridge)
     modules/                 # Pluggable modules — registry-based
@@ -18,9 +18,9 @@ nanoclaw/
       agent-to-agent/        # Inter-agent routing — 5 files (route, create, destinations)
       self-mod/              # Self-modification — 3 files (request → approve → apply)
     providers/               # Host-side provider config — 2 files
-  container/agent-runner/    # Container process (Bun) — 34 .ts files
+  container/agent-runner/    # Container process (Bun) — 63 .ts files
     src/db/                  # Session DB ops — 6 files (messages in/out, state, routing)
-    src/mcp-tools/           # MCP tool definitions — 8 files (core, scheduling, agents, self-mod)
+    src/mcp-tools/           # MCP tool definitions — 44 files (core, scheduling, agents, self-mod, knowledge, research, wiki, local-worker)
     src/providers/           # Agent providers — 6 files (Claude SDK, factory, registry)
   memory_server/             # Memory MCP Server (Python) — 11 .py files (~2,800 lines)
     storage.py               # SQLite + FTS5 + sqlite-vec layer (store, search, dedup, prune, global fan-out)

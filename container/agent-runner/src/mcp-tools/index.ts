@@ -18,18 +18,12 @@ import './web-extract.js';
 import './wiki-write.js';
 import './wiki-search.js';
 import './research-fetch.js';
-import './research-summarize.js';
-import './research-review.js';
 import './wiki-read.js';
 import './wiki-stats.js';
 import './project-init.js';
 import './wiki-backfill.js';
-import './claim-tools.js';
 import './knowledge-tools.js';
 import './knowledge-analysis-tools.js';
-import './claim-linker.js';
-import './claim-conflicts.js';
-import './claim-reconcile.js';
 import { startMcpServer } from './server.js';
 
 function log(msg: string): void {

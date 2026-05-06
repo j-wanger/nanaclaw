@@ -1,5 +1,9 @@
 # Dev Wiki Log
 
+[2026-05-05T06:00:00] DEBRIEF -- Phase 42 complete (6/6 tasks), 1 decision (approach, low→high), 20+ files deleted, 7 wikis cleaned, pipeline simplified to fetch→embed→search, 446 container tests + 374 host tests, active-knowledge transitioned (Phase 40 entries dropped — claim_dedup deleted, migration schema derivable from code)
+[2026-05-05T05:00:00] PLAN -- Phase 42 activated, 6 tasks (2M+4S), 1 decision (pipeline-simplification-approach), approach reviewer 7/10 revise (dispatch.ts extraction + knowledge-classify.ts dependency), plan reviewer 7/10 revise (contract.ts WriteTo, exhaustive test list), Nana driving
+[2026-05-05T04:30:00] DEBRIEF -- Phase 41 complete, 3 memory migration bugfixes from Nana's live testing (FTS rebuild, content dedup, source-type tag), 374 host tests, service restarted
+[2026-05-05T04:00:00] DEBRIEF -- Phase 40 complete (3/3 tasks), 1 decision (approach), auto-migrate MEMORY.md at spawn + claim_dedup max_claims guard, closes all 5 external review issues (Phases 38-40), 5 commits pushed
 [2026-05-05T03:30:00] PLAN -- Phase 40 activated, 3 tasks (1M+2S), 1 decision (memory-migration-claim-dedup-approach), approach reviewer 8/10 accept, plan reviewer 7/10 accept
 [2026-05-05T03:00:00] PLAN+IMPL -- Phase 39 (memory write convergence), documentation-only, memory skill updated to use memory_store MCP as primary write path, MEMORY.md marked legacy
 [2026-05-05T02:30:00] DEBRIEF -- Phase 38 complete (7/7 tasks), 1 decision (approach), search routing + dedup (12 files, ~240 lines removed) + taxonomy + dual-read, 5 new tests, reviewer 6/10→fixed (CallToolResult import + db.close)
