@@ -1,6 +1,8 @@
 # Active Phase Context
 
-Phase: 42 -- Pipeline Simplification
-Objective: Remove old Qwen-dependent summarization pipeline + claim provenance tools, keep deterministic embedding pipeline.
-Status: Complete. All 6 tasks done, 446 container tests + 374 host tests passing, wiki data cleared.
-Next: Run /dev-plan for next work area. Missed retro at Phase 40 (40 % 5 == 0).
+Phase: 43 -- Knowledge Pipeline Instruction Cleanup
+Objective: Remove stale references to deleted claim tools and Qwen-dependent pipeline from all skill instruction files. Codify inline citation convention.
+Scope: container/skills/wiki-manager/*, ~/.claude/skills/knowledge-wiki/*
+Key constraints: No code changes — documentation/instruction updates only. 6 tasks, all size S.
+Exit criteria: Zero grep matches for deleted tool names (claim_*, research_summarize, research_review, wiki-consolidate) across all skill instruction files. Inline citation convention documented.
+Abort: if blocked >3 attempts on any task, ask user: skip or abort.

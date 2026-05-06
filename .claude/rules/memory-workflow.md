@@ -23,10 +23,20 @@ Store incrementally as facts emerge. Do not batch at session end.
 
 ## When to Search
 
+### Reactive triggers
 - When user references prior work or decisions
 - Before storing a new memory (avoid duplicates)
 - When context suggests relevant memories exist but aren't in your prompt
 - When starting work in an unfamiliar area of the project
+
+### Proactive recall trigger
+Before responding to any message that requires judgment, a recommendation, or a design choice, search memory and relevant knowledge wikis FIRST. Signal: you are about to say "I think...", "I'd recommend...", propose an approach, or compare alternatives. Both searches are sub-second. Skip for factual/procedural responses, acknowledgments, and status updates.
+
+### Recall depth
+- **Single pass (default):** 1 memory search + 1 knowledge search. Sufficient for most responses.
+- **Follow the thread (2-3 rounds):** When initial results reference other sources, span multiple domains, or you need evidence to challenge a proposal. Follow references, search adjacent wikis.
+- **Cap at 3 rounds.** If three rounds don't surface enough context, present what you have and flag the gap: "I found X but couldn't find prior context on Y."
+- **Depth signal:** Are you confident enough to present a position? If not, and there are threads to pull, pull them before responding.
 
 ## Tool Patterns
 
@@ -92,5 +102,5 @@ The warm tier seeds session context from memory at startup, before any explicit 
 
 **Guidance:**
 - Keep warm context under 10 results total (5 per pass, dedup'd)
-- Don't search on every message — only passes 1 and 2
-- For subsequent messages, search only if the user explicitly references prior context
+- Don't search on every message — warm tier is passes 1 and 2 only
+- For subsequent messages, use the proactive recall trigger (see above) — search when a response requires judgment, not on every turn

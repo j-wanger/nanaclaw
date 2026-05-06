@@ -157,6 +157,7 @@
 - [[phase-40-memory-migration-claim-dedup|Phase 40: Memory Migration + Claim Dedup Guard]] — completed
 - [[phase-41-memory-migration-bugfixes|Phase 41: Memory Migration Bugfixes]] — completed
 - [[phase-42-pipeline-simplification|Phase 42: Pipeline Simplification]] — completed
+- [[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]] — active
 
 ## Decisions
 
@@ -164,40 +165,34 @@
 - [[two-tier-heterogeneous-architecture|Two-Tier Heterogeneous Architecture]] — high confidence
 - [[memory-architecture-decisions|Memory Architecture Decisions]] — high confidence
 - [[memory-mcp-server-architecture|Memory MCP Server Architecture]] — high confidence
+- [[knowledge-pipeline-post-phase-42-design|Knowledge Pipeline Post-Phase 42 Design]] — high confidence
+- [[inline-citation-convention|Inline Citation Convention for Wiki Articles]] — high confidence
+- [[include-knowledge-wiki-files-in-scope|Include Knowledge-Wiki Skill Files in Phase 43 Scope]] — high confidence
+- [[simplify-episodic-tier-references|Simplify Episodic Tier References]] — medium confidence
+- [[phase-42-pipeline-simplification-approach|Phase 42: Pipeline Simplification]] — high confidence
+- [[phase-40-memory-migration-claim-dedup-approach|Phase 40: Memory Migration + Claim Dedup Guard]] — medium confidence
+- [[phase-38-review-remediation-approach|Phase 38: Review Remediation]] — medium confidence
+- [[phase-37-small-to-big-retrieval-approach|Phase 37: Small-to-Big Retrieval]] — high confidence
+- [[phase-36-claim-reconciliation-approach|Phase 36: Claim Reconciliation]] — medium confidence
+- [[phase-35-claim-conflict-detection-approach|Phase 35: Claim Conflict Detection]] — medium confidence
+- [[phase-34-claim-linker-approach|Phase 34: Claim Linker]] — medium confidence
+- [[phase-33-claim-markers-contextual-embeddings-approach|Phase 33: Claim Markers + Contextual Embeddings]] — medium confidence
+- [[phase-32-nanaclaw-consolidation-approach|Phase 32: Nanaclaw + Consolidation]] — medium confidence
 - [[phase-28-insight-extraction-approach|Phase 28: Insight Extraction]] — medium confidence
 - [[phase-27-conflict-detection-claim-discovery-approach|Phase 27: Conflict Detection + Claim Discovery]] — medium confidence
 - [[phase-26-sentence-embedding-store-approach|Phase 26: Unified Knowledge Vector Store]] — medium confidence
 - [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume + Entity Extraction]] — medium confidence
-- [[phase-36-claim-reconciliation-approach|Phase 36: Claim Reconciliation]] — medium confidence
-- [[phase-35-claim-conflict-detection-approach|Phase 35: Claim Conflict Detection]] — medium confidence
-- [[phase-34-claim-linker-approach|Phase 34: Claim Linker]] — medium confidence
-- [[phase-40-memory-migration-claim-dedup-approach|Phase 40: Memory Migration + Claim Dedup Guard]] — medium confidence
-- [[phase-42-pipeline-simplification-approach|Phase 42: Pipeline Simplification]] — high confidence
-- [[phase-38-review-remediation-approach|Phase 38: Review Remediation]] — medium confidence
-- [[phase-37-small-to-big-retrieval-approach|Phase 37: Small-to-Big Retrieval]] — high confidence
-- [[phase-33-claim-markers-contextual-embeddings-approach|Phase 33: Claim Markers + Contextual Embeddings]] — medium confidence
-- [[phase-32-nanaclaw-consolidation-approach|Phase 32: Nanaclaw + Consolidation]] — medium confidence
 - [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
 
 ## Journal (recent 10)
 
+- [2026-05-05] [[2026-05-05-knowledge-pipeline-redesign|Knowledge Pipeline Redesign Discussion]] — 2 decisions, 5 discovered tasks
 - [2026-05-05] [[2026-05-05-phase-42-pipeline-simplification-complete|Phase 42: Pipeline Simplification Complete]] — 6 tasks, 20+ files deleted, 7 wikis cleaned
 - [2026-05-05] [[2026-05-05-phase-41-memory-migration-bugfixes-complete|Phase 41: Memory Migration Bugfixes]] — 3 bugs fixed
 - [2026-05-05] [[2026-05-05-phase-40-memory-migration-claim-dedup-complete|Phase 40: Memory Migration + Claim Dedup Guard Complete]] — 3 tasks, auto-migrate + max_claims cap
-- [2026-05-05] [[2026-05-05-phase-38-review-remediation-complete|Phase 38: Review Remediation Complete]] — 7 tasks, search routing + dedup + taxonomy + dual-read, reviewer 6/10→fixed
-- [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window expansion + overlap merge, 12 new tests (578 total)
-- [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, claim_conflicts MCP tool + 3 vectors, 22 new tests, reviewer 8/10
-- [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, claim_link MCP tool + NLI pipeline, 23 tests, reviewer 7/10→fixed
-- [2026-05-04] [[2026-05-04-phase-33-claim-markers-contextual-embeddings-complete|Phase 33: Claim Markers + Contextual Sentence Embeddings Complete]] — 7 tasks, claim provenance convention + contextual prefix upgrade
-- [2026-05-03] [[2026-05-03-phase-32-memory-mcp-nanaclaw-consolidation-complete|Phase 32: Memory MCP Server — Nanaclaw + Consolidation Complete]] — 6 tasks, consolidation + migration + prune + global fan-out + MCP wiring, 186 tests, reviewer 8/10
-- [2026-05-03] [[2026-05-03-phase-31-memory-mcp-sidecar-complete|Phase 31: Memory MCP Server — Sidecar + Trust Lifecycle Complete]] — 6 tasks, sidecar verifier + contradiction tracking + extractor, 157 tests, reviewer 9/10
-- [2026-05-03] [[2026-05-03-phase-30-memory-mcp-embeddings-complete|Phase 30: Memory MCP Server — Embeddings + Claude Code Complete]] — 6 tasks, embedding search + RRF fusion + export/import + Claude Code rules, 130 tests, reviewer 7/10→fixed
-- [2026-05-03] [[2026-05-03-phase-29-memory-mcp-core-complete|Phase 29: Memory MCP Server Complete]] — 6 tasks, Python MCP server, 62 tests, reviewer 8/10
-- [2026-05-01] [[2026-05-01-phase-27-conflict-detection-claim-discovery-complete|Phase 27: Conflict Detection + Claim Discovery Complete]]
-- [2026-05-01] [[2026-05-01-phase-26-unified-knowledge-vector-store-complete|Phase 26: Unified Knowledge Vector Store Complete]]
-- [2026-05-01] [[2026-05-01-phase-25-session-resume-entity-extraction-complete|Phase 25: Session Resume + Entity Extraction Complete]]
-- [2026-04-30] [[2026-04-30-phase-24-deep-work-session-reliability-complete|Phase 24: Deep Work Session Reliability Complete]]
-- [2026-04-30] [[2026-04-30-phase-23-claim-backfill-e2e-in-progress|Phase 23: Claim Backfill E2E In Progress]]
-- [2026-04-30] [[2026-04-30-phase-22-vector-claim-store-complete|Phase 22: Vector Claim Store Complete]]
-- [2026-04-30] [[2026-04-30-phases-18-21-knowledge-pipeline-overhaul|Phases 18-21: Knowledge Pipeline Overhaul]]
-- [2026-04-29] [[2026-04-29-phase-17-message-batching-extraction-resilience-complete|Phase 17: Message Batching + Extraction Resilience Complete]]
+- [2026-05-05] [[2026-05-05-phase-38-review-remediation-complete|Phase 38: Review Remediation Complete]] — 7 tasks, search routing + dedup + taxonomy + dual-read
+- [2026-05-05] [[2026-05-05-phase-37-small-to-big-retrieval-complete|Phase 37: Small-to-Big Retrieval Complete]] — 3 tasks, sentence-window + overlap merge
+- [2026-05-05] [[2026-05-05-phase-36-claim-reconciliation-complete|Phase 36: Claim Reconciliation Complete]] — 3 tasks, claim_reconcile MCP tool
+- [2026-05-04] [[2026-05-04-phase-35-claim-conflict-detection-complete|Phase 35: Claim Conflict Detection Complete]] — 6 tasks, 3 detection vectors
+- [2026-05-04] [[2026-05-04-phase-34-claim-linker-complete|Phase 34: Claim Linker Complete]] — 6 tasks, NLI pipeline
+- [2026-05-04] [[2026-05-04-phase-33-claim-markers-contextual-embeddings-complete|Phase 33: Claim Markers + Contextual Embeddings Complete]] — 7 tasks

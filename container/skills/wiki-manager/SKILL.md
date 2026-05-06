@@ -19,14 +19,14 @@ You have access to knowledge wikis — structured collections of domain knowledg
 | Stage | Purpose | How content arrives |
 |-------|---------|-------------------|
 | **raw** | Immutable source material with sha256 checksums (pipeline input, not an article tier) | `research_fetch` writes here |
-| **episodic** | Per-source research findings, append-only | `research_summarize` writes here via `write_to` |
+| **episodic** | Per-source research findings, append-only (legacy tier — not actively fed by current pipeline) | Research pipeline writes here |
 | **articles** | Polished, cross-linked knowledge (organized in categories) | Promoted by the user from episodic |
 
-Content flows: raw → episodic → articles. Your research pipeline handles raw and episodic. **Promoting episodic content to articles is the user's job** — don't attempt consolidation yourself.
+Content flows: raw → articles (episodic tier is legacy). Your research pipeline handles raw. Articles are written by Claude with inline citations referencing raw sources.
 
 ## Article Lifecycle
 
-Articles progress through status stages: **draft** → **reviewed** → **verified** → **stale**. Claim provenance tools (`claim_link`, `claim_conflicts`, `claim_reconcile`) operate on the verified/stale transition. See `knowledge-routing.md` for the full tool routing table.
+Articles progress through status stages: **draft** → **verified**. Articles are draft until human review confirms them. See `knowledge-routing.md` for the full tool routing table.
 
 ## Tools
 
@@ -35,8 +35,6 @@ Articles progress through status stages: **draft** → **reviewed** → **verifi
 | `wiki_search` | You don't know what exists — discover articles by keyword | `query`, optional `wiki_name` |
 | `wiki_read` | You know the slug — fetch full article content | `wiki_name` + `slug`, optional `tier` |
 | `wiki_stats` | Check wiki health — how many articles per tier | Optional `wiki_name` |
-| `wiki_write` | Write new content to a wiki tier | `title`, `content`, `tags`, optional `tier` |
-
 ### Decision Tree
 
 ```

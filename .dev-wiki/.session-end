@@ -1,10 +1,10 @@
-ended: 2026-05-06T00:08:30
+ended: 2026-05-06T11:53:31
 pending_commit: no
 session_buffer: no
-debriefed: yes
+debriefed: no
 recent_commits:
+56aa6ce Phase 42: Remove Qwen-dependent summarization pipeline + claim provenance tools
 e74eb70 Phase 41: Fix 3 memory migration bugs reported by Nana
 8e0ff85 Phase 40: Auto-migrate MEMORY.md at spawn + claim_dedup guard
 db67d78 Phase 39: Memory write convergence — MCP as primary write path
 da78ccd Phase 38: Review remediation — routing docs, code dedup, taxonomy, dual-read
-362e983 Phases 33-37: Knowledge-wiki claim provenance + small-to-big retrieval

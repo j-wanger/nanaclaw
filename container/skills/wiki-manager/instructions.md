@@ -7,3 +7,21 @@ Wiki tool usage rules:
 - Research output goes to wikis (raw tier via research_fetch), not to MEMORY.md. Relationship context goes to MEMORY.md, not to wikis.
 
 For knowledge tools (`knowledge_search`, `knowledge_conflicts`, `knowledge_embed`), see `knowledge-routing.md` for the intent-to-tool routing table.
+
+## Inline Citation Convention
+
+When writing wiki articles, use inline citations to trace factual claims back to source material.
+
+**Frontmatter:** List all referenced sources in a `sources` array:
+```yaml
+sources: [tbml-invoicing-patterns, sanctions-evasion-methods]
+```
+
+**Inline:** Place `[source-slug]` after factual sentences, referencing the raw article slug:
+```
+Trade-based money laundering uses over/under-invoicing to move value [tbml-invoicing-patterns].
+```
+
+This is a convention enforced by prompt instructions, not code — there is no automated linking or verification at runtime. The `[slug]` markers are grep-able, so future verification tooling can parse them programmatically if needed.
+
+**When to cite:** After factual claims that originate from a specific source. Do not cite common knowledge, transitional sentences, or your own analysis.

@@ -12,7 +12,7 @@ Think about research directions and evaluate coverage. Tools do everything else.
 4. `knowledge_embed` after fetching — embeds article sentences into knowledge.db
 5. `knowledge_search` for semantic search across embedded sentences
 6. **END YOUR TURN after dispatching workers.** Results auto-inject. Never poll.
-7. No consolidation — that's wiki-consolidate later
+7. No consolidation step — articles are written directly by Claude with inline citations
 8. For conflict detection: use `knowledge_conflicts` with `article_slug` to find cross-article contradictions. Default `classify: true` dispatches a Qwen worker to label pairs as agree/contradict/unrelated. Use `classify: false` for fast embedding-only results.
 
 ## You evaluate coverage from metadata, not content
