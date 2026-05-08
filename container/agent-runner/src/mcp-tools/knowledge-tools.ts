@@ -121,7 +121,7 @@ export async function handleKnowledgeSearch(args: Record<string, unknown>): Prom
 
   const store = new KnowledgeVectorStore(wikiPath);
   try {
-    const validType = type === 'claim' || type === 'sentence' || type === 'insight' ? type : undefined;
+    const validType = type === 'claim' || type === 'sentence' || type === 'insight' || type === 'curated' ? type : undefined;
     const results = store.searchSimilar(queryVec, topK, validType);
 
     if (expand === 'window') {
@@ -157,6 +157,20 @@ export async function handleKnowledgeSearch(args: Record<string, unknown>): Prom
   }
 }
 
+function listMdFilesRecursive(dir: string): string[] {
+  const results: string[] = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...listMdFilesRecursive(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
 export async function handleKnowledgeEmbed(args: Record<string, unknown>): Promise<CallToolResult> {
   const wiki = (args.wiki as string || '').trim();
   const source = (args.source as string || 'raw').trim();
@@ -166,17 +180,27 @@ export async function handleKnowledgeEmbed(args: Record<string, unknown>): Promi
   const wikiPath = resolveWikiPath(wiki);
   if (!wikiPath) return text('Error: wiki not found');
 
-  const dir = source === 'episodic'
-    ? path.join(wikiPath, 'episodic')
-    : path.join(wikiPath, 'raw', 'articles');
+  let dir: string;
+  if (source === 'articles') {
+    dir = path.join(wikiPath, 'articles');
+  } else if (source === 'episodic') {
+    dir = path.join(wikiPath, 'episodic');
+  } else {
+    dir = path.join(wikiPath, 'raw', 'articles');
+  }
 
   if (!fs.existsSync(dir)) return text(`Error: directory not found: ${dir}`);
 
-  const articlePaths = fs.readdirSync(dir)
-    .filter((f) => f.endsWith('.md'))
-    .map((f) => path.join(dir, f));
+  const articlePaths = source === 'articles'
+    ? listMdFilesRecursive(dir)
+    : fs.readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => path.join(dir, f));
 
-  const result = await embedSentences(wikiPath, articlePaths, wiki);
+  const result = await embedSentences(
+    wikiPath,
+    articlePaths,
+    wiki,
+    source === 'articles' ? 'curated' : undefined,
+  );
   return text(JSON.stringify({
     embedded: result.embedded,
     skipped: result.skipped,
@@ -188,14 +212,14 @@ const tools: McpToolDefinition[] = [
   {
     tool: {
       name: 'knowledge_search',
-      description: 'Semantic search across the unified knowledge store (claims + insights + sentences). Returns top-k matches with similarity scores, type, and source attribution. Use type filter to search only claims, insights, or sentences. Use expand="window" to include surrounding sentences as parent context (small-to-big retrieval).',
+      description: 'Semantic search across the unified knowledge store (claims + insights + sentences + curated articles). Returns top-k matches with similarity scores, type, and source attribution. Use type filter to search only claims, insights, or sentences. Use expand="window" to include surrounding sentences as parent context (small-to-big retrieval).',
       inputSchema: {
         type: 'object' as const,
         properties: {
           wiki: { type: 'string', description: 'Wiki name to search' },
           query: { type: 'string', description: 'Search query text' },
           top_k: { type: 'number', description: 'Number of results (default: 10)' },
-          type: { type: 'string', description: 'Filter by type: "claim", "insight", or "sentence". Omit for all.' },
+          type: { type: 'string', description: 'Filter by type: "claim", "insight", "sentence", or "curated". Omit for all.' },
           expand: { type: 'string', description: 'Expand results with surrounding context: "none" (default) or "window" (sentence window).' },
           window_size: { type: 'number', description: 'Number of sentences before/after each match when expand="window" (default: 3).' },
         },
@@ -207,12 +231,12 @@ const tools: McpToolDefinition[] = [
   {
     tool: {
       name: 'knowledge_embed',
-      description: 'Embed article sentences into the unified knowledge store (knowledge.db). Splits articles into sentences, adds contextual prefix "Document: {title}. Section: {section}.", embeds via nomic-embed, classifies as type=claim or type=sentence. Incremental — tracks processed articles in sentence-embed-state.json.',
+      description: 'Embed article sentences into the unified knowledge store (knowledge.db). Splits articles into sentences, adds contextual prefix "Document: {title}. Section: {section}.", embeds via nomic-embed. For raw/episodic sources, classifies as type=claim/sentence/insight. For articles (curated), all entries get type=curated and citation markers are stripped before embedding. Incremental — tracks processed articles in sentence-embed-state.json.',
       inputSchema: {
         type: 'object' as const,
         properties: {
           wiki: { type: 'string', description: 'Wiki name to embed' },
-          source: { type: 'string', description: 'Article source: "raw" (default) or "episodic"' },
+          source: { type: 'string', description: 'Article source: "raw" (default), "episodic", or "articles" (curated)' },
         },
         required: ['wiki'],
       },

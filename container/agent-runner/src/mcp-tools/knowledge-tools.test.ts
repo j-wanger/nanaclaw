@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 
 import { handleKnowledgeSearch, handleKnowledgeEmbed, expandSearchResults } from './knowledge-tools.js';
+import { stripCitationMarkers } from './sentence-embed-pipeline.js';
 import { KnowledgeVectorStore } from './knowledge-vector-store.js';
 import type { SearchResult } from './knowledge-vector-store.js';
 
@@ -259,5 +260,152 @@ This is the first sentence. This is the second sentence.
     const data = JSON.parse(result.content[0].text);
     expect(data.embedded).toBeGreaterThan(0);
     expect(data.articles_processed).toBe(1);
+  });
+
+  test('embeds curated articles from articles/ with recursive discovery', async () => {
+    // Create nested articles/ structure
+    fs.mkdirSync(path.join(wikiDir, 'articles', 'concepts'), { recursive: true });
+    fs.mkdirSync(path.join(wikiDir, 'articles', 'patterns'), { recursive: true });
+
+    fs.writeFileSync(path.join(wikiDir, 'articles', 'concepts', 'money-laundering.md'), `---
+title: "Money Laundering Overview"
+sources: [ml-source-one, ml-source-two]
+---
+
+Money laundering involves three stages [ml-source-one]. Placement is the first stage [ml-source-two].
+`);
+
+    fs.writeFileSync(path.join(wikiDir, 'articles', 'patterns', 'layering.md'), `---
+title: "Layering Patterns"
+sources: [layering-ref]
+---
+
+Layering obscures the audit trail [layering-ref]. Complex structures are used.
+`);
+
+    globalThis.fetch = mock((_url: string | URL | Request, init?: RequestInit) => {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+      const count = Array.isArray(body.content) ? body.content.length : 1;
+      const embeddings = Array.from({ length: count }, (_, i) => ({
+        embedding: new Array(768).fill(0).map((_, j) => (i + 1) * 0.01 + j * 0.001),
+      }));
+      return Promise.resolve(new Response(JSON.stringify(embeddings), { status: 200 }));
+    }) as any;
+
+    const result = await handleKnowledgeEmbed({ wiki: 'test-wiki', source: 'articles' });
+    const data = JSON.parse(result.content[0].text);
+    expect(data.embedded).toBeGreaterThan(0);
+    expect(data.articles_processed).toBe(2);
+
+    // Verify entries are stored as type=curated
+    const store = new KnowledgeVectorStore(wikiDir);
+    const v = new Float32Array(768);
+    v[0] = 1;
+    const allResults = store.searchSimilar(v, 100, 'curated');
+    expect(allResults.length).toBeGreaterThan(0);
+    for (const r of allResults) {
+      expect(r.type).toBe('curated');
+    }
+    store.close();
+  });
+
+  test('curated articles strip citation markers before embedding', async () => {
+    fs.mkdirSync(path.join(wikiDir, 'articles'), { recursive: true });
+
+    fs.writeFileSync(path.join(wikiDir, 'articles', 'cited.md'), `---
+title: "Cited Article"
+sources: [source-one]
+---
+
+This fact comes from a source [source-one]. This is uncited.
+`);
+
+    globalThis.fetch = mock((_url: string | URL | Request, init?: RequestInit) => {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+      const count = Array.isArray(body.content) ? body.content.length : 1;
+      const embeddings = Array.from({ length: count }, (_, i) => ({
+        embedding: new Array(768).fill(0).map((_, j) => (i + 1) * 0.01 + j * 0.001),
+      }));
+      return Promise.resolve(new Response(JSON.stringify(embeddings), { status: 200 }));
+    }) as any;
+
+    const result = await handleKnowledgeEmbed({ wiki: 'test-wiki', source: 'articles' });
+    const data = JSON.parse(result.content[0].text);
+    expect(data.embedded).toBeGreaterThan(0);
+
+    // Verify stored text does not contain citation markers
+    const store = new KnowledgeVectorStore(wikiDir);
+    const v = new Float32Array(768);
+    v[0] = 1;
+    const results = store.searchSimilar(v, 100);
+    for (const r of results) {
+      expect(r.text).not.toContain('[source-one]');
+    }
+    store.close();
+  });
+
+  test('curated state keys are prefixed to avoid collision with raw', async () => {
+    // Embed a raw article
+    fs.writeFileSync(path.join(wikiDir, 'raw', 'articles', 'overlap.md'), `---
+title: "Raw Overlap"
+---
+
+Raw article content here. Another raw sentence.
+`);
+
+    globalThis.fetch = mock((_url: string | URL | Request, init?: RequestInit) => {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+      const count = Array.isArray(body.content) ? body.content.length : 1;
+      const embeddings = Array.from({ length: count }, (_, i) => ({
+        embedding: new Array(768).fill(0).map((_, j) => (i + 1) * 0.01 + j * 0.001),
+      }));
+      return Promise.resolve(new Response(JSON.stringify(embeddings), { status: 200 }));
+    }) as any;
+
+    await handleKnowledgeEmbed({ wiki: 'test-wiki', source: 'raw' });
+
+    // Now create a curated article with the same filename
+    fs.mkdirSync(path.join(wikiDir, 'articles'), { recursive: true });
+    fs.writeFileSync(path.join(wikiDir, 'articles', 'overlap.md'), `---
+title: "Curated Overlap"
+---
+
+Curated article content here. Another curated sentence.
+`);
+
+    const result = await handleKnowledgeEmbed({ wiki: 'test-wiki', source: 'articles' });
+    const data = JSON.parse(result.content[0].text);
+    // Should NOT be skipped — different state key prefix
+    expect(data.articles_processed).toBe(1);
+    expect(data.embedded).toBeGreaterThan(0);
+
+    // Verify state file has both raw and curated entries
+    const state = JSON.parse(fs.readFileSync(path.join(wikiDir, 'sentence-embed-state.json'), 'utf8'));
+    expect(state.processedArticles).toContain('overlap.md');
+    expect(state.processedArticles).toContain('curated:overlap.md');
+  });
+
+  test('returns error for articles source when directory missing', async () => {
+    const result = await handleKnowledgeEmbed({ wiki: 'test-wiki', source: 'articles' });
+    expect(result.content[0].text).toContain('Error: directory not found');
+  });
+});
+
+describe('stripCitationMarkers', () => {
+  test('removes inline slug citations', () => {
+    const input = 'Trade-based money laundering uses over-invoicing [tbml-invoicing-patterns].';
+    expect(stripCitationMarkers(input)).toBe('Trade-based money laundering uses over-invoicing .');
+  });
+
+  test('removes multiple citations', () => {
+    const input = 'Fact one [source-a]. Fact two [source-b-2].';
+    expect(stripCitationMarkers(input)).toBe('Fact one . Fact two .');
+  });
+
+  test('preserves non-slug brackets', () => {
+    // Single char, uppercase, and single-word brackets are not slugs
+    expect(stripCitationMarkers('[x] checkbox')).toBe('[x] checkbox');
+    expect(stripCitationMarkers('[UPPERCASE] const')).toBe('[UPPERCASE] const');
+    expect(stripCitationMarkers('[singleword] no hyphens')).toBe('[singleword] no hyphens');
   });
 });

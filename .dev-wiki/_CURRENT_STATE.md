@@ -1,23 +1,23 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-06 by /dev-debrief (Phase 43 complete)
+> Last updated: 2026-05-07 by /dev-debrief (Phase 44 complete)
 
 ## Recommended Next Action
 
-Phase 43 complete. Run `/dev-plan` to plan next phase. Open candidates: domain expert agents with dedicated sessions, context size threshold calibration, compaction resilience patterns for agentic-engineering wiki.
+Run `/dev-plan` for next phase. Candidates: domain expert agents, context size calibration, compaction resilience patterns.
 
 ## Active Phase
 
-**[[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]]** (status: completed)
+**[[phase-44-curated-article-embedding|Phase 44: Curated Article Embedding + Index-in-Context]]** (status: completed)
 
 Entry criteria: MET
-Exit criteria: MET — zero grep matches for deleted tool names, inline citation convention documented
+Exit criteria: MET — curated articles embedded with type "curated", index-in-context at spawn, type filtering in knowledge_search, docs updated
 
-Progress: 100% (6/6 tasks complete)
+Progress: 100% (6/6 tasks)
 
 ## Active Phase Contract
 
-Phase: 43 - Knowledge Pipeline Instruction Cleanup
+Phase: 44 - Curated Article Embedding + Index-in-Context
 Tasks: 6 (see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
@@ -26,30 +26,22 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
-| [[include-knowledge-wiki-files-in-scope]] | high | 2026-05-06 |
-| [[simplify-episodic-tier-references]] | medium | 2026-05-06 |
+| [[curated-article-embedding-approach]] | high | 2026-05-07 |
 | [[knowledge-pipeline-post-phase-42-design]] | high | 2026-05-05 |
+| [[inline-citation-convention]] | high | 2026-05-06 |
 
 ## Blockers and Open Questions
 
-- ~~[planning] Qwen3 tool-calling format reliability unknown — experiments will determine approach (raised 2026-04-26)~~ resolved: Phase 6a experiments passed, OpenAI function_call format works
-- ~~[planning] dispatch_worker MCP tool handler does not wire `tools` field to contract — workers silently run single-shot (raised 2026-04-26, Task 1 of Phase 6b)~~ resolved: Phase 6b Task 1
-- ~~[planning] wiki-bridge: search.py location discovery — WIKI_TOOLS_DIR env var or convention? (raised 2026-04-26)~~ resolved: WIKI_TOOLS_DIR env var, propagates via process.env spread in host-mode
-- ~~[planning] OneCLI CA cert availability in host-mode Bun process — proxy works but cert injection unknown (raised 2026-04-26)~~ resolved: OneCLI proxy works in host mode (agent received Claude API access)
-- ~~[planning] SearXNG not yet installed — required for research loop E2E (raised 2026-04-26)~~ resolved: SearXNG installed via Docker on port 8888
-- ~~[planning] Fragment symlinks point to Docker /app/... paths in host-mode — agent can't read skill/module instructions (raised 2026-04-27)~~ resolved: Phase 11 (5 fixes: symlink paths, bun path, idle worker check, env vars, fragment imports)
-- ~~[planning] llama-cpp multi-instance hosting — `--parallel N` flag or secondary 8B model for concurrent research workers (raised 2026-04-27)~~ resolved: Phase 13 — server already has 4 slots, max_concurrent updated to 4
-- ~~[implementation] Worker step-repetition: Qwen workers consistently fail to transition from search/extract to wiki_write within timeout (raised 2026-04-27, Phase 13 live test)~~ resolved: Phase 15 — removed LLM from search/extract, workers only do cognitive tasks (summarize, review)
-- ~~[implementation] checkWorkerResults poll-loop pickup: result files not cleaned up after worker completion (raised 2026-04-27, Phase 13 live test)~~ resolved: Phase 15 — compact result injection, write_to post-processing handles file routing
-- ~~[implementation] Review stage inert: findRawSource() in research-review.ts matches by source_url in episodic frontmatter, but writeEpisodicArticle() never writes source_url — review workers are silently skipped (raised 2026-04-28, Phase 15 reviewer)~~ resolved: Phase 16 Task 4 — source_url propagated through WriteTo interface
+- ~~[planning] Should curated article embedding strip citation markers [slug] before embedding, or leave them for contextual signal? (raised 2026-05-07)~~ resolved: strip before embedding — citation markers pollute semantic vectors, curated-only pre-processing
+- ~~[planning] Article index token budget at spawn — 137 articles with title+slug is ~2K tokens; how to handle growth? (raised 2026-05-07)~~ resolved: ~2K tokens per wiki budget, warning log if >500 articles
 
 ## Session Journal (last 5)
 
+- [2026-05-07] [[2026-05-07-phase-44-curated-article-embedding-complete|Phase 44: Curated Article Embedding Complete]] — 6 tasks, curated type in knowledge store, article index at spawn, 449+377 tests pass
 - [2026-05-06] [[2026-05-06-phase-43-instruction-cleanup-complete|Phase 43: Instruction Cleanup Complete]] — 6 tasks, skill instruction updates, citation convention codified
 - [2026-05-05] [[2026-05-05-knowledge-pipeline-redesign|Knowledge Pipeline Redesign Discussion]] — 2 decisions (pipeline design, citation convention), 5 discovered tasks for next phase
 - [2026-05-05] [[2026-05-05-phase-42-pipeline-simplification-complete|Phase 42: Pipeline Simplification Complete]] — 6 tasks, 20+ files deleted, 7 wikis cleaned, deterministic pipeline only
 - [2026-05-05] [[2026-05-05-phase-41-memory-migration-bugfixes-complete|Phase 41: Memory Migration Bugfixes]] — 3 bugs fixed (FTS rebuild, content dedup, source-type tag)
-- [2026-05-05] [[2026-05-05-phase-40-memory-migration-claim-dedup-complete|Phase 40: Memory Migration + Claim Dedup Guard Complete]] — 3 tasks, auto-migrate + max_claims cap, closes all review issues
 
 ## Key Artifacts
 

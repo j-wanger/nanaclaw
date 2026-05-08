@@ -27,8 +27,12 @@ export function generateWikiContext(groupDir: string, wikisJsonPath: string = DE
       continue;
     }
     const articleCount = countArticles(wiki.path);
+    if (articleCount > 500) {
+      log.warn('Wiki article index may exceed context budget', { wiki: wiki.name, count: articleCount });
+    }
     const roots = parseHierarchyRoots(wiki.path);
-    sections.push(renderWikiSection(wiki, articleCount, roots));
+    const articleIndex = buildArticleIndex(wiki.path);
+    sections.push(renderWikiSection(wiki, articleCount, roots, articleIndex));
   }
 
   if (sections.length === 0) return;
@@ -100,12 +104,62 @@ function extractRootsFromSchema(content: string): string[] {
   return roots;
 }
 
-function renderWikiSection(wiki: WikiEntry, articleCount: number, roots: string[]): string {
+function extractArticleTitle(content: string): string | null {
+  const match = content.match(/^---\n[\s\S]*?\n---/);
+  if (!match) return null;
+  const titleMatch = match[0].match(/^title:\s*["']?(.+?)["']?\s*$/m);
+  return titleMatch ? titleMatch[1] : null;
+}
+
+export function buildArticleIndex(wikiPath: string): Map<string, Array<{ slug: string; title: string }>> {
+  const articlesDir = path.join(wikiPath, 'articles');
+  if (!fs.existsSync(articlesDir)) return new Map();
+
+  const index = new Map<string, Array<{ slug: string; title: string }>>();
+
+  function walk(dir: string, category: string | null): void {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // First level under articles/ determines the category
+        const cat = category ?? entry.name;
+        walk(fullPath, cat);
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        const slug = entry.name.replace(/\.md$/, '');
+        const content = fs.readFileSync(fullPath, 'utf-8');
+        const title = extractArticleTitle(content) ?? slug;
+        const cat = category ?? '_root';
+        if (!index.has(cat)) index.set(cat, []);
+        index.get(cat)!.push({ slug, title });
+      }
+    }
+  }
+
+  walk(articlesDir, null);
+
+  // Sort categories and articles within each category
+  const sorted = new Map<string, Array<{ slug: string; title: string }>>();
+  for (const cat of [...index.keys()].sort()) {
+    sorted.set(cat, index.get(cat)!.sort((a, b) => a.slug.localeCompare(b.slug)));
+  }
+
+  return sorted;
+}
+
+function renderWikiSection(wiki: WikiEntry, articleCount: number, roots: string[], articleIndex: Map<string, Array<{ slug: string; title: string }>>): string {
   const lines: string[] = [];
   lines.push(`## ${wiki.name} (${articleCount} articles)`);
   lines.push(wiki.description);
   if (roots.length > 0) {
     lines.push(`Topics: ${roots.join(', ')}`);
+  }
+  if (articleIndex.size > 0) {
+    lines.push('Articles:');
+    for (const [category, articles] of articleIndex) {
+      const entries = articles.map((a) => a.title !== a.slug ? `${a.slug} (${a.title})` : a.slug);
+      lines.push(`  ${category}: ${entries.join(', ')}`);
+    }
   }
   lines.push('');
   return lines.join('\n');

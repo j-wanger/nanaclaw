@@ -166,14 +166,21 @@ describe('generateWikiContext', () => {
     expect(content).toContain('3 articles');
   });
 
-  it('stays under ~500 tokens per wiki budget', () => {
-    writeSchema(
-      wikiDir,
-      Array.from({ length: 20 }, (_, i) => `root-${i}`),
+  it('includes article slugs and titles in output', () => {
+    const articlesDir = path.join(wikiDir, 'articles', 'concepts');
+    fs.mkdirSync(articlesDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(articlesDir, 'my-article.md'),
+      `---\ntitle: My Article Title\ntags: [test]\n---\n\nContent.\n`,
     );
-    writeArticles(wikiDir, 100);
+    fs.writeFileSync(
+      path.join(articlesDir, 'another-one.md'),
+      `---\ntitle: Another One\n---\n\nMore content.\n`,
+    );
+    writeSchema(wikiDir, ['concepts']);
+
     const jsonPath = writeWikisJson([
-      { name: 'big-wiki', path: wikiDir, description: 'A wiki with many articles and roots.' },
+      { name: 'slug-wiki', path: wikiDir, description: 'Slug test.' },
     ]);
 
     const groupDir = path.join(tmpDir, 'group');
@@ -181,8 +188,83 @@ describe('generateWikiContext', () => {
     generateWikiContext(groupDir, jsonPath);
 
     const content = fs.readFileSync(fragmentPath(), 'utf-8');
-    // ~500 tokens ≈ ~2000 chars per wiki
-    expect(content.length).toBeLessThan(2500);
+    expect(content).toContain('my-article');
+    expect(content).toContain('My Article Title');
+    expect(content).toContain('another-one');
+    expect(content).toContain('Another One');
+  });
+
+  it('groups articles by category subdirectory', () => {
+    const conceptsDir = path.join(wikiDir, 'articles', 'concepts');
+    const patternsDir = path.join(wikiDir, 'articles', 'patterns');
+    fs.mkdirSync(conceptsDir, { recursive: true });
+    fs.mkdirSync(patternsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(conceptsDir, 'concept-a.md'),
+      `---\ntitle: Concept A\n---\n\nContent.\n`,
+    );
+    fs.writeFileSync(
+      path.join(patternsDir, 'pattern-b.md'),
+      `---\ntitle: Pattern B\n---\n\nContent.\n`,
+    );
+    writeSchema(wikiDir, ['concepts', 'patterns']);
+
+    const jsonPath = writeWikisJson([
+      { name: 'grouped-wiki', path: wikiDir, description: 'Grouped test.' },
+    ]);
+
+    const groupDir = path.join(tmpDir, 'group');
+    fs.mkdirSync(groupDir, { recursive: true });
+    generateWikiContext(groupDir, jsonPath);
+
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    // Each category should appear on its own line
+    expect(content).toMatch(/concepts:.*concept-a/);
+    expect(content).toMatch(/patterns:.*pattern-b/);
+  });
+
+  it('stays under 10000 chars per wiki for 150 articles', () => {
+    writeSchema(wikiDir, ['alpha', 'beta', 'gamma']);
+    writeArticles(wikiDir, 150);
+    const jsonPath = writeWikisJson([
+      { name: 'big-wiki', path: wikiDir, description: 'A wiki with many articles.' },
+    ]);
+
+    const groupDir = path.join(tmpDir, 'group');
+    fs.mkdirSync(groupDir, { recursive: true });
+    generateWikiContext(groupDir, jsonPath);
+
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    // Extract just this wiki's section (everything after the header comment)
+    const wikiSection = content.split('## big-wiki')[1] ?? '';
+    expect(wikiSection.length).toBeLessThan(10000);
+  });
+
+  it('uses slug as fallback when article has no title frontmatter', () => {
+    const articlesDir = path.join(wikiDir, 'articles', 'misc');
+    fs.mkdirSync(articlesDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(articlesDir, 'no-title.md'),
+      `---\ntags: [test]\n---\n\nContent without title.\n`,
+    );
+    fs.writeFileSync(
+      path.join(articlesDir, 'no-frontmatter.md'),
+      `# Just a heading\n\nNo YAML frontmatter at all.\n`,
+    );
+    writeSchema(wikiDir, ['misc']);
+
+    const jsonPath = writeWikisJson([
+      { name: 'fallback-wiki', path: wikiDir, description: 'Fallback test.' },
+    ]);
+
+    const groupDir = path.join(tmpDir, 'group');
+    fs.mkdirSync(groupDir, { recursive: true });
+    generateWikiContext(groupDir, jsonPath);
+
+    const content = fs.readFileSync(fragmentPath(), 'utf-8');
+    // With no title, slug should appear without parenthesized title
+    expect(content).toContain('no-title');
+    expect(content).toContain('no-frontmatter');
   });
 
   it('creates .claude-fragments directory if missing', () => {

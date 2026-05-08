@@ -152,3 +152,5 @@ container/agent-runner/src/mcp-tools/wiki-search.ts
 src/modules/memory/context-builder.test.ts
 src/modules/memory/context-builder.ts
 src/claude-md-compose.test.ts
+src/modules/memory/wiki-bridge.test.ts
+src/modules/memory/wiki-bridge.ts

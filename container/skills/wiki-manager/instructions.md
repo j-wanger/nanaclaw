@@ -8,6 +8,12 @@ Wiki tool usage rules:
 
 For knowledge tools (`knowledge_search`, `knowledge_conflicts`, `knowledge_embed`), see `knowledge-routing.md` for the intent-to-tool routing table.
 
+## Curated Article Embedding
+
+Curated wiki articles (in `articles/`) can be embedded into knowledge.db for semantic search alongside raw source sentences. Use `knowledge_embed` with `source: "articles"` to embed them. All curated entries get type `"curated"` and citation markers (`[source-slug]`) are stripped before embedding. Use `knowledge_search` with `type: "curated"` to search only the curated layer.
+
+At spawn, a full article index is injected into context listing all curated articles by category. This enables native attention routing — you already know what articles exist without searching.
+
 ## Inline Citation Convention
 
 When writing wiki articles, use inline citations to trace factual claims back to source material.

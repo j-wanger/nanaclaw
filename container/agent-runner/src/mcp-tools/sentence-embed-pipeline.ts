@@ -3,6 +3,11 @@ import path from 'path';
 import { embedBatch } from './claim-embeddings.js';
 import { KnowledgeVectorStore } from './knowledge-vector-store.js';
 import { splitSentences } from './sentence-splitter.js';
+
+export function stripCitationMarkers(text: string): string {
+  return text.replace(/\[[a-z][a-z0-9]*(?:-[a-z0-9]+)+\]/g, '');
+}
+
 interface ClaimEntry { claim: string; }
 interface InsightEntry { insight: string; }
 
@@ -72,7 +77,7 @@ function extractFrontmatter(content: string): Record<string, string> {
 interface PreparedSentence {
   text: string;
   contextual_text: string;
-  type: 'claim' | 'sentence' | 'insight';
+  type: 'claim' | 'sentence' | 'insight' | 'curated';
   source_url: string | null;
   article_slug: string;
   section: string;
@@ -143,21 +148,22 @@ export async function embedSentences(
   wikiPath: string,
   articlePaths: string[],
   wiki?: string,
+  typeOverride?: 'claim' | 'sentence' | 'insight' | 'curated',
 ): Promise<EmbedResult> {
   if (articlePaths.length === 0) return { embedded: 0, skipped: 0, articles_processed: 0 };
 
   const state = readState(wikiPath);
   const processedSet = new Set(state.processedArticles);
-  const claimTexts = loadClaimTexts(wikiPath);
-  const insightTexts = loadInsightTexts(wikiPath);
+  const claimTexts = typeOverride ? new Set<string>() : loadClaimTexts(wikiPath);
+  const insightTexts = typeOverride ? new Set<string>() : loadInsightTexts(wikiPath);
   const wikiName = wiki || path.basename(wikiPath);
 
   const toProcess: string[] = [];
   let skipped = 0;
 
   for (const p of articlePaths) {
-    const filename = path.basename(p);
-    if (processedSet.has(filename)) {
+    const stateKey = typeOverride ? `${typeOverride}:${path.basename(p)}` : path.basename(p);
+    if (processedSet.has(stateKey)) {
       skipped++;
       continue;
     }
@@ -184,14 +190,20 @@ export async function embedSentences(
         content = fs.readFileSync(articlePath, 'utf8');
       } catch { continue; }
 
+      // Strip citation markers for curated articles before splitting
+      if (typeOverride) {
+        content = stripCitationMarkers(content);
+      }
+
       const fm = extractFrontmatter(content);
       const title = fm.title || path.basename(articlePath, '.md');
       const sourceUrl = fm.source_url || null;
       const slug = path.basename(articlePath, '.md');
+      const stateKey = typeOverride ? `${typeOverride}:${path.basename(articlePath)}` : path.basename(articlePath);
 
       const sentences = splitSentences(content);
       if (sentences.length === 0) {
-        state.processedArticles.push(path.basename(articlePath));
+        state.processedArticles.push(stateKey);
         continue;
       }
 
@@ -200,7 +212,9 @@ export async function embedSentences(
         const normalized = s.text.toLowerCase().trim();
         const isClaim = claimTexts.has(normalized);
         const isInsight = !isClaim && insightTexts.has(normalized);
-        const type: 'claim' | 'insight' | 'sentence' = isClaim ? 'claim' : isInsight ? 'insight' : 'sentence';
+        const type: 'claim' | 'insight' | 'sentence' | 'curated' = typeOverride
+          ? typeOverride
+          : isClaim ? 'claim' : isInsight ? 'insight' : 'sentence';
         return {
           text: s.text,
           contextual_text: `${contextPrefix} ${s.text}`,
@@ -220,7 +234,7 @@ export async function embedSentences(
       totalEmbedded += embedded;
       articlesProcessed++;
 
-      state.processedArticles.push(path.basename(articlePath));
+      state.processedArticles.push(stateKey);
 
       // Persist state periodically (every 10 articles) for crash recovery
       if (articlesProcessed % 10 === 0) {

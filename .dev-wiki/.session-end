@@ -1,10 +1,10 @@
-ended: 2026-05-06T12:05:39
+ended: 2026-05-08T13:58:27
 pending_commit: no
 session_buffer: no
-debriefed: yes
+debriefed: no
 recent_commits:
+9dbe5a3 Phase 43 debrief: mark complete, journal entry, refresh active-phase
 7fb148c Phase 43: Remove stale pipeline references from skill instructions + codify inline citation convention
 56aa6ce Phase 42: Remove Qwen-dependent summarization pipeline + claim provenance tools
 e74eb70 Phase 41: Fix 3 memory migration bugs reported by Nana
 8e0ff85 Phase 40: Auto-migrate MEMORY.md at spawn + claim_dedup guard
-db67d78 Phase 39: Memory write convergence — MCP as primary write path

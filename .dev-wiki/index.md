@@ -158,9 +158,11 @@
 - [[phase-41-memory-migration-bugfixes|Phase 41: Memory Migration Bugfixes]] — completed
 - [[phase-42-pipeline-simplification|Phase 42: Pipeline Simplification]] — completed
 - [[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]] — completed
+- [[phase-44-curated-article-embedding|Phase 44: Curated Article Embedding + Index-in-Context]] — completed
 
 ## Decisions
 
+- [[curated-article-embedding-approach|Curated Article Embedding Approach]] — high confidence
 - [[fresh-fork-over-v1-continuation|Fresh Fork over V1 Continuation]] — high confidence
 - [[two-tier-heterogeneous-architecture|Two-Tier Heterogeneous Architecture]] — high confidence
 - [[memory-architecture-decisions|Memory Architecture Decisions]] — high confidence
@@ -186,6 +188,7 @@
 
 ## Journal (recent 10)
 
+- [2026-05-07] [[2026-05-07-phase-44-curated-article-embedding-complete|Phase 44: Curated Article Embedding Complete]] — 6 tasks, curated type, article index at spawn
 - [2026-05-06] [[2026-05-06-phase-43-instruction-cleanup-complete|Phase 43: Instruction Cleanup Complete]] — 6 tasks, skill instruction updates, citation convention
 - [2026-05-05] [[2026-05-05-knowledge-pipeline-redesign|Knowledge Pipeline Redesign Discussion]] — 2 decisions, 5 discovered tasks
 - [2026-05-05] [[2026-05-05-phase-42-pipeline-simplification-complete|Phase 42: Pipeline Simplification Complete]] — 6 tasks, 20+ files deleted, 7 wikis cleaned

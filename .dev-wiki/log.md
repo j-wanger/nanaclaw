@@ -1,5 +1,7 @@
 # Dev Wiki Log
 
+[2026-05-07T01:00:00] DEBRIEF -- Phase 44 complete (6/6 tasks), 0 new decisions (1 pre-existing), 1 journal, active-knowledge transitioned (3 facts: 2 incremented uses, 1 new to working-knowledge), 449+377 tests pass, skill_files_modified: yes
+[2026-05-07T00:00:00] PLAN -- Phase 44 planned, 6 tasks (3S+2M+1S), 1 decision (curated-article-embedding-approach, pre-existing updated), curated article embedding + index-in-context
 [2026-05-06T08:00:00] DEBRIEF -- Phase 43 complete (6/6 tasks), 0 new decisions (4 pre-existing), 1 journal, active-knowledge transitioned (3 facts → working-knowledge), no code changes, skill_files_modified: yes
 [2026-05-06T00:00:00] PLAN -- Phase 43 planned, 6 tasks (6S), 2 decisions (include-knowledge-wiki-files-in-scope, simplify-episodic-tier-references), instruction cleanup for deleted pipeline tools
 [2026-05-05T07:00:00] DEBRIEF -- 2 decisions (pipeline-redesign, citation-convention), 1 journal (design discussion), 5 discovered tasks queued, state refreshed, skill_files_modified: yes
