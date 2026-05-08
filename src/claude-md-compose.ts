@@ -170,19 +170,25 @@ export function composeGroupClaudeMd(group: AgentGroup): void {
     }
   }
 
-  // Composed entry — imports for desired fragments + externally-generated ones.
-  const imports = ['@./.claude-shared.md'];
-  const allFragments = [...desired.keys(), ...EXTERNAL_FRAGMENTS].sort();
-  for (const name of allFragments) {
-    imports.push(`@./.claude-fragments/${name}`);
-  }
-  const body = [COMPOSED_HEADER, ...imports, ''].join('\n');
-  writeAtomic(path.join(groupDir, 'CLAUDE.md'), body);
-
+  // Composed entry — CLAUDE.local.md inlined at top (persona/personality),
+  // then imports for shared base + fragments.
   const localFile = path.join(groupDir, 'CLAUDE.local.md');
   if (!fs.existsSync(localFile)) {
     fs.writeFileSync(localFile, '');
   }
+
+  const localContent = fs.readFileSync(localFile, 'utf-8').trim();
+  const parts: string[] = [COMPOSED_HEADER];
+  if (localContent) {
+    parts.push('', localContent, '');
+  }
+  parts.push('@./.claude-shared.md');
+  const allFragments = [...desired.keys(), ...EXTERNAL_FRAGMENTS].sort();
+  for (const name of allFragments) {
+    parts.push(`@./.claude-fragments/${name}`);
+  }
+  parts.push('');
+  writeAtomic(path.join(groupDir, 'CLAUDE.md'), parts.join('\n'));
 }
 
 /**
