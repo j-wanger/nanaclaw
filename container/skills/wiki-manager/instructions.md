@@ -31,3 +31,22 @@ Trade-based money laundering uses over/under-invoicing to move value [tbml-invoi
 This is a convention enforced by prompt instructions, not code — there is no automated linking or verification at runtime. The `[slug]` markers are grep-able, so future verification tooling can parse them programmatically if needed.
 
 **When to cite:** After factual claims that originate from a specific source. Do not cite common knowledge, transitional sentences, or your own analysis.
+
+## External Reference: knowledge-wiki Skill Suite
+
+Jake maintains a separate Claude Code skill suite for knowledge wiki management
+at github.com/j-wanger/knowledge-wiki. When he references "knowledge-wiki skills"
+or "the wiki skill suite", he means THAT system, not this wiki-manager skill.
+
+Key patterns from the knowledge-wiki that apply to Nanaclaw's wiki work:
+- **wiki-bootstrap**: Taxonomy-first article creation — analyst does domain gap
+  analysis, proposes topics by hierarchy root, gets user approval, then writer
+  generates articles in batches of 8-10 with quality review
+- **wiki-absorb**: Inbox-to-article promotion with Analyst->Writer->Reviewer
+  subagent pipeline
+- **wiki-health**: Unified diagnostics — article coverage, frontmatter validity,
+  lifecycle status, cross-link density
+
+When in doubt about curation approach, the knowledge-wiki's wiki-bootstrap
+pattern (taxonomy planning -> user approval -> batched synthesis -> coverage check)
+is the proven model.

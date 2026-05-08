@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { query as sdkQuery, type HookCallback, type PreCompactHookInput } from '@anthropic-ai/claude-agent-sdk';
+import { query as sdkQuery, type HookCallback, type PreCompactHookInput, type PostCompactHookInput } from '@anthropic-ai/claude-agent-sdk';
 
 import { AGENT_DIR } from '../config.js';
 import { clearContainerToolInFlight, setContainerToolInFlight } from '../db/connection.js';
@@ -222,6 +222,41 @@ function createPreCompactHook(assistantName?: string): HookCallback {
   };
 }
 
+// ── Session state recovery (PostCompact hook) ──
+
+const postCompactHook: HookCallback = async (input) => {
+  const postCompact = input as PostCompactHookInput;
+  const summary = postCompact.compact_summary || '';
+
+  if (!summary.trim()) return {};
+
+  try {
+    const rulesDir = path.join(process.cwd(), '.claude', 'rules');
+    fs.mkdirSync(rulesDir, { recursive: true });
+
+    const statePath = path.join(rulesDir, 'session-state.md');
+    const stateContent = [
+      '# Session State',
+      '<!-- Written by PostCompact hook. Read session-continuity.md for recovery instructions. -->',
+      '',
+      '## Current Focus',
+      summary,
+      '',
+      '## Pending / Next Steps',
+      'Review compact summary above and continue where you left off.',
+      '',
+      `Last updated: ${new Date().toISOString()} (post-compaction)`,
+    ].join('\n');
+
+    fs.writeFileSync(statePath, stateContent);
+    log('Wrote session-state.md from compact summary');
+  } catch (err) {
+    log(`Failed to write session state: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  return {};
+};
+
 // ── Provider ──
 
 /**
@@ -299,6 +334,7 @@ export class ClaudeProvider implements AgentProvider {
           PostToolUse: [{ hooks: [postToolUseHook] }],
           PostToolUseFailure: [{ hooks: [postToolUseHook] }],
           PreCompact: [{ hooks: [createPreCompactHook(this.assistantName)] }],
+          PostCompact: [{ hooks: [postCompactHook] }],
         },
       },
     });

@@ -1,24 +1,23 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-07 by /dev-debrief (Phase 44 complete)
+> Last updated: 2026-05-08 by /dev-debrief
 
 ## Recommended Next Action
 
-Run `/dev-plan` for next phase. Candidates: domain expert agents, context size calibration, compaction resilience patterns.
+Phase 45 complete. Commit and push, restart service. Next: curate trading wiki using new wiki-curator skill, or plan Phase 46.
 
 ## Active Phase
 
-**[[phase-44-curated-article-embedding|Phase 44: Curated Article Embedding + Index-in-Context]]** (status: completed)
+**[[phase-45-ux-persona-curation-fixes|Phase 45: UX, Persona, and Curation Fixes]]** (status: complete, 100%)
 
-Entry criteria: MET
-Exit criteria: MET — curated articles embedded with type "curated", index-in-context at spawn, type filtering in knowledge_search, docs updated
-
-Progress: 100% (6/6 tasks)
+Entry criteria: MET (Phase 44 complete, daily-use UX issues identified)
+Exit criteria: 6/6 met. 0 remaining.
+Progress: 100% (6/6 tasks done)
 
 ## Active Phase Contract
 
-Phase: 44 - Curated Article Embedding + Index-in-Context
-Tasks: 6 (see tasks.md)
+Phase: 45 - UX, Persona, and Curation Fixes
+Tasks: 6 (2M + 4S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -26,9 +25,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[per-group-persona-via-claude-local]] | high | 2026-05-08 |
+| [[phase-45-ux-persona-curation-approach]] | medium | 2026-05-08 |
 | [[curated-article-embedding-approach]] | high | 2026-05-07 |
-| [[knowledge-pipeline-post-phase-42-design]] | high | 2026-05-05 |
-| [[inline-citation-convention]] | high | 2026-05-06 |
 
 ## Blockers and Open Questions
 
@@ -37,11 +36,11 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 ## Session Journal (last 5)
 
+- [2026-05-08] [[2026-05-08-phase-45-ux-persona-curation-complete|Phase 45: UX, Persona, and Curation Fixes Complete]] — 6 tasks, SOUL.md lean baseline, per-group persona via CLAUDE.local.md, wiki-curator skill, PostCompact hook, 7 memory entries
 - [2026-05-07] [[2026-05-07-phase-44-curated-article-embedding-complete|Phase 44: Curated Article Embedding Complete]] — 6 tasks, curated type in knowledge store, article index at spawn, 449+377 tests pass
 - [2026-05-06] [[2026-05-06-phase-43-instruction-cleanup-complete|Phase 43: Instruction Cleanup Complete]] — 6 tasks, skill instruction updates, citation convention codified
 - [2026-05-05] [[2026-05-05-knowledge-pipeline-redesign|Knowledge Pipeline Redesign Discussion]] — 2 decisions (pipeline design, citation convention), 5 discovered tasks for next phase
 - [2026-05-05] [[2026-05-05-phase-42-pipeline-simplification-complete|Phase 42: Pipeline Simplification Complete]] — 6 tasks, 20+ files deleted, 7 wikis cleaned, deterministic pipeline only
-- [2026-05-05] [[2026-05-05-phase-41-memory-migration-bugfixes-complete|Phase 41: Memory Migration Bugfixes]] — 3 bugs fixed (FTS rebuild, content dedup, source-type tag)
 
 ## Key Artifacts
 
@@ -51,7 +50,11 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 | container/agent-runner/src/mcp-tools/knowledge-tools.ts | knowledge_search + knowledge_embed + small-to-big expansion MCP tools | 2026-05-05 |
 | container/agent-runner/src/mcp-tools/knowledge-vector-store.ts | Unified knowledge store — search, insert, getWindow, getByArticleSlug | 2026-05-05 |
 | container/agent-runner/src/mcp-tools/research-fetch.ts | research_fetch — SearXNG → raw articles with Jina fallback | 2026-05-05 |
-| container/skills/wiki-manager/ | Wiki management skill — updated instructions, routing, citation convention | 2026-05-06 |
+| container/skills/wiki-manager/ | Wiki management skill — updated instructions, routing, citation convention | 2026-05-08 |
+| container/skills/wiki-curator/ | Wiki curation skill — taxonomy-first workflow, progress reporting, state tracking | 2026-05-08 |
+| .claude/rules/session-continuity.md | Session state update triggers + compaction recovery instructions | 2026-05-08 |
+| groups/dm-with-wang/CLAUDE.local.md | Full 毒舌小妹 persona for Telegram DM agent group | 2026-05-08 |
+| container/agent-runner/src/providers/claude.ts | PostCompact hook writes session-state.md | 2026-05-08 |
 
 ## Cross-References
 
@@ -62,3 +65,5 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 - [[knowledge-pipeline-post-phase-42-design]] — articles as optional curated layer, sentence embeddings primary
 - [[inline-citation-convention]] — frontmatter sources + inline [slug] markers for provenance
 - ~/.claude/skills/knowledge-wiki/ — article conventions + content model updated Phase 43
+- container/skills/wiki-curator/ — taxonomy-first curation workflow skill (Phase 45)
+- [[per-group-persona-via-claude-local]] — SOUL.md shared baseline + per-group CLAUDE.local.md for full persona

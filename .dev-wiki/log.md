@@ -1,5 +1,7 @@
 # Dev Wiki Log
 
+[2026-05-08T01:00:00] DEBRIEF -- Phase 45 complete (6/6 tasks), 1 new decision (per-group-persona-via-claude-local), 1 journal, SOUL.md lean baseline + CLAUDE.local.md per-group persona, wiki-curator skill, PostCompact hook, 7 memory entries, session-continuity.md, knowledge-wiki ref, v1 check, escape hatch: USER OVERRIDE (persona moved to CLAUDE.local.md), no test changes, container typecheck clean
+[2026-05-08T00:00:00] PLAN -- Phase 45 activated, 6 tasks (2M+4S), 1 decision (ux-persona-curation-approach), approach reviewer 6/10 revise (PostCompact exists — redesigned WU3), plan reviewer 5/10 revise (session-state.md path clarified — per-agent-group via container CWD)
 [2026-05-07T01:00:00] DEBRIEF -- Phase 44 complete (6/6 tasks), 0 new decisions (1 pre-existing), 1 journal, active-knowledge transitioned (3 facts: 2 incremented uses, 1 new to working-knowledge), 449+377 tests pass, skill_files_modified: yes
 [2026-05-07T00:00:00] PLAN -- Phase 44 planned, 6 tasks (3S+2M+1S), 1 decision (curated-article-embedding-approach, pre-existing updated), curated article embedding + index-in-context
 [2026-05-06T08:00:00] DEBRIEF -- Phase 43 complete (6/6 tasks), 0 new decisions (4 pre-existing), 1 journal, active-knowledge transitioned (3 facts → working-knowledge), no code changes, skill_files_modified: yes
