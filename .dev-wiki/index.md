@@ -160,6 +160,7 @@
 - [[phase-43-knowledge-pipeline-instruction-cleanup|Phase 43: Knowledge Pipeline Instruction Cleanup]] — completed
 - [[phase-44-curated-article-embedding|Phase 44: Curated Article Embedding + Index-in-Context]] — completed
 - [[phase-45-ux-persona-curation-fixes|Phase 45: UX, Persona, and Curation Fixes]] — completed
+- [[phase-46-domain-retrieval-subagents-curator-improvements|Phase 46: Domain Retrieval Subagents + Curator Improvements]] — active
 
 ## Decisions
 

@@ -1,23 +1,23 @@
 # Project: nanaclaw
 
-> Last updated: 2026-05-08 by /dev-debrief
+> Last updated: 2026-05-09 by /dev-plan
 
 ## Recommended Next Action
 
-Phase 45 complete. Commit and push, restart service. Next: curate trading wiki using new wiki-curator skill, or plan Phase 46.
+Run Phase 46 tasks in order. WS1 (curator improvements, tasks 1-2) is instruction-only. WS2 (retrieval subagents, tasks 3-6) starts with an SDK Task spike to validate the pattern, then builds the retriever template, routing skill, and wiring.
 
 ## Active Phase
 
-**[[phase-45-ux-persona-curation-fixes|Phase 45: UX, Persona, and Curation Fixes]]** (status: complete, 100%)
+**[[phase-46-domain-retrieval-subagents-curator-improvements|Phase 46: Domain Retrieval Subagents + Curator Improvements]]** (status: active, ~0%)
 
-Entry criteria: MET (Phase 44 complete, daily-use UX issues identified)
-Exit criteria: 6/6 met. 0 remaining.
-Progress: 100% (6/6 tasks done)
+Entry criteria: MET (Phase 45 complete, curator and retrieval patterns identified)
+Exit criteria: 0/4 met. 4 remaining.
+Progress: ~0% (0/6 tasks done)
 
 ## Active Phase Contract
 
-Phase: 45 - UX, Persona, and Curation Fixes
-Tasks: 6 (2M + 4S, see tasks.md)
+Phase: 46 - Domain Retrieval Subagents + Curator Improvements
+Tasks: 6 (6S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -25,14 +25,16 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
-| [[per-group-persona-via-claude-local]] | high | 2026-05-08 |
-| [[phase-45-ux-persona-curation-approach]] | medium | 2026-05-08 |
-| [[curated-article-embedding-approach]] | high | 2026-05-07 |
+| SDK Task for retrieval (ephemeral/stateless) over create_agent (persistent) | high | 2026-05-09 |
+| One parameterized retriever template over per-wiki files | high | 2026-05-09 |
+| Default direct search, opt-in delegation for multi-hop queries | high | 2026-05-09 |
+| Relax min-sources from 3 to 1 with explicit note for niche topics | medium | 2026-05-09 |
 
 ## Blockers and Open Questions
 
-- ~~[planning] Should curated article embedding strip citation markers [slug] before embedding, or leave them for contextual signal? (raised 2026-05-07)~~ resolved: strip before embedding — citation markers pollute semantic vectors, curated-only pre-processing
-- ~~[planning] Article index token budget at spawn — 137 articles with title+slug is ~2K tokens; how to handle growth? (raised 2026-05-07)~~ resolved: ~2K tokens per wiki budget, warning log if >500 articles
+- ~~[planning] Retrieval subagent: SDK Task tool vs create_agent? (raised 2026-05-09)~~ resolved: SDK Task — retrieval is one-shot, no need for persistence
+- ~~[planning] Retrieval subagent prompt design: per-wiki files or shared template? (raised 2026-05-09)~~ resolved: one parameterized template with per-wiki config injected at runtime
+- ~~[planning] Curator minimum-sources guard: relax or flag? (raised 2026-05-09)~~ resolved: relax from 3 to 1 with explicit note in article
 
 ## Session Journal (last 5)
 
