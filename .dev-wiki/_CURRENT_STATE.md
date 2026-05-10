@@ -4,20 +4,20 @@
 
 ## Recommended Next Action
 
-Run Phase 46 tasks in order. WS1 (curator improvements, tasks 1-2) is instruction-only. WS2 (retrieval subagents, tasks 3-6) starts with an SDK Task spike to validate the pattern, then builds the retriever template, routing skill, and wiring.
+Begin Phase 47 implementation. Task 1: end_session MCP tool on container side.
 
 ## Active Phase
 
-**[[phase-46-domain-retrieval-subagents-curator-improvements|Phase 46: Domain Retrieval Subagents + Curator Improvements]]** (status: active, ~0%)
+**[[phase-47-autonomous-session-rotation|Phase 47: Autonomous Session Rotation]]** (status: active, ~0%)
 
-Entry criteria: MET (Phase 45 complete, curator and retrieval patterns identified)
-Exit criteria: 0/4 met. 4 remaining.
-Progress: ~0% (0/6 tasks done)
+Entry criteria: MET (session handover format designed by Nana, system action pattern proven)
+Exit criteria: 0/5 met. 5 remaining.
+Progress: ~0% (0/3 tasks done)
 
 ## Active Phase Contract
 
-Phase: 46 - Domain Retrieval Subagents + Curator Improvements
-Tasks: 6 (6S, see tasks.md)
+Phase: 47 - Autonomous Session Rotation
+Tasks: 3 (2M + 1S, see tasks.md)
 Transition: continue
 Abort: if blocked >3 attempts, ask user: skip or abort
 
@@ -25,9 +25,9 @@ Abort: if blocked >3 attempts, ask user: skip or abort
 
 | Decision | Confidence | Date |
 |----------|------------|------|
+| [[phase-47-autonomous-session-rotation-approach]] | medium | 2026-05-09 |
 | SDK Task for retrieval (ephemeral/stateless) over create_agent (persistent) | high | 2026-05-09 |
 | One parameterized retriever template over per-wiki files | high | 2026-05-09 |
-| Default direct search, opt-in delegation for multi-hop queries | high | 2026-05-09 |
 | Relax min-sources from 3 to 1 with explicit note for niche topics | medium | 2026-05-09 |
 
 ## Blockers and Open Questions

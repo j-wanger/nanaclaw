@@ -24,6 +24,7 @@ import './project-init.js';
 import './wiki-backfill.js';
 import './knowledge-tools.js';
 import './knowledge-analysis-tools.js';
+import './session-end.js';
 import { startMcpServer } from './server.js';
 
 function log(msg: string): void {

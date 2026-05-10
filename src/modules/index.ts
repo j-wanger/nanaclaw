@@ -25,3 +25,4 @@ import './self-mod/index.js';
 import './memory/index.js';
 import './local-worker/index.js';
 import './voice/index.js';
+import './session-rotation/index.js';

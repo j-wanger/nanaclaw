@@ -1,5 +1,6 @@
 # Dev Wiki Log
 
+[2026-05-09T02:00:00] PLAN -- Phase 47 planned, 3 tasks (2M+1S), 1 decision (autonomous-session-rotation-approach), approach reviewer 7/10 revise (single-writer invariant fix), plan reviewer 7/10 revise (processAfter format + killContainer signature), end_session MCP tool + host delivery handler + resume_prompt re-wake
 [2026-05-09T00:00:00] PLAN -- Phase 46 planned, 6 tasks (6S), 4 decisions (SDK Task for retrieval, parameterized template, opt-in delegation, relaxed min-sources), two workstreams: curator improvements + retrieval subagents
 [2026-05-08T01:00:00] DEBRIEF -- Phase 45 complete (6/6 tasks), 1 new decision (per-group-persona-via-claude-local), 1 journal, SOUL.md lean baseline + CLAUDE.local.md per-group persona, wiki-curator skill, PostCompact hook, 7 memory entries, session-continuity.md, knowledge-wiki ref, v1 check, escape hatch: USER OVERRIDE (persona moved to CLAUDE.local.md), no test changes, container typecheck clean
 [2026-05-08T00:00:00] PLAN -- Phase 45 activated, 6 tasks (2M+4S), 1 decision (ux-persona-curation-approach), approach reviewer 6/10 revise (PostCompact exists — redesigned WU3), plan reviewer 5/10 revise (session-state.md path clarified — per-agent-group via container CWD)
