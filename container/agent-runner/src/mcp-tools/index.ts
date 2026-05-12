@@ -21,6 +21,7 @@ import './research-fetch.js';
 import './wiki-read.js';
 import './wiki-stats.js';
 import './project-init.js';
+import './project-context.js';
 import './wiki-backfill.js';
 import './knowledge-tools.js';
 import './knowledge-analysis-tools.js';

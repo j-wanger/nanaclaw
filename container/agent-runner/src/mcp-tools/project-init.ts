@@ -1,14 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import { registerTools } from './server.js';
+import { getActiveProject } from './project-context.js';
 import type { McpToolDefinition } from './types.js';
 
 function ok(text: string) {
   return { content: [{ type: 'text' as const, text }] };
 }
 
-function getProjectDir(): string {
-  return path.join(process.cwd(), '.project');
+function getWorkDir(): string {
+  const active = getActiveProject();
+  const base = active ? active.path : process.cwd();
+  return path.join(base, '.project', 'work');
 }
 
 const PLAN_TEMPLATE = (name: string, objective: string) => `# Project: ${name}
@@ -29,7 +32,7 @@ const TASKS_TEMPLATE = `# Tasks
 <!-- - [ ] Description | scope: src/*.ts | success: \`command\` -->
 `;
 
-const STATE_TEMPLATE = (name: string) => `# Project State
+const PROGRESS_TEMPLATE = (name: string) => `# Progress
 
 project: ${name}
 status: planning
@@ -37,7 +40,7 @@ current_task: 0
 last_updated: ${new Date().toISOString().slice(0, 10)}
 blockers: none
 
-## Progress
+## Log
 <!-- Updated as tasks complete -->
 `;
 
@@ -48,34 +51,34 @@ export async function initHandler(args: Record<string, unknown>) {
   const objective = (args.objective as string || '').trim();
   if (!objective) return ok('Error: objective is required');
 
-  const projectDir = getProjectDir();
+  const workDir = getWorkDir();
 
-  if (fs.existsSync(projectDir)) {
-    const statePath = path.join(projectDir, 'state.md');
+  if (fs.existsSync(workDir)) {
+    const progressPath = path.join(workDir, 'progress.md');
     try {
-      const state = fs.readFileSync(statePath, 'utf8');
+      const progress = fs.readFileSync(progressPath, 'utf8');
       return ok(JSON.stringify({
         exists: true,
-        message: 'Project already exists. Returning current state.',
-        state,
+        message: 'Work directory already exists. Returning current progress.',
+        progress,
       }));
     } catch {
       return ok(JSON.stringify({
         exists: true,
-        message: 'Project directory exists but state.md is missing.',
+        message: 'Work directory exists but progress.md is missing.',
       }));
     }
   }
 
-  fs.mkdirSync(projectDir, { recursive: true });
-  fs.writeFileSync(path.join(projectDir, 'plan.md'), PLAN_TEMPLATE(name, objective));
-  fs.writeFileSync(path.join(projectDir, 'tasks.md'), TASKS_TEMPLATE);
-  fs.writeFileSync(path.join(projectDir, 'state.md'), STATE_TEMPLATE(name));
+  fs.mkdirSync(workDir, { recursive: true });
+  fs.writeFileSync(path.join(workDir, 'plan.md'), PLAN_TEMPLATE(name, objective));
+  fs.writeFileSync(path.join(workDir, 'tasks.md'), TASKS_TEMPLATE);
+  fs.writeFileSync(path.join(workDir, 'progress.md'), PROGRESS_TEMPLATE(name));
 
   return ok(JSON.stringify({
     exists: false,
-    message: `Project "${name}" initialized.`,
-    files: ['plan.md', 'tasks.md', 'state.md'].map((f) => path.join(projectDir, f)),
+    message: `Work initialized for "${name}".`,
+    files: ['plan.md', 'tasks.md', 'progress.md'].map((f) => path.join(workDir, f)),
   }));
 }
 
@@ -84,7 +87,7 @@ const tools: McpToolDefinition[] = [
     tool: {
       name: 'project_init',
       description:
-        'Initialize a .project/ directory for structured task tracking. If a project already exists, returns the current state instead of overwriting. Use for multi-step coding tasks that need planning and progress tracking.',
+        'Initialize .project/work/ for structured task tracking on the active project. If work/ already exists, returns the current progress instead of overwriting. The knowledge layer (.project/ root) is managed by project_context — this tool only creates the ephemeral task-tracking layer.',
       inputSchema: {
         type: 'object' as const,
         properties: {

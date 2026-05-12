@@ -31,21 +31,25 @@ Skip for:
 
 ## File Structure
 
-`.project/` lives in your workspace directory. It persists across sessions.
+`.project/` lives in the active project directory. When a project is activated via `project_context`, all paths resolve there. When no project is activated, defaults to your workspace directory.
 
-### plan.md
-```markdown
-# Project: <name>
+### Two layers
 
-## Objective
-<what we're building and why>
+**Knowledge layer** (`.project/` root) — persistent, never deleted:
+- `state.md` — Current focus, status, next steps
+- `decisions/` — Design decision records
+- `lessons.md` — Accumulated project insights
+- `rules.md` — Project conventions
+- `index.md` — Project overview
 
-## Approach
-<how we'll build it — key decisions, architecture choices>
+Created by `project_context("init", ...)`. Survives across phases.
 
-## Scope
-<files and modules affected>
-```
+**Task layer** (`.project/work/`) — ephemeral, reset between phases:
+- `plan.md` — Objective, approach, scope for current phase
+- `tasks.md` — Ordered task list
+- `progress.md` — Current task pointer and completion log
+
+Created by `project_init(name, objective)`. When all tasks are done, archive key outcomes to `.project/decisions/` or `lessons.md`, then delete `.project/work/`.
 
 ### tasks.md
 ```markdown
@@ -63,16 +67,17 @@ Each task has:
 
 Work tasks in order. Mark each `[x]` when done. Don't skip ahead.
 
-### state.md
+### progress.md
 ```markdown
-# Project State
+# Progress
 
+project: terrain-system
 status: in_progress
 current_task: 2
 last_updated: 2026-04-29
 blockers: none
 
-## Progress
+## Log
 - Task 1: done — implemented the parser
 - Task 2: in progress — writing tests
 ```
@@ -104,13 +109,14 @@ Use self-coding mode when:
 ## Session Continuity
 
 On compaction recovery or new session start:
-1. Check if `.project/` exists
-2. Read `state.md` for current position
+1. Check if `.project/work/` exists
+2. Read `progress.md` for current position
 3. Read `tasks.md` for the task list
 4. Resume from the current task
 
 ## Boundaries
 
-- `.project/` is NOT memory. It tracks work state, not knowledge or preferences. Use MEMORY.md for things worth remembering across projects.
-- Don't create a project inside a project. One `.project/` per workspace.
-- If all tasks are done, delete `.project/` and report completion.
+- `.project/` root is the persistent knowledge layer — never delete it.
+- `.project/work/` is the ephemeral task layer — delete it when all tasks are done, after archiving outcomes to decisions/ or lessons.md.
+- One `.project/` per project directory.
+- Use `project_context("list")` to see all registered projects and `project_context("activate", {project: "name"})` to switch between them.
