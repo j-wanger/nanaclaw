@@ -1,0 +1,19 @@
+commit: 006bdaa6fcb188ea4cf491428f86313b1f044b21
+message: Phase 47: Autonomous session rotation — end_session MCP tool
+time: 2026-05-10T00:47:02-04:00
+files:
+ .claude/rules/active-phase.md                      |  13 +--
+ .dev-wiki/_CURRENT_STATE.md                        |  16 +--
+ ...hase-47-autonomous-session-rotation-approach.md |  48 +++++++++
+ .../phases/phase-47-autonomous-session-rotation.md |  34 +++++++
+ .dev-wiki/index.md                                 |   3 +-
+ .dev-wiki/log.md                                   |   1 +
+ .dev-wiki/tasks.md                                 |   6 ++
+ container/agent-runner/src/mcp-tools/index.ts      |   1 +
+ .../agent-runner/src/mcp-tools/session-end.test.ts | 110 +++++++++++++++++++++
+ .../agent-runner/src/mcp-tools/session-end.ts      |  59 +++++++++++
+ src/delivery.ts                                    |   4 +
+ src/modules/index.ts                               |   1 +
+ src/modules/session-rotation/index.test.ts         |  83 ++++++++++++++++
+ src/modules/session-rotation/index.ts              |  49 +++++++++
+ 14 files changed, 413 insertions(+), 15 deletions(-)

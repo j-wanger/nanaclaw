@@ -173,15 +173,10 @@ describe('generateWikiContext', () => {
       path.join(articlesDir, 'my-article.md'),
       `---\ntitle: My Article Title\ntags: [test]\n---\n\nContent.\n`,
     );
-    fs.writeFileSync(
-      path.join(articlesDir, 'another-one.md'),
-      `---\ntitle: Another One\n---\n\nMore content.\n`,
-    );
+    fs.writeFileSync(path.join(articlesDir, 'another-one.md'), `---\ntitle: Another One\n---\n\nMore content.\n`);
     writeSchema(wikiDir, ['concepts']);
 
-    const jsonPath = writeWikisJson([
-      { name: 'slug-wiki', path: wikiDir, description: 'Slug test.' },
-    ]);
+    const jsonPath = writeWikisJson([{ name: 'slug-wiki', path: wikiDir, description: 'Slug test.' }]);
 
     const groupDir = path.join(tmpDir, 'group');
     fs.mkdirSync(groupDir, { recursive: true });
@@ -199,19 +194,11 @@ describe('generateWikiContext', () => {
     const patternsDir = path.join(wikiDir, 'articles', 'patterns');
     fs.mkdirSync(conceptsDir, { recursive: true });
     fs.mkdirSync(patternsDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(conceptsDir, 'concept-a.md'),
-      `---\ntitle: Concept A\n---\n\nContent.\n`,
-    );
-    fs.writeFileSync(
-      path.join(patternsDir, 'pattern-b.md'),
-      `---\ntitle: Pattern B\n---\n\nContent.\n`,
-    );
+    fs.writeFileSync(path.join(conceptsDir, 'concept-a.md'), `---\ntitle: Concept A\n---\n\nContent.\n`);
+    fs.writeFileSync(path.join(patternsDir, 'pattern-b.md'), `---\ntitle: Pattern B\n---\n\nContent.\n`);
     writeSchema(wikiDir, ['concepts', 'patterns']);
 
-    const jsonPath = writeWikisJson([
-      { name: 'grouped-wiki', path: wikiDir, description: 'Grouped test.' },
-    ]);
+    const jsonPath = writeWikisJson([{ name: 'grouped-wiki', path: wikiDir, description: 'Grouped test.' }]);
 
     const groupDir = path.join(tmpDir, 'group');
     fs.mkdirSync(groupDir, { recursive: true });
@@ -226,9 +213,7 @@ describe('generateWikiContext', () => {
   it('stays under 10000 chars per wiki for 150 articles', () => {
     writeSchema(wikiDir, ['alpha', 'beta', 'gamma']);
     writeArticles(wikiDir, 150);
-    const jsonPath = writeWikisJson([
-      { name: 'big-wiki', path: wikiDir, description: 'A wiki with many articles.' },
-    ]);
+    const jsonPath = writeWikisJson([{ name: 'big-wiki', path: wikiDir, description: 'A wiki with many articles.' }]);
 
     const groupDir = path.join(tmpDir, 'group');
     fs.mkdirSync(groupDir, { recursive: true });
@@ -243,19 +228,11 @@ describe('generateWikiContext', () => {
   it('uses slug as fallback when article has no title frontmatter', () => {
     const articlesDir = path.join(wikiDir, 'articles', 'misc');
     fs.mkdirSync(articlesDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(articlesDir, 'no-title.md'),
-      `---\ntags: [test]\n---\n\nContent without title.\n`,
-    );
-    fs.writeFileSync(
-      path.join(articlesDir, 'no-frontmatter.md'),
-      `# Just a heading\n\nNo YAML frontmatter at all.\n`,
-    );
+    fs.writeFileSync(path.join(articlesDir, 'no-title.md'), `---\ntags: [test]\n---\n\nContent without title.\n`);
+    fs.writeFileSync(path.join(articlesDir, 'no-frontmatter.md'), `# Just a heading\n\nNo YAML frontmatter at all.\n`);
     writeSchema(wikiDir, ['misc']);
 
-    const jsonPath = writeWikisJson([
-      { name: 'fallback-wiki', path: wikiDir, description: 'Fallback test.' },
-    ]);
+    const jsonPath = writeWikisJson([{ name: 'fallback-wiki', path: wikiDir, description: 'Fallback test.' }]);
 
     const groupDir = path.join(tmpDir, 'group');
     fs.mkdirSync(groupDir, { recursive: true });

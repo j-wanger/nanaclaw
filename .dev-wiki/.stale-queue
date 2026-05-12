@@ -154,3 +154,11 @@ src/modules/memory/context-builder.ts
 src/claude-md-compose.test.ts
 src/modules/memory/wiki-bridge.test.ts
 src/modules/memory/wiki-bridge.ts
+container/agent-runner/src/mcp-tools/session-end.test.ts
+container/agent-runner/src/mcp-tools/session-end.ts
+src/modules/session-rotation/index.ts
+src/modules/index.ts
+src/modules/session-rotation/index.test.ts
+src/delivery.ts
+container/agent-runner/src/mcp-tools/project-context.ts
+container/agent-runner/src/mcp-tools/project-context.test.ts

@@ -1,3 +1,18 @@
+---
+created: 2026-05-12T16:05:30Z
+trigger: auto-compaction
+transcript: /Users/jwang/.claude/projects/-Users-jwang-nanaclaw-groups-dm-with-wang/2ee89c70-cc00-457c-90f3-b5d7c6acbdd7.jsonl
+---
+
+## Recovery Instructions
+
+1. Search memory for category=correction to reload behavioral guidance
+2. Re-read .claude/rules/active-phase.md for phase context
+3. If .dev-wiki/ exists, read tasks.md and _CURRENT_STATE.md for task state
+4. Delete this file after loading
+
+## Active Phase (at compaction time)
+
 # Active Phase Context
 
 Phase: 47 -- Autonomous Session Rotation

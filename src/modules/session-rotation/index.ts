@@ -4,10 +4,7 @@ import { writeSessionMessage } from '../../session-manager.js';
 import { log } from '../../log.js';
 import type { Session } from '../../types.js';
 
-async function handleEndSession(
-  content: Record<string, unknown>,
-  session: Session,
-): Promise<void> {
+async function handleEndSession(content: Record<string, unknown>, session: Session): Promise<void> {
   const reason = (content.reason as string) || 'end_session';
   const resumePrompt = content.resume_prompt as string | undefined;
 

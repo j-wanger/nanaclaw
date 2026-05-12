@@ -1,0 +1,70 @@
+
+---
+commit: f8952879e02a96a1ae12e6ca1a99adb977868e2e
+message: Phase 44: Curated article embedding + index-in-context
+time: 2026-05-08T09:58:59-04:00
+files:
+ .claude/rules/active-knowledge.md                  |  28 ---
+ .claude/rules/active-phase.md                      |   7 +-
+ .claude/rules/working-knowledge.md                 |   4 +
+ .dev-wiki/.session-end                             |   6 +-
+ .dev-wiki/.stale-queue                             |   2 +
+ .dev-wiki/_CURRENT_STATE.md                        |  30 ++-
+ .../curated-article-embedding-approach.md          |  31 +++
+ ...-phase-44-curated-article-embedding-complete.md |  50 +++++
+ .../phases/phase-44-curated-article-embedding.md   |  42 +++++
+ .../status/2026-05-07-codebase-snapshot.md         |  33 ++++
+ .dev-wiki/index.md                                 |   3 +
+ .dev-wiki/log.md                                   |   2 +
+ .dev-wiki/tasks.md                                 |   9 +
+ .../src/mcp-tools/knowledge-tools.test.ts          | 148 +++++++++++++++
+ .../agent-runner/src/mcp-tools/knowledge-tools.ts  |  48 +++--
+ .../src/mcp-tools/knowledge-vector-store.ts        |   2 +-
+ .../src/mcp-tools/sentence-embed-pipeline.test.ts  | 210 ++-------------------
+ .../src/mcp-tools/sentence-embed-pipeline.ts       |  30 ++-
+ container/skills/wiki-manager/instructions.md      |   6 +
+ container/skills/wiki-manager/knowledge-routing.md |  13 +-
+ src/modules/memory/wiki-bridge.test.ts             |  98 +++++++++-
+ src/modules/memory/wiki-bridge.ts                  |  58 +++++-
+ 22 files changed, 585 insertions(+), 275 deletions(-)
+
+---
+commit: cf66be786f2ed1e69d976861648913c1bca14588
+message: Phase 46: Domain retrieval subagents + curator improvements
+time: 2026-05-09T11:58:19-04:00
+files:
+ .claude/rules/active-phase.md                      |  13 +--
+ .dev-wiki/_CURRENT_STATE.md                        |  28 ++---
+ .../decisions/retrieval-subagent-sdk-pattern.md    |  38 +++++++
+ ...ain-retrieval-subagents-curator-improvements.md |  40 +++++++
+ .dev-wiki/index.md                                 |   1 +
+ .dev-wiki/log.md                                   |   1 +
+ .dev-wiki/tasks.md                                 |   9 ++
+ SOUL.md                                            |   6 +
+ container/experts/retriever-template.md            |  89 +++++++++++++++
+ container/experts/wiki-configs.md                  |  87 +++++++++++++++
+ container/skills/expert-routing/SKILL.md           |  96 ++++++++++++++++
+ container/skills/wiki-curator/SKILL.md             | 123 ++++++++++++++++-----
+ container/skills/wiki-curator/instructions.md      |  60 +++++++++-
+ 13 files changed, 541 insertions(+), 50 deletions(-)
+
+---
+commit: 006bdaa6fcb188ea4cf491428f86313b1f044b21
+message: Phase 47: Autonomous session rotation — end_session MCP tool
+time: 2026-05-10T00:47:02-04:00
+files:
+ .claude/rules/active-phase.md                      |  13 +--
+ .dev-wiki/_CURRENT_STATE.md                        |  16 +--
+ ...hase-47-autonomous-session-rotation-approach.md |  48 +++++++++
+ .../phases/phase-47-autonomous-session-rotation.md |  34 +++++++
+ .dev-wiki/index.md                                 |   3 +-
+ .dev-wiki/log.md                                   |   1 +
+ .dev-wiki/tasks.md                                 |   6 ++
+ container/agent-runner/src/mcp-tools/index.ts      |   1 +
+ .../agent-runner/src/mcp-tools/session-end.test.ts | 110 +++++++++++++++++++++
+ .../agent-runner/src/mcp-tools/session-end.ts      |  59 +++++++++++
+ src/delivery.ts                                    |   4 +
+ src/modules/index.ts                               |   1 +
+ src/modules/session-rotation/index.test.ts         |  83 ++++++++++++++++
+ src/modules/session-rotation/index.ts              |  49 +++++++++
+ 14 files changed, 413 insertions(+), 15 deletions(-)

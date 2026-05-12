@@ -1,10 +1,10 @@
-ended: 2026-05-08T13:58:27
-pending_commit: no
-session_buffer: no
+ended: 2026-05-12T16:20:21
+pending_commit: yes
+session_buffer: yes
 debriefed: no
 recent_commits:
-9dbe5a3 Phase 43 debrief: mark complete, journal entry, refresh active-phase
-7fb148c Phase 43: Remove stale pipeline references from skill instructions + codify inline citation convention
-56aa6ce Phase 42: Remove Qwen-dependent summarization pipeline + claim provenance tools
-e74eb70 Phase 41: Fix 3 memory migration bugs reported by Nana
-8e0ff85 Phase 40: Auto-migrate MEMORY.md at spawn + claim_dedup guard
+006bdaa Phase 47: Autonomous session rotation — end_session MCP tool
+cf66be7 Phase 46: Domain retrieval subagents + curator improvements
+dcb80c7 Persona prominence: inline CLAUDE.local.md at top of composed CLAUDE.md + trim fragments
+768e1f7 Phase 45: UX, persona, and curation fixes
+f895287 Phase 44: Curated article embedding + index-in-context

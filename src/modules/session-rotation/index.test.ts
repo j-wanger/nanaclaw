@@ -47,11 +47,7 @@ describe('end_session delivery handler', () => {
 
   it('writes resume_prompt as inbound message with processAfter delay', async () => {
     const handler = getDeliveryAction('end_session')!;
-    await handler(
-      { reason: 'rotating', resume_prompt: 'Continue curation' },
-      mockSession as any,
-      null as any,
-    );
+    await handler({ reason: 'rotating', resume_prompt: 'Continue curation' }, mockSession as any, null as any);
 
     expect(killContainer).toHaveBeenCalledWith('sess-test-123', 'rotating');
     expect(writeSessionMessage).toHaveBeenCalledWith(

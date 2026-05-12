@@ -141,13 +141,21 @@ export function buildArticleIndex(wikiPath: string): Map<string, Array<{ slug: s
   // Sort categories and articles within each category
   const sorted = new Map<string, Array<{ slug: string; title: string }>>();
   for (const cat of [...index.keys()].sort()) {
-    sorted.set(cat, index.get(cat)!.sort((a, b) => a.slug.localeCompare(b.slug)));
+    sorted.set(
+      cat,
+      index.get(cat)!.sort((a, b) => a.slug.localeCompare(b.slug)),
+    );
   }
 
   return sorted;
 }
 
-function renderWikiSection(wiki: WikiEntry, articleCount: number, roots: string[], articleIndex: Map<string, Array<{ slug: string; title: string }>>): string {
+function renderWikiSection(
+  wiki: WikiEntry,
+  articleCount: number,
+  roots: string[],
+  articleIndex: Map<string, Array<{ slug: string; title: string }>>,
+): string {
   const lines: string[] = [];
   lines.push(`## ${wiki.name} (${articleCount} articles)`);
   lines.push(wiki.description);
@@ -157,7 +165,7 @@ function renderWikiSection(wiki: WikiEntry, articleCount: number, roots: string[
   if (articleIndex.size > 0) {
     lines.push('Articles:');
     for (const [category, articles] of articleIndex) {
-      const entries = articles.map((a) => a.title !== a.slug ? `${a.slug} (${a.title})` : a.slug);
+      const entries = articles.map((a) => (a.title !== a.slug ? `${a.slug} (${a.title})` : a.slug));
       lines.push(`  ${category}: ${entries.join(', ')}`);
     }
   }

@@ -161,7 +161,7 @@
 - [[phase-44-curated-article-embedding|Phase 44: Curated Article Embedding + Index-in-Context]] — completed
 - [[phase-45-ux-persona-curation-fixes|Phase 45: UX, Persona, and Curation Fixes]] — completed
 - [[phase-46-domain-retrieval-subagents-curator-improvements|Phase 46: Domain Retrieval Subagents + Curator Improvements]] — completed
-- [[phase-47-autonomous-session-rotation|Phase 47: Autonomous Session Rotation]] — active
+- [[phase-47-autonomous-session-rotation|Phase 47: Autonomous Session Rotation]] — completed
 
 ## Decisions
 
@@ -190,9 +190,11 @@
 - [[phase-26-sentence-embedding-store-approach|Phase 26: Unified Knowledge Vector Store]] — medium confidence
 - [[phase-25-session-resume-entity-extraction-approach|Phase 25: Session Resume + Entity Extraction]] — medium confidence
 - [[phase-24-deep-work-session-reliability-approach|Phase 24: Deep Work Session Reliability]] — medium confidence
+- [[phase-47-autonomous-session-rotation-approach|Phase 47: Autonomous Session Rotation]] — high confidence
 
 ## Journal (recent 10)
 
+- [2026-05-09] [[2026-05-09-phase-47-autonomous-session-rotation-complete|Phase 47: Autonomous Session Rotation Complete]] — 3 tasks, end_session MCP tool + host delivery handler, resume_prompt re-wake
 - [2026-05-08] [[2026-05-08-phase-45-ux-persona-curation-complete|Phase 45: UX, Persona, and Curation Fixes Complete]] — 6 tasks, per-group persona, wiki-curator skill, PostCompact hook
 - [2026-05-07] [[2026-05-07-phase-44-curated-article-embedding-complete|Phase 44: Curated Article Embedding Complete]] — 6 tasks, curated type, article index at spawn
 - [2026-05-06] [[2026-05-06-phase-43-instruction-cleanup-complete|Phase 43: Instruction Cleanup Complete]] — 6 tasks, skill instruction updates, citation convention
