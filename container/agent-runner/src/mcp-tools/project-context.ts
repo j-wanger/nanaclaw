@@ -111,8 +111,55 @@ ${description}
 - [decisions/](decisions/) — Design decision records
 - [lessons.md](lessons.md) — Accumulated project insights
 - [rules.md](rules.md) — Project conventions
+- [PROTOCOL.md](PROTOCOL.md) — Task execution protocol for implementers
+`,
+  'PROTOCOL.md': () => `# Task Protocol
+
+Tasks in \`.project/work/tasks.md\` are planned externally.
+Do not restructure tasks or add new ones without instruction.
+
+## Session Start
+1. Read \`.project/state.md\` and \`decisions/\` for project context
+2. Read \`.project/rules.md\` for project-specific constraints
+3. If \`.project/work/\` exists:
+   - Read \`progress.md\` for current position
+   - Read \`tasks.md\` for the task list
+   - Find the next uncompleted task (marked \`[ ]\`)
+   - State which task you are working on
+
+## Working
+- Work tasks in order — do not skip or reorder
+- Each task may have a \`success:\` field — run it to verify before marking done
+- Mark completed tasks \`[x]\` in tasks.md
+- Update progress.md after each task (increment current_task, note what was done)
+- Commit meaningful changes after each completed task
+
+## Blocked
+After 3 failed attempts on a task:
+1. Mark it \`[blocked: reason]\` in tasks.md
+2. Update progress.md with blocker details
+3. Ask the user whether to skip or stop
+
+## All Tasks Done
+1. Update progress.md status to \`complete\`
+2. Update \`.project/state.md\` with what was accomplished
+3. Report completion
+4. Do NOT delete \`.project/\` or \`.project/work/\`
+
+## Compaction Recovery
+1. Read \`.project/work/progress.md\` for current position
+2. Read \`.project/work/tasks.md\` for next uncompleted task
+3. State: "Resuming task N: <description>"
+4. Continue from that task
 `,
 };
+
+const CLAUDE_RULES_POINTER = (name: string) => `# Project Context — ${name}
+
+This project uses \`.project/\` for knowledge and task management.
+At session start, read \`.project/state.md\` for status. If \`.project/work/\`
+exists, follow the protocol in \`.project/PROTOCOL.md\`.
+`;
 
 async function handleActivate(args: Record<string, unknown>) {
   const projectName = (args.project as string || '').trim();
@@ -202,7 +249,16 @@ async function handleInit(args: Record<string, unknown>) {
     fs.writeFileSync(path.join(projectDir, 'lessons.md'), PROJECT_TEMPLATE['lessons.md']());
     fs.writeFileSync(path.join(projectDir, 'rules.md'), PROJECT_TEMPLATE['rules.md']());
     fs.writeFileSync(path.join(projectDir, 'index.md'), PROJECT_TEMPLATE['index.md'](projectName, description || ''));
-    created.push('.project/state.md', '.project/decisions/', '.project/lessons.md', '.project/rules.md', '.project/index.md');
+    fs.writeFileSync(path.join(projectDir, 'PROTOCOL.md'), PROJECT_TEMPLATE['PROTOCOL.md']());
+    created.push('.project/state.md', '.project/decisions/', '.project/lessons.md', '.project/rules.md', '.project/index.md', '.project/PROTOCOL.md');
+
+    const rulesDir = path.join(projectPath, '.claude', 'rules');
+    if (!fs.existsSync(rulesDir)) fs.mkdirSync(rulesDir, { recursive: true });
+    const rulesFile = path.join(rulesDir, 'project-context.md');
+    if (!fs.existsSync(rulesFile)) {
+      fs.writeFileSync(rulesFile, CLAUDE_RULES_POINTER(projectName));
+      created.push('.claude/rules/project-context.md');
+    }
   }
 
   if (!existing) {

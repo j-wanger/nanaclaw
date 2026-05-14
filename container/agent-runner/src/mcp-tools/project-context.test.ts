@@ -95,10 +95,30 @@ describe('project_context tool integration', () => {
     expect(fs.existsSync(path.join(projectDir, '.project', 'lessons.md'))).toBe(true);
     expect(fs.existsSync(path.join(projectDir, '.project', 'rules.md'))).toBe(true);
     expect(fs.existsSync(path.join(projectDir, '.project', 'index.md'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, '.project', 'PROTOCOL.md'))).toBe(true);
+
+    const protocol = fs.readFileSync(path.join(projectDir, '.project', 'PROTOCOL.md'), 'utf8');
+    expect(protocol).toContain('Task Protocol');
+    expect(protocol).toContain('tasks.md');
+
+    expect(fs.existsSync(path.join(projectDir, '.claude', 'rules', 'project-context.md'))).toBe(true);
+    const pointer = fs.readFileSync(path.join(projectDir, '.claude', 'rules', 'project-context.md'), 'utf8');
+    expect(pointer).toContain('.project/');
+    expect(pointer).toContain('PROTOCOL.md');
 
     const projects = loadProjects(projectsPath);
     expect(projects).toHaveLength(1);
     expect(projects[0].name).toBe('myproject');
+  });
+
+  it('init does not overwrite existing .claude/rules/project-context.md', async () => {
+    fs.mkdirSync(path.join(projectDir, '.claude', 'rules'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.claude', 'rules', 'project-context.md'), '# Custom rules');
+
+    await callTool({ action: 'init', project: 'myproject', path: projectDir });
+
+    const pointer = fs.readFileSync(path.join(projectDir, '.claude', 'rules', 'project-context.md'), 'utf8');
+    expect(pointer).toBe('# Custom rules');
   });
 
   it('init skips .project/ creation when it already exists', async () => {
