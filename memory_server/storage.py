@@ -893,8 +893,10 @@ def _parse_export_markdown(markdown: str) -> list[dict]:
 
 
 def _sanitize_fts_query(query: str) -> str:
-    tokens = query.strip().split()
-    safe = [t for t in tokens if t and not any(c in t for c in '()"*:')]
+    cleaned = re.sub(r'[^\w\s]', ' ', query)
+    tokens = cleaned.split()
+    fts_keywords = {'AND', 'OR', 'NOT', 'NEAR'}
+    safe = [t for t in tokens if t and t.upper() not in fts_keywords]
     if not safe:
         return ""
     return " OR ".join(safe)
